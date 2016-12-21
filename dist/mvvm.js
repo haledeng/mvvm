@@ -119,7 +119,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		function Compiler(opts) {
 			_classCallCheck(this, Compiler);
 
-			this.$el = typeof opts.el === 'strnig' ? document.querySelector(opts.el) : opts.el;
+			this.$el = typeof opts.el === 'string' ? document.querySelector(opts.el) : opts.el;
 			this.$vm = opts.vm;
 			this.$watcher = new _watcher2.default();
 			this.init();
@@ -128,7 +128,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		_createClass(Compiler, [{
 			key: 'init',
 			value: function init() {
-				console.log(this.$el);
 				this.traversalNode(this.$el);
 			}
 		}, {
@@ -155,8 +154,6 @@ return /******/ (function(modules) { // webpackBootstrap
 					var item = attrs[i];
 					if (/^v\-(\w*)/.test(item.name)) {
 						this.$watcher.on(item.value, function () {
-							var args = [].slice.call(arguments);
-							// console.log('rerender', args[0]);
 							self._parseAttr(node, item);
 						});
 						this._parseAttr(node, item);
@@ -200,7 +197,6 @@ return /******/ (function(modules) { // webpackBootstrap
 				// v-model监听
 				node.addEventListener('change', function () {}, false);
 				node.addEventListener('keyup', function () {
-					console.log('change');
 					if (node.value != oldVal) {
 						self.$vm.$data[key] = node.value;
 					}
@@ -290,7 +286,11 @@ return /******/ (function(modules) { // webpackBootstrap
 			}
 		}, {
 			key: 'off',
-			value: function off(name, callback) {}
+			value: function off(name) {
+				if (Watcher._evMaps[name]) {
+					delete Watcher._evMaps[name];
+				}
+			}
 		}, {
 			key: 'emit',
 			value: function emit(name) {
@@ -356,7 +356,6 @@ return /******/ (function(modules) { // webpackBootstrap
 					set: function set(newVal) {
 						val = newVal;
 						self.$watcher.emit(key, newVal);
-						// update;
 					},
 					get: function get() {
 						return val;

@@ -67,10 +67,7 @@ class Compiler {
 		var oldVal = this.$vm.$data[key];
 		var self = this;
 		// v-model监听
-		node.addEventListener('change', function() {
-
-		}, false);
-		node.addEventListener('keyup', function() {
+		node.addEventListener('input', function() {
 			if (node.value != oldVal) {
 				self.$vm.$data[key] = node.value;
 			}
@@ -78,6 +75,9 @@ class Compiler {
 	}
 	isTextNode(node) {
 		return node.children.length === 0 && node.childNodes.length !== 0;
+	}
+	bindWatch() {
+
 	}
 	parseTextNode(node) {
 		var self = this;

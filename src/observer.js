@@ -5,20 +5,24 @@ class Observer {
 		this.addObserverForAllProperty();
 		this.$watcher = new Watcher();
 	}
-	addObserverForAllProperty() {
-		for (var key in this.$data) {
-			if (this.$data.hasOwnProperty(key)) {
-				this.addObserver(this.$data, key, this.$data[key]);
-			}
-		}
+	init() {
+		this.observe(this.$data);
 	}
-	addObserver(data, key, val) {
+	observe(data) {
+		if (!data || typeof data !== 'object') return;
+		var self = this;
+		Object.keys(data).forEach(function(key) {
+			self.defineReactive(data, key, data[key]);
+		});
+	}
+	defineReactive(data, key, val) {
 		var self = this;
 		Object.defineProperty(data, key, {
 			configurable: false,
 			enumerable: true,
 			set: function(newVal) {
 				val = newVal;
+				self.observe(data);
 				self.$watcher.emit(key, newVal);
 			},
 			get: function() {

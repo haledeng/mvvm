@@ -19,7 +19,7 @@ gulp.task('es6', function() {
 		.pipe(babel({
 			presets: ['es2015']
 		}))
-		.pipe(gulp.dest('./compile/'))
+		.pipe(gulp.dest('./compile/'));
 });
 
 
@@ -32,7 +32,7 @@ gulp.task('webpack', ['es6'], function() {
 				filename: 'mvvm.js'
 			}
 		}))
-		.pipe(gulp.dest('./dist/'))
+		.pipe(gulp.dest('./dist/'));
 });
 
 // 信息流
@@ -41,5 +41,5 @@ gulp.task('dist', ['webpack']);
 
 // development
 gulp.task('dev', function() {
-	gulp.watch('./**/**', ['dist'])
+	gulp.watch('./**/**', ['dist']);
 });

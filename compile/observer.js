@@ -42,7 +42,6 @@ var Observer = function () {
 				set: function set(newVal) {
 					val = newVal;
 					self.$watcher.emit(key, newVal);
-					// update;
 				},
 				get: function get() {
 					return val;

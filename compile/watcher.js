@@ -25,7 +25,11 @@ var Watcher = function () {
 		}
 	}, {
 		key: 'off',
-		value: function off(name, callback) {}
+		value: function off(name) {
+			if (Watcher._evMaps[name]) {
+				delete Watcher._evMaps[name];
+			}
+		}
 	}, {
 		key: 'emit',
 		value: function emit(name) {

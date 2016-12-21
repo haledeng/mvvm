@@ -24,7 +24,7 @@ var Compiler = function () {
 	function Compiler(opts) {
 		_classCallCheck(this, Compiler);
 
-		this.$el = typeof opts.el === 'strnig' ? document.querySelector(opts.el) : opts.el;
+		this.$el = typeof opts.el === 'string' ? document.querySelector(opts.el) : opts.el;
 		this.$vm = opts.vm;
 		this.$watcher = new _watcher2.default();
 		this.init();
@@ -33,7 +33,6 @@ var Compiler = function () {
 	_createClass(Compiler, [{
 		key: 'init',
 		value: function init() {
-			console.log(this.$el);
 			this.traversalNode(this.$el);
 		}
 	}, {
@@ -60,8 +59,6 @@ var Compiler = function () {
 				var item = attrs[i];
 				if (/^v\-(\w*)/.test(item.name)) {
 					this.$watcher.on(item.value, function () {
-						var args = [].slice.call(arguments);
-						// console.log('rerender', args[0]);
 						self._parseAttr(node, item);
 					});
 					this._parseAttr(node, item);
@@ -105,7 +102,6 @@ var Compiler = function () {
 			// v-model监听
 			node.addEventListener('change', function () {}, false);
 			node.addEventListener('keyup', function () {
-				console.log('change');
 				if (node.value != oldVal) {
 					self.$vm.$data[key] = node.value;
 				}
