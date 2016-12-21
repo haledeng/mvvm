@@ -1,0 +1,2 @@
+// event hander
+"use strict";

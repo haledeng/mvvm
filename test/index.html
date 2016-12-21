@@ -7,13 +7,13 @@
 <body>
 	<div id="app">
 		<p v-text="a + b"></p>
-
-		<p>{{message}}</p>
-		<p v-text="message"></p>
-		<input type="text" v-model="message">
+		<!-- <p>{{message}}</p> -->
+		<p v-text="message" v-on:click="add"></p>
+<!-- 		<input type="text" v-model="message">
 		<p v-text="inner.msg"></p>
 		<input type="text" v-model="inner.msg">
 		<p v-text="add.a + add.b"></p>
+		<p v-on:click="change">click me</p> -->
 	</div>
 	<script src="../dist/mvvm.js"></script>
 	<script>
@@ -30,6 +30,14 @@
 				},
 				a: 1,
 				b: 2
+			},
+			methods: {
+				change: function() {
+					this.message = 'hell change!';
+				},
+				add: function() {
+					this.a += 2;
+				}
 			}
 		});
 

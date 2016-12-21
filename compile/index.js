@@ -24,6 +24,7 @@ var MVVM = function MVVM(options) {
 
 	this.$data = options.data || {};
 	this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
+	this.methods = options.methods;
 	new _observer2.default(this.$data);
 	new _compiler2.default({
 		el: this.$el,

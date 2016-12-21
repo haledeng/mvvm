@@ -31,7 +31,7 @@ var vText = function vText(node, scope, key) {
 // 添加上下文
 // AST?
 var addScope = function addScope(exp) {
-	var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
+	var prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'scope';
 
 	exp = _.trim(exp);
 	// x.y
