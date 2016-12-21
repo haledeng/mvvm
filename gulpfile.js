@@ -12,6 +12,7 @@ var concat = require('gulp-concat');
 // gulp webpack
 var webpack = require('webpack-stream');
 var babel = require('gulp-babel');
+// var remove = require('gulp-remove-content');
 
 
 gulp.task('es6', function() {
@@ -19,6 +20,9 @@ gulp.task('es6', function() {
 		.pipe(babel({
 			presets: ['es2015']
 		}))
+		// .pipe(remove({
+		// 	match: /(\'|\")use\sstrict(\'|\");/
+		// }))
 		.pipe(gulp.dest('./compile/'));
 });
 

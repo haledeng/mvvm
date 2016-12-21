@@ -14,6 +14,8 @@ var _watcher = require('./watcher');
 
 var _watcher2 = _interopRequireDefault(_watcher);
 
+var _directive = require('./directive');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -26,7 +28,6 @@ var Compiler = function () {
 
 		this.$el = typeof opts.el === 'string' ? document.querySelector(opts.el) : opts.el;
 		this.$vm = opts.vm;
-		this.$watcher = new _watcher2.default();
 		this.init();
 	}
 
@@ -58,7 +59,7 @@ var Compiler = function () {
 			for (var i = 0; i < attrs.length; i++) {
 				var item = attrs[i];
 				if (/^v\-(\w*)/.test(item.name)) {
-					this.$watcher.on(item.value, function () {
+					self.bindWatch(self.$vm.$data, item.value, function (scope) {
 						self._parseAttr(node, item);
 					});
 					this._parseAttr(node, item);
@@ -73,20 +74,22 @@ var Compiler = function () {
 			var self = this;
 			var attrReg = /^v\-(\w*)/;
 			var matches = attr.name.match(attrReg);
-			var tagName = node.tagName.toLowerCase();
+			// var tagName = node.tagName.toLowerCase();
 			var property = matches[1];
 			switch (property) {
 				// v-model
 				case 'model':
-					if (tagName === 'input') {
-						node.value = self.$vm.$data[attr.value] || '';
-					} else if (tagName === 'textarea') {
-						node.innerHTML = this.$vm.$data[attr.value] || '';
-					}
+					// if (tagName === 'input') {
+					// 	node.value = self.$vm.$data[attr.value] || '';
+					// } else if (tagName === 'textarea') {
+					// 	node.innerHTML = this.$vm.$data[attr.value] || '';
+					// }
+					(0, _directive.vModel)(node, self.$vm.$data, attr.value);
 					break;
 				// v-text
 				case 'text':
-					node.innerHTML = this.$vm.$data[attr.value] || '';
+					(0, _directive.vText)(node, this.$vm.$data, attr.value);
+					// node.innerHTML = this.$vm.$data[attr.value] || '';
 					break;
 				default:
 					break;
@@ -97,13 +100,14 @@ var Compiler = function () {
 		value: function addInputListener(node, attr) {
 			if (attr.name !== 'v-model') return;
 			var key = attr.value;
-			var oldVal = this.$vm.$data[key];
+			var oldVal = (0, _directive.calculateExpression)(this.$vm.$data, key);
+			// var oldVal = this.$vm.$data[key];
 			var self = this;
 			// v-model监听
-			node.addEventListener('change', function () {}, false);
-			node.addEventListener('keyup', function () {
+			node.addEventListener('input', function () {
 				if (node.value != oldVal) {
-					self.$vm.$data[key] = node.value;
+					(0, _directive.setScopeValue)(self.$vm.$data, key, node.value);
+					// self.$vm.$data[key] = node.value;
 				}
 			}, false);
 		}
@@ -113,26 +117,34 @@ var Compiler = function () {
 			return node.children.length === 0 && node.childNodes.length !== 0;
 		}
 	}, {
+		key: 'bindWatch',
+		value: function bindWatch(vm, exp, callback) {
+			var noop = function noop() {};
+			new _watcher2.default({
+				vm: vm,
+				exp: exp,
+				callback: callback || noop
+			});
+		}
+	}, {
 		key: 'parseTextNode',
 		value: function parseTextNode(node) {
 			var self = this;
 			var html = node.innerHTML;
 			var keys = [];
-			var _replace = function _replace() {
+			var _replace = function _replace(scope) {
 				var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
 					if (!keys.length) {
 						keys.push(name);
 					}
 					name = _.trim(name);
-					return self.$vm.$data[name] || '';
+					return scope[name] || '';
 				});
 				node.innerHTML = newHtml;
 			};
-			_replace();
+			_replace(this.$vm.$data);
 			keys.forEach(function (key) {
-				self.$watcher.on(key, function () {
-					_replace();
-				});
+				self.bindWatch(self.$vm.$data, key, _replace);
 			});
 		}
 	}]);

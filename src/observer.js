@@ -1,12 +1,10 @@
-import Watcher from './watcher';
+// import Watcher from './watcher';
+import Dep from './depender';
 class Observer {
 	constructor(data) {
 		this.$data = data;
-		this.addObserverForAllProperty();
-		this.$watcher = new Watcher();
-	}
-	init() {
 		this.observe(this.$data);
+		// this.$watcher = new Watcher();
 	}
 	observe(data) {
 		if (!data || typeof data !== 'object') return;
@@ -16,19 +14,24 @@ class Observer {
 		});
 	}
 	defineReactive(data, key, val) {
+		var dep = new Dep()
 		var self = this;
 		// 多层对象嵌套
-		// self.observe(data);
+		self.observe(val);
 		Object.defineProperty(data, key, {
 			configurable: false,
 			enumerable: true,
 			set: function(newVal) {
-				val = newVal;
-				self.observe(data);
+				if (newVal !== val) {
+					val = newVal;
+					self.observe(newVal);
+					dep.notify();
+				}
 				// TODO: key may be same
-				self.$watcher.emit(key, newVal);
+				// self.$watcher.emit(key, newVal);
 			},
 			get: function() {
+				Dep.target && dep.addSub(Dep.target);
 				return val;
 			}
 		});

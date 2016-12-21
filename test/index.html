@@ -6,16 +6,30 @@
 </head>
 <body>
 	<div id="app">
+		<p v-text="a + b"></p>
+
 		<p>{{message}}</p>
 		<p v-text="message"></p>
 		<input type="text" v-model="message">
+		<p v-text="inner.msg"></p>
+		<input type="text" v-model="inner.msg">
+		<p v-text="add.a + add.b"></p>
 	</div>
 	<script src="../dist/mvvm.js"></script>
 	<script>
 		var mvvm = new MVVM({
 			el: '#app',
 			data: {
-				message: 'hello MVVM' 
+				message: 'hello MVVM',
+				inner: {
+					msg: 'hello'
+				},
+				add: {
+					a: 3,
+					b: 4
+				},
+				a: 1,
+				b: 2
 			}
 		});
 

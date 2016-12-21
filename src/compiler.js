@@ -1,10 +1,15 @@
 import * as _ from './util';
 import Watcher from './watcher';
+import {
+	vModel,
+	vText,
+	calculateExpression,
+	setScopeValue
+} from './directive';
 class Compiler {
 	constructor(opts) {
 		this.$el = typeof opts.el === 'string' ? document.querySelector(opts.el) : opts.el;
 		this.$vm = opts.vm;
-		this.$watcher = new Watcher();
 		this.init();
 	}
 	init() {
@@ -29,7 +34,7 @@ class Compiler {
 		for (var i = 0; i < attrs.length; i++) {
 			var item = attrs[i];
 			if (/^v\-(\w*)/.test(item.name)) {
-				this.$watcher.on(item.value, function() {
+				self.bindWatch(self.$vm.$data, item.value, function(scope) {
 					self._parseAttr(node, item);
 				});
 				this._parseAttr(node, item);
@@ -42,20 +47,22 @@ class Compiler {
 		var self = this;
 		var attrReg = /^v\-(\w*)/;
 		var matches = attr.name.match(attrReg);
-		var tagName = node.tagName.toLowerCase();
+		// var tagName = node.tagName.toLowerCase();
 		var property = matches[1];
 		switch (property) {
 			// v-model
 			case 'model':
-				if (tagName === 'input') {
-					node.value = self.$vm.$data[attr.value] || '';
-				} else if (tagName === 'textarea') {
-					node.innerHTML = this.$vm.$data[attr.value] || '';
-				}
+				// if (tagName === 'input') {
+				// 	node.value = self.$vm.$data[attr.value] || '';
+				// } else if (tagName === 'textarea') {
+				// 	node.innerHTML = this.$vm.$data[attr.value] || '';
+				// }
+				vModel(node, self.$vm.$data, attr.value);
 				break;
 				// v-text
 			case 'text':
-				node.innerHTML = this.$vm.$data[attr.value] || '';
+				vText(node, this.$vm.$data, attr.value);
+				// node.innerHTML = this.$vm.$data[attr.value] || '';
 				break;
 			default:
 				break;
@@ -64,40 +71,45 @@ class Compiler {
 	addInputListener(node, attr) {
 		if (attr.name !== 'v-model') return;
 		var key = attr.value;
-		var oldVal = this.$vm.$data[key];
+		var oldVal = calculateExpression(this.$vm.$data, key);
+		// var oldVal = this.$vm.$data[key];
 		var self = this;
 		// v-model监听
 		node.addEventListener('input', function() {
 			if (node.value != oldVal) {
-				self.$vm.$data[key] = node.value;
+				setScopeValue(self.$vm.$data, key, node.value);
+				// self.$vm.$data[key] = node.value;
 			}
 		}, false);
 	}
 	isTextNode(node) {
 		return node.children.length === 0 && node.childNodes.length !== 0;
 	}
-	bindWatch() {
-
+	bindWatch(vm, exp, callback) {
+		var noop = function() {};
+		new Watcher({
+			vm: vm,
+			exp: exp,
+			callback: callback || noop
+		});
 	}
 	parseTextNode(node) {
 		var self = this;
 		var html = node.innerHTML;
 		var keys = [];
-		const _replace = () => {
+		const _replace = (scope) => {
 			var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
 				if (!keys.length) {
 					keys.push(name);
 				}
 				name = _.trim(name);
-				return self.$vm.$data[name] || '';
+				return scope[name] || '';
 			});
 			node.innerHTML = newHtml;
-		}
-		_replace();
+		};
+		_replace(this.$vm.$data);
 		keys.forEach(function(key) {
-			self.$watcher.on(key, function() {
-				_replace();
-			});
+			self.bindWatch(self.$vm.$data, key, _replace);
 		});
 	}
 }
