@@ -1,7 +1,7 @@
-# contents
+# Contents
+A MVVM test library for study. **Do not use in project**
 
-
-### 要素
-+ 指令解析
-+ 数据劫持
-+ 发布/订阅
+### Main
++ compiler. Directives, filters and etc.
++ Define reactive property.
++ publish/subscribe.
