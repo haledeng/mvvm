@@ -17,12 +17,15 @@ class Observer {
 	}
 	defineReactive(data, key, val) {
 		var self = this;
+		// 多层对象嵌套
+		// self.observe(data);
 		Object.defineProperty(data, key, {
 			configurable: false,
 			enumerable: true,
 			set: function(newVal) {
 				val = newVal;
 				self.observe(data);
+				// TODO: key may be same
 				self.$watcher.emit(key, newVal);
 			},
 			get: function() {
