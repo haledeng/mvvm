@@ -63,17 +63,16 @@ var Watcher = function () {
 		value: function update() {
 			var newVal = this.get();
 			var oldVal = this.value;
-			if (oldVal != newVal) {
-				this.value = newVal;
-				// this.callback.call(this.vm, newVal, oldVal);
-				this.callback(this.vm, newVal, oldVal);
-			}
+			// @TODO: [], {}引用类型，指向了同一个值
+			// if (oldVal != newVal) {
+			this.value = newVal;
+			this.callback(this.vm, newVal, oldVal);
+			// }
 		}
 	}, {
 		key: 'get',
 		value: function get() {
 			_depender2.default.target = this;
-			// var value = this.vm[this.exp];
 			var value = (0, _directive.calculateExpression)(this.vm, this.exp);
 			_depender2.default.target = null;
 			return value;

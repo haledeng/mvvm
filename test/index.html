@@ -3,20 +3,34 @@
 <head>
 	<meta charset="UTF-8">
 	<title>MVVM Framework</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		html, body, pre {
+			font-family: 'Consolas';
+		}
+
+		input {
+			display: block;
+			line-height: 30px;
+			font-size: 14px;
+			padding-left: 10px;
+		}
+		input, p {
+			margin: 5px;
+		}
+		pre {
+			border: 1px solid #eee;
+			height: 300px;
+			overflow-x: hidden;
+			overflow-y: scroll;
+		}
+	</style>
 </head>
 <body>
-	<div id="app">
-		<p v-text="a + b"></p>
-		<!-- <p>{{message}}</p> -->
-		<p v-text="message" v-on:click="add"></p>
-<!-- 		<input type="text" v-model="message">
-		<p v-text="inner.msg"></p>
-		<input type="text" v-model="inner.msg">
-		<p v-text="add.a + add.b"></p>
-		<p v-on:click="change">click me</p> -->
-	</div>
-	<script src="../dist/mvvm.js"></script>
-	<script>
+		<pre>
 		var mvvm = new MVVM({
 			el: '#app',
 			data: {
@@ -37,6 +51,56 @@
 				},
 				add: function() {
 					this.a += 2;
+				}
+			}
+		});
+		</pre>
+	<div id="app">
+<!-- 		<p>v-text="a + b":<span v-text="a + b" ></span></p>
+		<p>{{message}}</p>
+		<p v-text="message" v-on:click="add"></p>
+		<input type="text" v-model="message">
+		<p>v-text="inner.msg": <span v-text="inner.msg"></span></p>
+		<input type="text" v-model="inner.msg">
+		<p v-text="add.a + add.b"></p>
+		<p v-on:click="change">click me</p>
+		 -->
+		<p>v-for demo:</p>
+		<ul>
+			<li v-for="item in companies">{{ item }}</li>
+		</ul>
+		<p v-on:click="changeList">changeList</p>
+	</div>
+
+	
+
+	<script src="../dist/mvvm.js"></script>
+	<script>
+		var mvvm = new MVVM({
+			el: '#app',
+			data: {
+				companies: ['microsoft', 'google', 'apple', 'tecent', 'alipay'],
+				// message: 'hello MVVM',
+				// inner: {
+				// 	msg: 'hello'
+				// },
+				// add: {
+				// 	a: 3,
+				// 	b: 4
+				// },
+				// a: 1,
+				// b: 2
+			},
+			methods: {
+				change: function() {
+					this.message = 'hell change!';
+				},
+				add: function() {
+					this.a += 2;
+				},
+				changeList: function() {
+					// this.companies = ['baidu'];
+					this.companies.push('baidu');
 				}
 			}
 		});

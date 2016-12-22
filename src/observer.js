@@ -1,23 +1,60 @@
-// import Watcher from './watcher';
 import Dep from './depender';
+import * as _ from './util';
 class Observer {
 	constructor(data) {
 		this.$data = data;
 		this.observe(this.$data);
-		// this.$watcher = new Watcher();
+	}
+	defineArrayReactive(arr, callback) {
+		var self = this;
+		// var dep = new Dep();
+		var oldProto = Array.prototype;
+		var overrideProto = Object.create(Array.prototype);
+		var result;
+		['push', 'pop'].forEach(function(name) {
+			var oldMethod = oldProto[name];
+			Object.defineProperty(overrideProto, name, {
+				enumerable: false,
+				configurable: true,
+				writable: true,
+				value: function() {
+					var oldArr = this.slice(0);
+					var arg = [].slice.call(arguments);
+					result = oldMethod.apply(this, arg);
+					if (result.length !== oldArr.length) {
+						callback(result);
+					}
+					return result;
+				}
+			})
+		});
+		arr.__proto__ = overrideProto;
 	}
 	observe(data) {
-		if (!data || typeof data !== 'object') return;
+		// if (!data || !_.isType(data, 'object')) return;
+		if (!data) return;
 		var self = this;
-		Object.keys(data).forEach(function(key) {
-			self.defineReactive(data, key, data[key]);
-		});
+		if (_.isType(data, 'array')) {
+			// 重写array的push等方法
+			// self.defineArrayReactive(data);
+		} else if (_.isType(data, 'object')) {
+			Object.keys(data).forEach(function(key) {
+				self.defineReactive(data, key, data[key]);
+			});
+		}
+
 	}
 	defineReactive(data, key, val) {
 		var dep = new Dep()
 		var self = this;
 		// 多层对象嵌套
-		self.observe(val);
+		if (_.isType(val, 'array')) {
+			self.defineArrayReactive(val, function() {
+				dep.notify();
+			})
+		} else if (_.isType(val, 'object')) {
+			self.observe(val);
+		}
 		Object.defineProperty(data, key, {
 			configurable: false,
 			enumerable: true,
@@ -27,10 +64,9 @@ class Observer {
 					self.observe(newVal);
 					dep.notify();
 				}
-				// TODO: key may be same
-				// self.$watcher.emit(key, newVal);
 			},
 			get: function() {
+				console.log('get', key, Dep.target);
 				Dep.target && dep.addSub(Dep.target);
 				return val;
 			}

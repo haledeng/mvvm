@@ -10,4 +10,10 @@ var trim = function trim(str) {
 	return str.replace(/^\s*|\s*$/g, '');
 };
 
+var toString = Object.prototype.toString;
+
+var isType = function isType(obj, type) {
+	return toString.call(obj) === '[object ' + type.replace(/^[a-z]/, type.charAt(0).toUpperCase()) + ']';
+};
 exports.trim = trim;
+exports.isType = isType;

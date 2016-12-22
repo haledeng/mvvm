@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.parseForExpression = exports.addScope = exports.calculateExpression = undefined;
 
 var _util = require('../util');
 
@@ -14,7 +15,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 // 添加上下文
 // AST?
 var addScope = function addScope(exp) {
-    var prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'scope';
+    var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
 
     exp = _.trim(exp);
     // x.y
@@ -55,4 +56,22 @@ var calculateExpression = function calculateExpression(scope, exp) {
     // }
 };
 
-exports.default = calculateExpression;
+function parseForExpression(expression) {
+    // variable name
+    var valReg = /([^\s]*)\s*?$/;
+    var ret = {};
+    if (valReg.test(expression)) {
+        ret.val = RegExp.$1;
+    }
+    // template variable name
+    // like: xxx in obj
+    var tempReg = /^\s?([^\s]*)/;
+    if (tempReg.test(expression)) {
+        ret.scope = RegExp.$1;
+    }
+    return ret;
+}
+
+exports.calculateExpression = calculateExpression;
+exports.addScope = addScope;
+exports.parseForExpression = parseForExpression;

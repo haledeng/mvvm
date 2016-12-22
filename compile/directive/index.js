@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
+exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
 
 var _model = require('./model');
 
@@ -15,11 +15,13 @@ var _text2 = _interopRequireDefault(_text);
 
 var _expression = require('./expression');
 
-var _expression2 = _interopRequireDefault(_expression);
-
 var _event = require('./event');
 
 var _event2 = _interopRequireDefault(_event);
+
+var _for = require('./for');
+
+var _for2 = _interopRequireDefault(_for);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -40,5 +42,7 @@ var setScopeValue = function setScopeValue(scope, key, value) {
 exports.vModel = _model2.default;
 exports.vText = _text2.default;
 exports.setScopeValue = setScopeValue;
-exports.calculateExpression = _expression2.default;
+exports.calculateExpression = _expression.calculateExpression;
 exports.vOn = _event2.default;
+exports.vFor = _for2.default;
+exports.parseForExpression = _expression.parseForExpression;

@@ -4,14 +4,17 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Watcher from './watcher';
-
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _depender = require('./depender');
 
 var _depender2 = _interopRequireDefault(_depender);
+
+var _util = require('./util');
+
+var _ = _interopRequireWildcard(_util);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -23,17 +26,49 @@ var Observer = function () {
 
 		this.$data = data;
 		this.observe(this.$data);
-		// this.$watcher = new Watcher();
 	}
 
 	_createClass(Observer, [{
+		key: 'defineArrayReactive',
+		value: function defineArrayReactive(arr, callback) {
+			var self = this;
+			// var dep = new Dep();
+			var oldProto = Array.prototype;
+			var overrideProto = Object.create(Array.prototype);
+			var result;
+			['push', 'pop'].forEach(function (name) {
+				var oldMethod = oldProto[name];
+				Object.defineProperty(overrideProto, name, {
+					enumerable: false,
+					configurable: true,
+					writable: true,
+					value: function value() {
+						var oldArr = this.slice(0);
+						var arg = [].slice.call(arguments);
+						result = oldMethod.apply(this, arg);
+						if (result.length !== oldArr.length) {
+							callback(result);
+						}
+						return result;
+					}
+				});
+			});
+			arr.__proto__ = overrideProto;
+		}
+	}, {
 		key: 'observe',
 		value: function observe(data) {
-			if (!data || (typeof data === 'undefined' ? 'undefined' : _typeof(data)) !== 'object') return;
+			// if (!data || !_.isType(data, 'object')) return;
+			if (!data) return;
 			var self = this;
-			Object.keys(data).forEach(function (key) {
-				self.defineReactive(data, key, data[key]);
-			});
+			if (_.isType(data, 'array')) {
+				// 重写array的push等方法
+				// self.defineArrayReactive(data);
+			} else if (_.isType(data, 'object')) {
+				Object.keys(data).forEach(function (key) {
+					self.defineReactive(data, key, data[key]);
+				});
+			}
 		}
 	}, {
 		key: 'defineReactive',
@@ -41,7 +76,13 @@ var Observer = function () {
 			var dep = new _depender2.default();
 			var self = this;
 			// 多层对象嵌套
-			self.observe(val);
+			if (_.isType(val, 'array')) {
+				self.defineArrayReactive(val, function () {
+					dep.notify();
+				});
+			} else if (_.isType(val, 'object')) {
+				self.observe(val);
+			}
 			Object.defineProperty(data, key, {
 				configurable: false,
 				enumerable: true,
@@ -51,10 +92,9 @@ var Observer = function () {
 						self.observe(newVal);
 						dep.notify();
 					}
-					// TODO: key may be same
-					// self.$watcher.emit(key, newVal);
 				},
 				get: function get() {
+					console.log('get', key, _depender2.default.target);
 					_depender2.default.target && dep.addSub(_depender2.default.target);
 					return val;
 				}

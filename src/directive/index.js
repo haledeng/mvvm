@@ -1,7 +1,11 @@
 import vModel from './model';
 import vText from './text';
-import calculateExpression from './expression';
+import {
+    calculateExpression,
+    parseForExpression
+} from './expression';
 import vOn from './event';
+import vFor from './for';
 
 
 
@@ -25,5 +29,7 @@ export {
     vText,
     setScopeValue,
     calculateExpression,
-    vOn
+    vOn,
+    vFor,
+    parseForExpression
 }

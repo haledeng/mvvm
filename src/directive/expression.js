@@ -42,4 +42,25 @@ const calculateExpression = (scope, exp) => {
     // }
 }
 
-export default calculateExpression;
+
+function parseForExpression(expression) {
+    // variable name
+    var valReg = /([^\s]*)\s*?$/;
+    var ret = {};
+    if (valReg.test(expression)) {
+        ret.val = RegExp.$1;
+    }
+    // template variable name
+    // like: xxx in obj
+    var tempReg = /^\s?([^\s]*)/;
+    if (tempReg.test(expression)) {
+        ret.scope = RegExp.$1;
+    }
+    return ret;
+}
+
+export {
+    calculateExpression,
+    addScope,
+    parseForExpression
+};

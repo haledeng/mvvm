@@ -45,5 +45,5 @@ gulp.task('dist', ['webpack']);
 
 // development
 gulp.task('dev', function() {
-	gulp.watch('./**/**', ['dist']);
+	gulp.watch('./**/**/**', ['dist']);
 });
