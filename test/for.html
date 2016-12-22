@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MVVM Framework</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        html, body, pre {
+            font-family: 'Consolas';
+        }
+
+        input {
+            display: block;
+            line-height: 30px;
+            font-size: 14px;
+            padding-left: 10px;
+        }
+        input, p {
+            margin: 5px;
+        }
+        pre {
+            border: 1px solid #eee;
+            height: 300px;
+            overflow-x: hidden;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+        <pre>
+        var mvvm = new MVVM({
+            el: '#app',
+            data: {
+                message: 'hello MVVM',
+                inner: {
+                    msg: 'hello'
+                },
+                add: {
+                    a: 3,
+                    b: 4
+                },
+                a: 1,
+                b: 2
+            },
+            methods: {
+                change: function() {
+                    this.message = 'hell change!';
+                },
+                add: function() {
+                    this.a += 2;
+                }
+            }
+        });
+        </pre>
+    <div id="app">
+        <p>v-for demo: item in companies</p>
+        <ul>
+            <li v-for="item in companies">{{ item.name }} : {{ item.location }} -> {{ message }}</li>
+        </ul>
+
+        <p>v-for (item, index) in companies demo:</p>
+        <ul>
+            <li v-for="(item, index) in companies">{{ item.name }}  -> {{ index * 2 }}</li>
+        </ul>
+        <p v-on:click="changeList">changeList</p>
+    </div>
+
+
+
+    <script src="../dist/mvvm.js"></script>
+    <script>
+        var mvvm = new MVVM({
+            el: '#app',
+            data: {
+                companies: [{
+                    name: 'microsoft',
+                    location: 'US'
+                }, {
+                    name: 'tencent',
+                    location: 'China'
+                }],
+                message: 'hello MVVM',
+                // inner: {
+                //  msg: 'hello'
+                // },
+                // add: {
+                //  a: 3,
+                //  b: 4
+                // },
+                // a: 1,
+                // b: 2
+            },
+            methods: {
+                change: function() {
+                    this.message = 'hell change!';
+                },
+                add: function() {
+                    this.a += 2;
+                },
+                changeList: function() {
+                    // this.companies = ['baidu'];
+                    var randomStr = function(times) {
+                        var ret = []
+                        for(var i = 0; i < times; i++) {
+                            ret.push(String.fromCharCode(97 + Math.floor(26 * Math.random(0, 1))));
+                        }
+                        return ret.join('');
+                    }
+                    this.companies.push({name:randomStr(8), location: 'US'});
+                }
+            }
+        });
+    </script>
+</body>
+</html>

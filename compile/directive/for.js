@@ -37,6 +37,7 @@ function vFor(node, scope, expression) {
 		if (expInfo.index !== undefined) {
 			context[expInfo.index] = index;
 		}
+		// debugger;
 		new _compiler2.default({
 			el: li,
 			// TODO: methods, filters

@@ -142,7 +142,8 @@ return /******/ (function(modules) { // webpackBootstrap
 				elements.unshift(node);
 				elements.forEach(function (element) {
 					self.traversalAttribute(element);
-					if (self.isTextNode(element)) {
+					if (self.isTextNode(element) && !element.__template__) {
+						// console.log(element);
 						self.parseTextNode(element);
 					}
 				});
@@ -284,7 +285,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var mixin = function mixin(dest, source) {
-		var rewrite = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+		var rewrite = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
 		for (var prop in source) {
 			if (source.hasOwnProperty(prop)) {
@@ -634,7 +635,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// 添加上下文
 	// AST?
 	var addScope = function addScope(exp) {
-	    var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
+	    var prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'scope';
 
 	    exp = _.trim(exp);
 	    // x.y
@@ -800,6 +801,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			if (expInfo.index !== undefined) {
 				context[expInfo.index] = index;
 			}
+			// debugger;
 			new _compiler2.default({
 				el: li,
 				// TODO: methods, filters

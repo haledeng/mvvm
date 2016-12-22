@@ -26,7 +26,8 @@ class Compiler {
 		elements.unshift(node);
 		elements.forEach(function(element) {
 			self.traversalAttribute(element);
-			if (self.isTextNode(element)) {
+			if (self.isTextNode(element) && !element.__template__) {
+				// console.log(element);
 				self.parseTextNode(element);
 			}
 		});
