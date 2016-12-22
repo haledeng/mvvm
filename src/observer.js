@@ -6,8 +6,6 @@ class Observer {
 		this.observe(this.$data);
 	}
 	defineArrayReactive(arr, callback) {
-		var self = this;
-		// var dep = new Dep();
 		var oldProto = Array.prototype;
 		var overrideProto = Object.create(Array.prototype);
 		var result;
@@ -66,7 +64,6 @@ class Observer {
 				}
 			},
 			get: function() {
-				console.log('get', key, Dep.target);
 				Dep.target && dep.addSub(Dep.target);
 				return val;
 			}

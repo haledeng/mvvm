@@ -65,9 +65,14 @@
 		<p v-text="add.a + add.b"></p>
 		<p v-on:click="change">click me</p>
 		 -->
-		<p>v-for demo:</p>
+		<p>v-for demo: item in companies</p>
 		<ul>
 			<li v-for="item in companies">{{ item }}</li>
+		</ul>
+
+		<p>v-for (item, index) in companies demo:</p>
+		<ul>
+			<li v-for="(item, index) in companies">{{ item }} {{ index * 2 }}</li>
 		</ul>
 		<p v-on:click="changeList">changeList</p>
 	</div>

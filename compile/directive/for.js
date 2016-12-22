@@ -25,16 +25,18 @@ function vFor(node, scope, expression) {
 	var val = (0, _expression.calculateExpression)(scope, expInfo.val);
 	if (!_.isType(val, 'array')) return;
 	var docFrag = document.createDocumentFragment();
-	var template = node.innerHTML || node.__template__;
+	var template = node.__template__ || node.innerHTML;
 	// TODO: 计算node子节点中的表达式
 	val.forEach(function (item, index) {
 		// 子节点如何编译，Compiler中可以，但是需要修改scope
 		var li = document.createElement(tagName);
 		// TODO: attributes
-
 		li.innerHTML = template;
 		var context = {};
 		context[expInfo.scope] = item;
+		if (expInfo.index !== undefined) {
+			context[expInfo.index] = index;
+		}
 		new _compiler2.default({
 			el: li,
 			// TODO: methods, filters

@@ -244,7 +244,8 @@ return /******/ (function(modules) { // webpackBootstrap
 							keys.push(name);
 						}
 						name = _.trim(name);
-						return scope[name] || '';
+						return (0, _index.calculateExpression)(scope, name);
+						// return scope[name] !== undefined ? scope[name] : 0;
 					});
 					node.innerHTML = newHtml;
 				};
@@ -628,7 +629,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    exp = ' ' + exp + ' ';
 	    // x
 	    exp = exp.replace(/[\+\-\*\/\s]\w+(?![\'\.])[\+\-\*\/\s]/g, function (match, index, all) {
-	        return [prefix, _.trim(match)].join('.');
+	        match = _.trim(match);
+	        if (/^[0-9]*$/.test(match)) {
+	            return match;
+	        }
+	        return [prefix, match].join('.');
 	    });
 	    return _.trim(exp);
 
@@ -661,16 +666,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function parseForExpression(expression) {
 	    // variable name
-	    var valReg = /([^\s]*)\s*?$/;
+	    var valReg = /in\s*([^\s]*)\s*?$/;
 	    var ret = {};
 	    if (valReg.test(expression)) {
 	        ret.val = RegExp.$1;
 	    }
 	    // template variable name
 	    // like: xxx in obj
-	    var tempReg = /^\s?([^\s]*)/;
+	    // like: (item, index) in arr
+	    // like: (item, value, index) in arr
+	    var tempReg = /^\s?(.*)\s*in/;
 	    if (tempReg.test(expression)) {
-	        ret.scope = RegExp.$1;
+	        var itemStr = _.trim(RegExp.$1);
+	        if (~itemStr.indexOf(',')) {
+	            itemStr = itemStr.replace(/\(|\)/g, '');
+	            itemStr = _.trim(itemStr);
+	            var temp = itemStr.split(',');
+	            ret.scope = _.trim(temp[0]);
+	            ret.index = _.trim(temp[1]);
+	        } else {
+	            ret.scope = itemStr;
+	        }
 	    }
 	    return ret;
 	}
@@ -757,16 +773,18 @@ return /******/ (function(modules) { // webpackBootstrap
 		var val = (0, _expression.calculateExpression)(scope, expInfo.val);
 		if (!_.isType(val, 'array')) return;
 		var docFrag = document.createDocumentFragment();
-		var template = node.innerHTML || node.__template__;
+		var template = node.__template__ || node.innerHTML;
 		// TODO: 计算node子节点中的表达式
 		val.forEach(function (item, index) {
 			// 子节点如何编译，Compiler中可以，但是需要修改scope
 			var li = document.createElement(tagName);
 			// TODO: attributes
-
 			li.innerHTML = template;
 			var context = {};
 			context[expInfo.scope] = item;
+			if (expInfo.index !== undefined) {
+				context[expInfo.index] = index;
+			}
 			new _compiler2.default({
 				el: li,
 				// TODO: methods, filters
@@ -830,8 +848,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		_createClass(Observer, [{
 			key: 'defineArrayReactive',
 			value: function defineArrayReactive(arr, callback) {
-				var self = this;
-				// var dep = new Dep();
 				var oldProto = Array.prototype;
 				var overrideProto = Object.create(Array.prototype);
 				var result;
@@ -893,7 +909,6 @@ return /******/ (function(modules) { // webpackBootstrap
 						}
 					},
 					get: function get() {
-						console.log('get', key, _depender2.default.target);
 						_depender2.default.target && dep.addSub(_depender2.default.target);
 						return val;
 					}

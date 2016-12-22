@@ -148,7 +148,8 @@ var Compiler = function () {
 						keys.push(name);
 					}
 					name = _.trim(name);
-					return scope[name] || '';
+					return (0, _index.calculateExpression)(scope, name);
+					// return scope[name] !== undefined ? scope[name] : 0;
 				});
 				node.innerHTML = newHtml;
 			};

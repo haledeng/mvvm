@@ -11,7 +11,11 @@ const addScope = (exp, prefix = 'scope') => {
     exp = ' ' + exp + ' ';
     // x
     exp = exp.replace(/[\+\-\*\/\s]\w+(?![\'\.])[\+\-\*\/\s]/g, function(match, index, all) {
-        return [prefix, _.trim(match)].join('.');
+        match = _.trim(match);
+        if (/^[0-9]*$/.test(match)) {
+            return match;
+        }
+        return [prefix, match].join('.');
     });
     return _.trim(exp);
 
@@ -45,16 +49,27 @@ const calculateExpression = (scope, exp) => {
 
 function parseForExpression(expression) {
     // variable name
-    var valReg = /([^\s]*)\s*?$/;
+    var valReg = /in\s*([^\s]*)\s*?$/;
     var ret = {};
     if (valReg.test(expression)) {
         ret.val = RegExp.$1;
     }
     // template variable name
     // like: xxx in obj
-    var tempReg = /^\s?([^\s]*)/;
+    // like: (item, index) in arr
+    // like: (item, value, index) in arr
+    var tempReg = /^\s?(.*)\s*in/;
     if (tempReg.test(expression)) {
-        ret.scope = RegExp.$1;
+        var itemStr = _.trim(RegExp.$1);
+        if (~itemStr.indexOf(',')) {
+            itemStr = itemStr.replace(/\(|\)/g, '');
+            itemStr = _.trim(itemStr);
+            var temp = itemStr.split(',');
+            ret.scope = _.trim(temp[0]);
+            ret.index = _.trim(temp[1]);
+        } else {
+            ret.scope = itemStr;
+        }
     }
     return ret;
 }

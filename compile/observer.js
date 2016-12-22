@@ -31,8 +31,6 @@ var Observer = function () {
 	_createClass(Observer, [{
 		key: 'defineArrayReactive',
 		value: function defineArrayReactive(arr, callback) {
-			var self = this;
-			// var dep = new Dep();
 			var oldProto = Array.prototype;
 			var overrideProto = Object.create(Array.prototype);
 			var result;
@@ -94,7 +92,6 @@ var Observer = function () {
 					}
 				},
 				get: function get() {
-					console.log('get', key, _depender2.default.target);
 					_depender2.default.target && dep.addSub(_depender2.default.target);
 					return val;
 				}
