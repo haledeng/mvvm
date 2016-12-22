@@ -282,8 +282,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	var isType = function isType(obj, type) {
 		return toString.call(obj) === '[object ' + type.replace(/^[a-z]/, type.charAt(0).toUpperCase()) + ']';
 	};
+
+	var mixin = function mixin(dest, source) {
+		var rewrite = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+
+		for (var prop in source) {
+			if (source.hasOwnProperty(prop)) {
+				if (!rewrite || !dest.hasOwnProperty(prop)) {
+					dest[prop] = source[prop];
+				}
+			}
+		}
+		return dest;
+	};
+
 	exports.trim = trim;
 	exports.isType = isType;
+	exports.mixin = mixin;
 
 /***/ },
 /* 3 */
@@ -789,7 +804,8 @@ return /******/ (function(modules) { // webpackBootstrap
 				el: li,
 				// TODO: methods, filters
 				vm: {
-					$data: context
+					// $data: context
+					$data: _.mixin(context, scope)
 				}
 			});
 			docFrag.appendChild(li);

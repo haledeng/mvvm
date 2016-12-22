@@ -41,7 +41,8 @@ function vFor(node, scope, expression) {
 			el: li,
 			// TODO: methods, filters
 			vm: {
-				$data: context
+				// $data: context
+				$data: _.mixin(context, scope)
 			}
 		});
 		docFrag.appendChild(li);
