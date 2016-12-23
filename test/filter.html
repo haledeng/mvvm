@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MVVM Framework</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        html, body, pre {
+            font-family: 'Consolas';
+        }
+
+        input {
+            display: block;
+            line-height: 30px;
+            font-size: 14px;
+            padding-left: 10px;
+        }
+        input, p {
+            margin: 5px;
+        }
+        pre {
+            border: 1px solid #eee;
+            height: 300px;
+            overflow-x: hidden;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+        <pre>        
+        var mvvm = new MVVM({
+            el: '#app',
+            data: {
+                message: 'hello MVVM',
+            },
+            filters: {
+                upper: function(value) {
+                    return value.replace(/^[a-z]/, value.charAt(0).toUpperCase());
+                }
+            }
+        });
+        </pre>
+    <div id="app">
+        <!-- <p>{{message | upper}}</p> -->
+        <!-- <p>{{ a | add 2}}</p> -->
+        <p v-text="a | add '2'"></p>
+    </div>
+
+
+
+    <script src="../dist/mvvm.js"></script>
+    <script>
+        var mvvm = new MVVM({
+            el: '#app',
+            data: {
+                a: 1,
+                message: 'hello MVVM',
+            },
+            filters: {
+                upper: function(value) {
+                    return value.replace(/^[a-z]/, value.charAt(0).toUpperCase());
+                },
+                add: function(a, b) {
+                    console.log(typeof a, typeof b);
+                    return a + b;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

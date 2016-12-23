@@ -65,7 +65,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler2 = _interopRequireDefault(_compiler);
 
-	var _observer = __webpack_require__(12);
+	var _observer = __webpack_require__(13);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -81,6 +81,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		this.$data = options.data || {};
 		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
 		this.methods = options.methods;
+		this.filters = options.filters || {};
 		new _observer2.default(this.$data);
 		new _compiler2.default({
 			el: this.$el,
@@ -112,6 +113,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index = __webpack_require__(6);
 
+	var _filter = __webpack_require__(10);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -130,11 +133,13 @@ return /******/ (function(modules) { // webpackBootstrap
 		_createClass(Compiler, [{
 			key: 'init',
 			value: function init() {
+
 				this.traversalNode(this.$el);
 			}
 		}, {
 			key: 'traversalNode',
 			value: function traversalNode(node) {
+
 				// 遍历节点
 				var self = this;
 				var elements = node.getElementsByTagName('*');
@@ -142,8 +147,8 @@ return /******/ (function(modules) { // webpackBootstrap
 				elements.unshift(node);
 				elements.forEach(function (element) {
 					self.traversalAttribute(element);
+					// 模板不编译
 					if (self.isTextNode(element) && !element.__template__) {
-						// console.log(element);
 						self.parseTextNode(element);
 					}
 				});
@@ -151,12 +156,13 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'traversalAttribute',
 			value: function traversalAttribute(node) {
+
 				var self = this;
 				// 遍历属性
 				var attrs = node.attributes;
 				for (var i = 0; i < attrs.length; i++) {
 					var item = attrs[i];
-					if (/^v\-([\w\:]*)/.test(item.name)) {
+					if (/^v\-([\w\:\']*)/.test(item.name)) {
 						this._parseAttr(node, item);
 						this.addInputListener(node, item);
 					}
@@ -165,9 +171,10 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: '_parseAttr',
 			value: function _parseAttr(node, attr) {
+				debugger;
 				// 转化属性
 				var self = this;
-				var attrReg = /^v\-([\w\:]*)/;
+				var attrReg = /^v\-([\w\:\']*)/;
 				var matches = attr.name.match(attrReg);
 				var property = matches[1];
 				var eventReg = /on\:(\w*)/;
@@ -186,6 +193,9 @@ return /******/ (function(modules) { // webpackBootstrap
 							break;
 						// v-text
 						case 'text':
+							// filters
+							// TODO: watcher 中计算表达式有问题
+							// watch 表达式，还是表达式中的变量
 							self.bindWatch(self.$vm.$data, attr.value, function () {
 								(0, _index.vText)(node, self.$vm.$data, attr.value);
 							});
@@ -227,6 +237,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'bindWatch',
 			value: function bindWatch(vm, exp, callback) {
 				var noop = function noop() {};
+				console.log(exp);
 				new _watcher2.default({
 					vm: vm,
 					exp: exp,
@@ -239,8 +250,16 @@ return /******/ (function(modules) { // webpackBootstrap
 				var self = this;
 				var html = node.innerHTML;
 				var keys = [];
+				// TODO: filters
 				var _replace = function _replace(scope) {
 					var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
+						var rets = (0, _filter.parseFilter)(name);
+						if (rets) {
+							// 计算参数的值
+							var paramValue = (0, _index.calculateExpression)(scope, rets.param);
+							return _filter.filter.apply(null, [self.$vm, rets.method, paramValue].concat(rets.args));
+							// return filter(self.$vm, filters.method, )
+						}
 						if (!keys.length) {
 							keys.push(name);
 						}
@@ -285,7 +304,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var mixin = function mixin(dest, source) {
-		var rewrite = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+		var rewrite = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
 		for (var prop in source) {
 			if (source.hasOwnProperty(prop)) {
@@ -553,11 +572,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _expression = __webpack_require__(8);
 
-	var _event = __webpack_require__(10);
+	var _event = __webpack_require__(11);
 
 	var _event2 = _interopRequireDefault(_event);
 
-	var _for = __webpack_require__(11);
+	var _for = __webpack_require__(12);
 
 	var _for2 = _interopRequireDefault(_for);
 
@@ -635,7 +654,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// 添加上下文
 	// AST?
 	var addScope = function addScope(exp) {
-	    var prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'scope';
+	    var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
 
 	    exp = _.trim(exp);
 	    // x.y
@@ -652,25 +671,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return [prefix, match].join('.');
 	    });
 	    return _.trim(exp);
-
-	    // return exp.replace(/^([\'\w]*)\s*?([\+\-\*\/\.])?\s*?([\'\w]*)?$/, function(total, all, left, operater, right) {
-	    //  if (left.indexOf('\'') === -1) {
-	    //      left = [prefix, left].join('.');
-	    //  }
-	    //  if (right && right.indexOf('\'') === -1) {
-	    //      if (operater !== '.') {
-	    //          right = [prefix, right].join('.');
-	    //      }
-	    //      return left + operater + right;
-	    //  }
-	    //  return left;
-	    // });
 	};
 
 	// 计算表达式
 	// strict mode can not use with
 	// new Function
 	var calculateExpression = function calculateExpression(scope, exp) {
+
 	    var prefix = 'scope';
 	    exp = addScope(exp);
 	    var fn = new Function(prefix, 'return ' + exp);
@@ -718,26 +725,87 @@ return /******/ (function(modules) { // webpackBootstrap
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+		value: true
 	});
 
 	var _expression = __webpack_require__(8);
 
-	var _expression2 = _interopRequireDefault(_expression);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	var _filter = __webpack_require__(10);
 
 	// v-text
 	var vText = function vText(node, scope, key) {
-	    node.innerHTML = (0, _expression2.default)(scope, key);
-	    // 影响后面attribute遍历
-	    // node.removeAttribute('v-text');
+		// var scope = vm.$data;
+		// var rets = parseFilter(key);
+		// if (rets) {
+		// 	var value = calculateExpression(scope, rets.param);
+		// 	node.innerHTML = filter.apply(null, [vm, rets.method, value].concat(rets.args));
+		// 	return;
+		// }
+		node.innerHTML = (0, _expression.calculateExpression)(scope, key);
+		// 影响后面attribute遍历
+		// node.removeAttribute('v-text');
 	};
 
 	exports.default = vText;
 
 /***/ },
 /* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.parseFilter = exports.filter = undefined;
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	// filters 过滤器
+	function filter(vm, name, params) {
+		var method = vm.filters[name];
+		return method.apply(vm.$data, [params].concat([].slice.call(arguments, 3)));
+	}
+
+	// 解析filter表达式
+	function parseFilter(str) {
+		if (!str || str.indexOf('|') === -1) return null;
+		var splits = str.split('|');
+		var paramName = _.trim(splits[0]);
+		// paramName | filterName arg1 arg2
+		var args = _.trim(splits[1]).split(' ');
+		var methodName = args.shift();
+		console.log(args);
+		return {
+			param: paramName,
+			args: typeCheck(args),
+			method: methodName
+		};
+	}
+
+	// 类型转化
+	function typeCheck(args) {
+		var rets = [];
+		args.forEach(function (arg, index) {
+			arg = _.trim(arg);
+			if (/^[0-9]$/.test(arg)) {
+				rets[index] = Number(arg);
+			} else {
+				rets[index] = arg;
+			}
+		});
+		return rets;
+	}
+
+	exports.filter = filter;
+	exports.parseFilter = parseFilter;
+
+/***/ },
+/* 11 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -759,7 +827,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vOn;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -830,7 +898,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vFor;
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

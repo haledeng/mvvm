@@ -34,23 +34,25 @@
         var mvvm = new MVVM({
             el: '#app',
             data: {
+                companies: [{
+                    name: 'microsoft',
+                    location: 'US'
+                }, {
+                    name: 'tencent',
+                    location: 'China'
+                }],
                 message: 'hello MVVM',
-                inner: {
-                    msg: 'hello'
-                },
-                add: {
-                    a: 3,
-                    b: 4
-                },
-                a: 1,
-                b: 2
             },
             methods: {
-                change: function() {
-                    this.message = 'hell change!';
-                },
-                add: function() {
-                    this.a += 2;
+                changeList: function() {
+                    var randomStr = function(times) {
+                        var ret = []
+                        for(var i = 0; i < times; i++) {
+                            ret.push(String.fromCharCode(97 + Math.floor(26 * Math.random(0, 1))));
+                        }
+                        return ret.join('');
+                    }
+                    this.companies.push({name:randomStr(8), location: 'US'});
                 }
             }
         });
@@ -83,23 +85,8 @@
                     location: 'China'
                 }],
                 message: 'hello MVVM',
-                // inner: {
-                //  msg: 'hello'
-                // },
-                // add: {
-                //  a: 3,
-                //  b: 4
-                // },
-                // a: 1,
-                // b: 2
             },
             methods: {
-                change: function() {
-                    this.message = 'hell change!';
-                },
-                add: function() {
-                    this.a += 2;
-                },
                 changeList: function() {
                     // this.companies = ['baidu'];
                     var randomStr = function(times) {

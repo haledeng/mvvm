@@ -16,6 +16,8 @@ var _watcher2 = _interopRequireDefault(_watcher);
 
 var _index = require('./directive/index');
 
+var _filter = require('./filter');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -34,11 +36,13 @@ var Compiler = function () {
 	_createClass(Compiler, [{
 		key: 'init',
 		value: function init() {
+
 			this.traversalNode(this.$el);
 		}
 	}, {
 		key: 'traversalNode',
 		value: function traversalNode(node) {
+
 			// 遍历节点
 			var self = this;
 			var elements = node.getElementsByTagName('*');
@@ -46,8 +50,8 @@ var Compiler = function () {
 			elements.unshift(node);
 			elements.forEach(function (element) {
 				self.traversalAttribute(element);
+				// 模板不编译
 				if (self.isTextNode(element) && !element.__template__) {
-					// console.log(element);
 					self.parseTextNode(element);
 				}
 			});
@@ -55,12 +59,13 @@ var Compiler = function () {
 	}, {
 		key: 'traversalAttribute',
 		value: function traversalAttribute(node) {
+
 			var self = this;
 			// 遍历属性
 			var attrs = node.attributes;
 			for (var i = 0; i < attrs.length; i++) {
 				var item = attrs[i];
-				if (/^v\-([\w\:]*)/.test(item.name)) {
+				if (/^v\-([\w\:\']*)/.test(item.name)) {
 					this._parseAttr(node, item);
 					this.addInputListener(node, item);
 				}
@@ -69,9 +74,10 @@ var Compiler = function () {
 	}, {
 		key: '_parseAttr',
 		value: function _parseAttr(node, attr) {
+			debugger;
 			// 转化属性
 			var self = this;
-			var attrReg = /^v\-([\w\:]*)/;
+			var attrReg = /^v\-([\w\:\']*)/;
 			var matches = attr.name.match(attrReg);
 			var property = matches[1];
 			var eventReg = /on\:(\w*)/;
@@ -90,6 +96,9 @@ var Compiler = function () {
 						break;
 					// v-text
 					case 'text':
+						// filters
+						// TODO: watcher 中计算表达式有问题
+						// watch 表达式，还是表达式中的变量
 						self.bindWatch(self.$vm.$data, attr.value, function () {
 							(0, _index.vText)(node, self.$vm.$data, attr.value);
 						});
@@ -131,6 +140,7 @@ var Compiler = function () {
 		key: 'bindWatch',
 		value: function bindWatch(vm, exp, callback) {
 			var noop = function noop() {};
+			console.log(exp);
 			new _watcher2.default({
 				vm: vm,
 				exp: exp,
@@ -143,8 +153,16 @@ var Compiler = function () {
 			var self = this;
 			var html = node.innerHTML;
 			var keys = [];
+			// TODO: filters
 			var _replace = function _replace(scope) {
 				var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
+					var rets = (0, _filter.parseFilter)(name);
+					if (rets) {
+						// 计算参数的值
+						var paramValue = (0, _index.calculateExpression)(scope, rets.param);
+						return _filter.filter.apply(null, [self.$vm, rets.method, paramValue].concat(rets.args));
+						// return filter(self.$vm, filters.method, )
+					}
 					if (!keys.length) {
 						keys.push(name);
 					}

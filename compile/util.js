@@ -17,7 +17,7 @@ var isType = function isType(obj, type) {
 };
 
 var mixin = function mixin(dest, source) {
-	var rewrite = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+	var rewrite = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
 	for (var prop in source) {
 		if (source.hasOwnProperty(prop)) {

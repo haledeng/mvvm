@@ -9,6 +9,11 @@ import {
 	vFor,
 	parseForExpression
 } from './directive/index';
+
+import {
+	filter,
+	parseFilter
+} from './filter';
 class Compiler {
 	constructor(opts) {
 		this.$el = typeof opts.el === 'string' ? document.querySelector(opts.el) : opts.el;
@@ -16,9 +21,11 @@ class Compiler {
 		this.init();
 	}
 	init() {
+
 		this.traversalNode(this.$el);
 	}
 	traversalNode(node) {
+
 		// 遍历节点
 		var self = this;
 		var elements = node.getElementsByTagName('*');
@@ -26,28 +33,30 @@ class Compiler {
 		elements.unshift(node);
 		elements.forEach(function(element) {
 			self.traversalAttribute(element);
+			// 模板不编译
 			if (self.isTextNode(element) && !element.__template__) {
-				// console.log(element);
 				self.parseTextNode(element);
 			}
 		});
 	}
 	traversalAttribute(node) {
+
 		var self = this;
 		// 遍历属性
 		var attrs = node.attributes;
 		for (var i = 0; i < attrs.length; i++) {
 			var item = attrs[i];
-			if (/^v\-([\w\:]*)/.test(item.name)) {
+			if (/^v\-([\w\:\']*)/.test(item.name)) {
 				this._parseAttr(node, item);
 				this.addInputListener(node, item);
 			}
 		}
 	}
 	_parseAttr(node, attr) {
+		debugger;
 		// 转化属性
 		var self = this;
-		var attrReg = /^v\-([\w\:]*)/;
+		var attrReg = /^v\-([\w\:\']*)/;
 		var matches = attr.name.match(attrReg);
 		var property = matches[1];
 		var eventReg = /on\:(\w*)/;
@@ -66,6 +75,9 @@ class Compiler {
 					break;
 					// v-text
 				case 'text':
+					// filters
+					// TODO: watcher 中计算表达式有问题
+					// watch 表达式，还是表达式中的变量
 					self.bindWatch(self.$vm.$data, attr.value, function() {
 						vText(node, self.$vm.$data, attr.value);
 					});
@@ -101,6 +113,7 @@ class Compiler {
 	}
 	bindWatch(vm, exp, callback) {
 		var noop = function() {};
+		console.log(exp);
 		new Watcher({
 			vm: vm,
 			exp: exp,
@@ -111,8 +124,16 @@ class Compiler {
 		var self = this;
 		var html = node.innerHTML;
 		var keys = [];
+		// TODO: filters
 		const _replace = (scope) => {
 			var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
+				var rets = parseFilter(name);
+				if (rets) {
+					// 计算参数的值
+					var paramValue = calculateExpression(scope, rets.param);
+					return filter.apply(null, [self.$vm, rets.method, paramValue].concat(rets.args))
+						// return filter(self.$vm, filters.method, )
+				}
 				if (!keys.length) {
 					keys.push(name);
 				}
