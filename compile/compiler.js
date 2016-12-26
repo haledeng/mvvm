@@ -116,10 +116,10 @@ var Compiler = function () {
 						break;
 					case 'for':
 						var info = (0, _index.parseForExpression)(attr.value);
-						self.bindWatch(self.$vm.$data, info.val, function () {
-							(0, _index.vFor)(node, self.$vm.$data, attr.value);
+						self.bindWatch(self.$vm, info.val, function () {
+							(0, _index.vFor)(node, self.$vm, attr.value);
 						});
-						(0, _index.vFor)(node, this.$vm.$data, attr.value);
+						(0, _index.vFor)(node, this.$vm, attr.value);
 					default:
 						break;
 				}
@@ -162,6 +162,7 @@ var Compiler = function () {
 			var self = this;
 			var html = node.innerHTML;
 			var keys = [];
+
 			// TODO: filters
 			var _replace = function _replace(scope) {
 				var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {

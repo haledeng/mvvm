@@ -7,15 +7,15 @@ import Compiler from '../compiler';
 
 
 
-function vFor(node, scope, expression) {
+function vFor(node, vm, expression) {
 	var parent = node.parentNode || node.__parent__;
 	var tagName = node.tagName.toLowerCase();
 	var expInfo = parseForExpression(expression);
+	var scope = vm.$data;
 	var val = calculateExpression(scope, expInfo.val);
 	if (!_.isType(val, 'array')) return;
 	var docFrag = document.createDocumentFragment();
 	var template = node.__template__ || node.innerHTML;
-	// TODO: 计算node子节点中的表达式
 	val.forEach(function(item, index) {
 		// 子节点如何编译，Compiler中可以，但是需要修改scope
 		var li = document.createElement(tagName);
@@ -26,13 +26,15 @@ function vFor(node, scope, expression) {
 		if (expInfo.index !== undefined) {
 			context[expInfo.index] = index;
 		}
-		// debugger;
 		new Compiler({
 			el: li,
 			// TODO: methods, filters
 			vm: {
+				// mixin deep clone
 				// $data: context
-				$data: _.mixin(context, scope)
+				$data: _.mixin(context, scope),
+				methods: vm.methods,
+				filters: vm.filters
 			}
 		});
 		docFrag.appendChild(li);

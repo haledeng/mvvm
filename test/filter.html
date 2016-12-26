@@ -27,6 +27,18 @@
             overflow-x: hidden;
             overflow-y: scroll;
         }
+        button {
+            display: inline-block;
+            width: 80px;
+            text-align: center;
+            height: 32px;
+            line-height: 32px;
+            border-radius: 4px;
+            background: #006dcc;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -50,6 +62,10 @@
         <input type="text" v-model="a | add 2">
         <p>{{ a | add '2' }}</p>
         <button v-on:click="change">click me</button>
+
+        <ul>
+            <li v-for="item in list">{{ item | upper}} </li>
+        </ul>
     </div>
 
 
@@ -61,6 +77,7 @@
             data: {
                 a: 1,
                 message: 'hello MVVM',
+                list: ['item1', 'item2', 'item3']
             },
             methods: {
                 change: function() {

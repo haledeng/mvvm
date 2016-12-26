@@ -213,10 +213,10 @@ return /******/ (function(modules) { // webpackBootstrap
 							break;
 						case 'for':
 							var info = (0, _index.parseForExpression)(attr.value);
-							self.bindWatch(self.$vm.$data, info.val, function () {
-								(0, _index.vFor)(node, self.$vm.$data, attr.value);
+							self.bindWatch(self.$vm, info.val, function () {
+								(0, _index.vFor)(node, self.$vm, attr.value);
 							});
-							(0, _index.vFor)(node, this.$vm.$data, attr.value);
+							(0, _index.vFor)(node, this.$vm, attr.value);
 						default:
 							break;
 					}
@@ -259,6 +259,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				var self = this;
 				var html = node.innerHTML;
 				var keys = [];
+
 				// TODO: filters
 				var _replace = function _replace(scope) {
 					var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
@@ -806,15 +807,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-	function vFor(node, scope, expression) {
+	function vFor(node, vm, expression) {
 		var parent = node.parentNode || node.__parent__;
 		var tagName = node.tagName.toLowerCase();
 		var expInfo = (0, _expression.parseForExpression)(expression);
+		var scope = vm.$data;
 		var val = (0, _expression.calculateExpression)(scope, expInfo.val);
 		if (!_.isType(val, 'array')) return;
 		var docFrag = document.createDocumentFragment();
 		var template = node.__template__ || node.innerHTML;
-		// TODO: 计算node子节点中的表达式
 		val.forEach(function (item, index) {
 			// 子节点如何编译，Compiler中可以，但是需要修改scope
 			var li = document.createElement(tagName);
@@ -825,13 +826,15 @@ return /******/ (function(modules) { // webpackBootstrap
 			if (expInfo.index !== undefined) {
 				context[expInfo.index] = index;
 			}
-			// debugger;
 			new _compiler2.default({
 				el: li,
 				// TODO: methods, filters
 				vm: {
+					// mixin deep clone
 					// $data: context
-					$data: _.mixin(context, scope)
+					$data: _.mixin(context, scope),
+					methods: vm.methods,
+					filters: vm.filters
 				}
 			});
 			docFrag.appendChild(li);
