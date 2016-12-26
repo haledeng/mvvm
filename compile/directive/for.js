@@ -32,6 +32,7 @@ function vFor(node, vm, expression) {
 		var li = document.createElement(tagName);
 		// TODO: attributes
 		li.innerHTML = template;
+		// var li = node.cloneNode(true);
 		var context = {};
 		context[expInfo.scope] = item;
 		if (expInfo.index !== undefined) {

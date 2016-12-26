@@ -11,4 +11,3 @@ A MVVM test library for study. **Do not use in project**
 + performance.
 + filters.
 + delete interface calculateExpression.
-+ filters in v-for.

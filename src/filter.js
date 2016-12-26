@@ -2,6 +2,7 @@ import * as _ from './util';
 // filters 过滤器
 function filter(vm, name, params) {
 	var method = vm.filters[name];
+	console.log([params].concat([].slice.call(arguments, 3)));
 	return method.apply(vm.$data, [params].concat([].slice.call(arguments, 3)));
 }
 

@@ -42,19 +42,38 @@ var Compiler = function () {
 	}, {
 		key: 'traversalNode',
 		value: function traversalNode(node) {
-
+			// elements应该是动态变化的
+			// 遍历方式有问题
 			// 遍历节点
 			var self = this;
-			var elements = node.getElementsByTagName('*');
-			elements = [].slice.call(elements);
-			elements.unshift(node);
-			elements.forEach(function (element) {
-				self.traversalAttribute(element);
-				// 模板不编译
-				if (self.isTextNode(element) && !element.__template__) {
-					self.parseTextNode(element);
+			// var elements = node.getElementsByTagName('*');
+			// elements = [].slice.call(elements);
+			// elements.unshift(node);
+			// elements.forEach(function(element) {
+			// 	self.traversalAttribute(element);
+			// 	// 模板不编译
+			// 	if (self.isTextNode(element) && !element.__template__) {
+			// 		self.parseTextNode(element);
+			// 	}
+			// 	// TODO: removeChild后，elements需要重新获取
+			// });
+
+			function _traversal(node) {
+				self.traversalAttribute(node);
+				if (self.isTextNode(node)) {
+					self.parseTextNode(node);
+				} else {
+					// node has been removed
+					if (node.parentNode) {
+						var elements = node.children;
+						elements = [].slice.call(elements);
+						elements.forEach(function (element) {
+							_traversal(element);
+						});
+					}
 				}
-			});
+			}
+			_traversal(node);
 		}
 	}, {
 		key: 'traversalAttribute',
