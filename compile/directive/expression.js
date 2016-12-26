@@ -3,11 +3,13 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.parseForExpression = exports.addScope = exports.calculateExpression = undefined;
+exports.parseExpression = exports.parseFilter = exports.parseForExpression = exports.addScope = exports.calculateExpression = undefined;
 
 var _util = require('../util');
 
 var _ = _interopRequireWildcard(_util);
+
+var _filter = require('../filter');
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -38,16 +40,31 @@ var addScope = function addScope(exp) {
 // strict mode can not use with
 // new Function
 var calculateExpression = function calculateExpression(scope, exp) {
-
+    // Plan A
     var prefix = 'scope';
     exp = addScope(exp);
     var fn = new Function(prefix, 'return ' + exp);
     return fn(scope);
+    // Plan B
     // with(scope) {
     //  return eval(exp);
     // }
 };
 
+function parseExpression(vm, exp) {
+    var data = vm.$data;
+    // debugger;
+    if (hasFilter(exp)) {
+        var filterInfo = parseFilter(exp);
+        var value = calculateExpression(data, filterInfo.param);
+        return _filter.filter.apply(null, [vm, filterInfo.method, value].concat(filterInfo.args));
+        // return filter.apply(vm, filterInfo.method, [filterInfo.param].concat(filterInfo.args));
+    } else {
+        return calculateExpression(data, exp);
+    }
+}
+
+// v-for expression
 function parseForExpression(expression) {
     // variable name
     var valReg = /in\s*([^\s]*)\s*?$/;
@@ -75,6 +92,45 @@ function parseForExpression(expression) {
     return ret;
 }
 
+// 解析filter表达式
+// paramName | filterName arg1 arg2
+function parseFilter(str) {
+    if (!str || str.indexOf('|') === -1) return null;
+    var splits = str.split('|');
+    var paramName = _.trim(splits[0]);
+    var args = _.trim(splits[1]).split(' ');
+    var methodName = args.shift();
+    return {
+        param: paramName,
+        args: typeCheck(args),
+        method: methodName
+    };
+}
+
+// whether expression has filter
+function hasFilter(exp) {
+    if (!exp || exp.indexOf('|') === -1) return false;
+    return true;
+}
+
+// 类型转化
+function typeCheck(args) {
+    var rets = [];
+    args.forEach(function (arg, index) {
+        arg = _.trim(arg);
+        // number
+        if (/^[0-9]$/.test(arg)) {
+            rets[index] = Number(arg);
+        } else {
+            // "'string'" => string
+            rets[index] = arg.replace(/^\'|\'$/g, '');
+        }
+    });
+    return rets;
+}
+
 exports.calculateExpression = calculateExpression;
 exports.addScope = addScope;
 exports.parseForExpression = parseForExpression;
+exports.parseFilter = parseFilter;
+exports.parseExpression = parseExpression;

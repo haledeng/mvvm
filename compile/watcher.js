@@ -10,7 +10,7 @@ var _depender = require('./depender');
 
 var _depender2 = _interopRequireDefault(_depender);
 
-var _directive = require('./directive');
+var _expression = require('./directive/expression');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -73,7 +73,8 @@ var Watcher = function () {
 		key: 'get',
 		value: function get() {
 			_depender2.default.target = this;
-			var value = (0, _directive.calculateExpression)(this.vm, this.exp);
+			// var value = calculateExpression(this.vm, this.exp);
+			var value = (0, _expression.parseExpression)(this.vm, this.exp);
 			_depender2.default.target = null;
 			return value;
 		}

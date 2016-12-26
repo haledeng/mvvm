@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
+exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
 
 var _model = require('./model');
 
@@ -46,3 +46,4 @@ exports.calculateExpression = _expression.calculateExpression;
 exports.vOn = _event2.default;
 exports.vFor = _for2.default;
 exports.parseForExpression = _expression.parseForExpression;
+exports.parseExpression = _expression.parseExpression;

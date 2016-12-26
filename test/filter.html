@@ -47,6 +47,9 @@
         <!-- <p>{{message | upper}}</p> -->
         <!-- <p>{{ a | add 2}}</p> -->
         <p v-text="a | add '2'"></p>
+        <input type="text" v-model="a | add 2">
+        <p>{{ a | add '2' }}</p>
+        <button v-on:click="change">click me</button>
     </div>
 
 
@@ -59,12 +62,16 @@
                 a: 1,
                 message: 'hello MVVM',
             },
+            methods: {
+                change: function() {
+                    this.a = 3;
+                }
+            },
             filters: {
                 upper: function(value) {
                     return value.replace(/^[a-z]/, value.charAt(0).toUpperCase());
                 },
                 add: function(a, b) {
-                    console.log(typeof a, typeof b);
                     return a + b;
                 }
             }

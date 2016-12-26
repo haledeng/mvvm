@@ -6,18 +6,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _expression = require('./expression');
 
-var _filter = require('../filter');
-
 // v-text
-var vText = function vText(node, scope, key) {
-	// var scope = vm.$data;
-	// var rets = parseFilter(key);
-	// if (rets) {
-	// 	var value = calculateExpression(scope, rets.param);
-	// 	node.innerHTML = filter.apply(null, [vm, rets.method, value].concat(rets.args));
-	// 	return;
-	// }
-	node.innerHTML = (0, _expression.calculateExpression)(scope, key);
+var vText = function vText(node, vm, key) {
+	node.innerHTML = (0, _expression.parseExpression)(vm, key);
 	// 影响后面attribute遍历
 	// node.removeAttribute('v-text');
 };

@@ -8,7 +8,7 @@ A MVVM test library for study. **Do not use in project**
 
 
 ### TODO
-+ v-for support object.
-+ optimization for v-for.
-+ event may be bind several times.
 + performance.
++ filters.
++ delete interface calculateExpression.
++ filters in v-for.

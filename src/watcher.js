@@ -30,8 +30,11 @@
 var uid = 0;
 import Dep from './depender';
 import {
+	parseExpression,
 	calculateExpression
-} from './directive';
+} from './directive/expression';
+
+
 class Watcher {
 	constructor(opts) {
 		this.id = uid++;
@@ -51,7 +54,8 @@ class Watcher {
 	}
 	get() {
 		Dep.target = this;
-		var value = calculateExpression(this.vm, this.exp);
+		// var value = calculateExpression(this.vm, this.exp);
+		var value = parseExpression(this.vm, this.exp);
 		Dep.target = null;
 		return value;
 	}

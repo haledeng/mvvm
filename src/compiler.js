@@ -7,7 +7,8 @@ import {
 	setScopeValue,
 	vOn,
 	vFor,
-	parseForExpression
+	parseForExpression,
+	parseExpression
 } from './directive/index';
 
 import {
@@ -53,7 +54,7 @@ class Compiler {
 		}
 	}
 	_parseAttr(node, attr) {
-		debugger;
+		// debugger;
 		// 转化属性
 		var self = this;
 		var attrReg = /^v\-([\w\:\']*)/;
@@ -68,20 +69,30 @@ class Compiler {
 			switch (property) {
 				// v-model
 				case 'model':
-					self.bindWatch(self.$vm.$data, attr.value, function() {
-						vModel(node, self.$vm.$data, attr.value);
+					// self.bindWatch(self.$vm.$data, attr.value, function() {
+					// 	vModel(node, self.$vm.$data, attr.value);
+					// });
+					// vModel(node, self.$vm.$data, attr.value);
+
+
+					self.bindWatch(self.$vm, attr.value, function() {
+						vModel(node, self.$vm, attr.value);
 					});
-					vModel(node, self.$vm.$data, attr.value);
+					vModel(node, self.$vm, attr.value);
 					break;
 					// v-text
 				case 'text':
 					// filters
 					// TODO: watcher 中计算表达式有问题
 					// watch 表达式，还是表达式中的变量
-					self.bindWatch(self.$vm.$data, attr.value, function() {
-						vText(node, self.$vm.$data, attr.value);
+					// self.bindWatch(self.$vm.$data, attr.value, function() {
+					// 	vText(node, self.$vm.$data, attr.value);
+					// });
+					// vText(node, this.$vm.$data, attr.value);
+					self.bindWatch(self.$vm, attr.value, function() {
+						vText(node, self.$vm, attr.value);
 					});
-					vText(node, this.$vm.$data, attr.value);
+					vText(node, this.$vm, attr.value);
 					break;
 				case 'for':
 					var info = parseForExpression(attr.value);
@@ -97,7 +108,7 @@ class Compiler {
 	addInputListener(node, attr) {
 		if (attr.name !== 'v-model') return;
 		var key = attr.value;
-		var oldVal = calculateExpression(this.$vm.$data, key);
+		var oldVal = parseExpression(this.$vm, key);
 		// var oldVal = this.$vm.$data[key];
 		var self = this;
 		// v-model监听
@@ -113,7 +124,6 @@ class Compiler {
 	}
 	bindWatch(vm, exp, callback) {
 		var noop = function() {};
-		console.log(exp);
 		new Watcher({
 			vm: vm,
 			exp: exp,
@@ -127,25 +137,27 @@ class Compiler {
 		// TODO: filters
 		const _replace = (scope) => {
 			var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
-				var rets = parseFilter(name);
-				if (rets) {
-					// 计算参数的值
-					var paramValue = calculateExpression(scope, rets.param);
-					return filter.apply(null, [self.$vm, rets.method, paramValue].concat(rets.args))
-						// return filter(self.$vm, filters.method, )
-				}
+				// var rets = parseFilter(name);
+				// if (rets) {
+				// 	// 计算参数的值
+				// 	var paramValue = calculateExpression(scope, rets.param);
+				// 	return filter.apply(null, [self.$vm, rets.method, paramValue].concat(rets.args))
+
+				// }
 				if (!keys.length) {
 					keys.push(name);
 				}
-				name = _.trim(name);
-				return calculateExpression(scope, name);
+				// name = _.trim(name);
+				// return calculateExpression(scope, name);
+
+				return parseExpression(self.$vm, name);
 				// return scope[name] !== undefined ? scope[name] : 0;
 			});
 			node.innerHTML = newHtml;
 		};
 		_replace(this.$vm.$data);
 		keys.forEach(function(key) {
-			self.bindWatch(self.$vm.$data, key, _replace);
+			self.bindWatch(self.$vm, key, _replace);
 		});
 	}
 }

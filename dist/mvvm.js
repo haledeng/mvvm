@@ -65,7 +65,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler2 = _interopRequireDefault(_compiler);
 
-	var _observer = __webpack_require__(13);
+	var _observer = __webpack_require__(12);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -111,9 +111,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _watcher2 = _interopRequireDefault(_watcher);
 
-	var _index = __webpack_require__(6);
+	var _index = __webpack_require__(7);
 
-	var _filter = __webpack_require__(10);
+	var _filter = __webpack_require__(6);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -171,7 +171,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: '_parseAttr',
 			value: function _parseAttr(node, attr) {
-				debugger;
+				// debugger;
 				// 转化属性
 				var self = this;
 				var attrReg = /^v\-([\w\:\']*)/;
@@ -186,20 +186,30 @@ return /******/ (function(modules) { // webpackBootstrap
 					switch (property) {
 						// v-model
 						case 'model':
-							self.bindWatch(self.$vm.$data, attr.value, function () {
-								(0, _index.vModel)(node, self.$vm.$data, attr.value);
+							// self.bindWatch(self.$vm.$data, attr.value, function() {
+							// 	vModel(node, self.$vm.$data, attr.value);
+							// });
+							// vModel(node, self.$vm.$data, attr.value);
+
+
+							self.bindWatch(self.$vm, attr.value, function () {
+								(0, _index.vModel)(node, self.$vm, attr.value);
 							});
-							(0, _index.vModel)(node, self.$vm.$data, attr.value);
+							(0, _index.vModel)(node, self.$vm, attr.value);
 							break;
 						// v-text
 						case 'text':
 							// filters
 							// TODO: watcher 中计算表达式有问题
 							// watch 表达式，还是表达式中的变量
-							self.bindWatch(self.$vm.$data, attr.value, function () {
-								(0, _index.vText)(node, self.$vm.$data, attr.value);
+							// self.bindWatch(self.$vm.$data, attr.value, function() {
+							// 	vText(node, self.$vm.$data, attr.value);
+							// });
+							// vText(node, this.$vm.$data, attr.value);
+							self.bindWatch(self.$vm, attr.value, function () {
+								(0, _index.vText)(node, self.$vm, attr.value);
 							});
-							(0, _index.vText)(node, this.$vm.$data, attr.value);
+							(0, _index.vText)(node, this.$vm, attr.value);
 							break;
 						case 'for':
 							var info = (0, _index.parseForExpression)(attr.value);
@@ -217,7 +227,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			value: function addInputListener(node, attr) {
 				if (attr.name !== 'v-model') return;
 				var key = attr.value;
-				var oldVal = (0, _index.calculateExpression)(this.$vm.$data, key);
+				var oldVal = (0, _index.parseExpression)(this.$vm, key);
 				// var oldVal = this.$vm.$data[key];
 				var self = this;
 				// v-model监听
@@ -237,7 +247,6 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'bindWatch',
 			value: function bindWatch(vm, exp, callback) {
 				var noop = function noop() {};
-				console.log(exp);
 				new _watcher2.default({
 					vm: vm,
 					exp: exp,
@@ -253,25 +262,27 @@ return /******/ (function(modules) { // webpackBootstrap
 				// TODO: filters
 				var _replace = function _replace(scope) {
 					var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
-						var rets = (0, _filter.parseFilter)(name);
-						if (rets) {
-							// 计算参数的值
-							var paramValue = (0, _index.calculateExpression)(scope, rets.param);
-							return _filter.filter.apply(null, [self.$vm, rets.method, paramValue].concat(rets.args));
-							// return filter(self.$vm, filters.method, )
-						}
+						// var rets = parseFilter(name);
+						// if (rets) {
+						// 	// 计算参数的值
+						// 	var paramValue = calculateExpression(scope, rets.param);
+						// 	return filter.apply(null, [self.$vm, rets.method, paramValue].concat(rets.args))
+
+						// }
 						if (!keys.length) {
 							keys.push(name);
 						}
-						name = _.trim(name);
-						return (0, _index.calculateExpression)(scope, name);
+						// name = _.trim(name);
+						// return calculateExpression(scope, name);
+
+						return (0, _index.parseExpression)(self.$vm, name);
 						// return scope[name] !== undefined ? scope[name] : 0;
 					});
 					node.innerHTML = newHtml;
 				};
 				_replace(this.$vm.$data);
 				keys.forEach(function (key) {
-					self.bindWatch(self.$vm.$data, key, _replace);
+					self.bindWatch(self.$vm, key, _replace);
 				});
 			}
 		}]);
@@ -336,7 +347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _depender2 = _interopRequireDefault(_depender);
 
-	var _directive = __webpack_require__(5);
+	var _expression = __webpack_require__(5);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -399,7 +410,8 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'get',
 			value: function get() {
 				_depender2.default.target = this;
-				var value = (0, _directive.calculateExpression)(this.vm, this.exp);
+				// var value = calculateExpression(this.vm, this.exp);
+				var value = (0, _expression.parseExpression)(this.vm, this.exp);
 				_depender2.default.target = null;
 				return value;
 			}
@@ -457,196 +469,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-		value: true
+	    value: true
 	});
-	exports.setScopeValue = exports.calculateExpression = exports.vFor = exports.vText = exports.vModel = undefined;
+	exports.parseExpression = exports.parseFilter = exports.parseForExpression = exports.addScope = exports.calculateExpression = undefined;
 
 	var _util = __webpack_require__(2);
 
 	var _ = _interopRequireWildcard(_util);
 
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	// v-model
-	var vModel = function vModel(node, scope, key) {
-		var tagName = node.tagName.toLowerCase();
-		var value = calculateExpression(scope, key);
-		if (tagName === 'input') {
-			node.value = value;
-		} else if (tagName === 'textarea') {
-			node.innerHTML = value;
-		}
-	};
-
-	// v-text
-	var vText = function vText(node, scope, key) {
-		node.innerHTML = calculateExpression(scope, key);
-	};
-
-	// +,-,m.n,*,/
-	// 添加上下文
-	// AST?
-	var addScope = function addScope(exp) {
-		var prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'scope';
-
-		exp = _.trim(exp);
-		// x.y
-		exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
-			return [prefix, match].join('.');
-		});
-		exp = ' ' + exp + ' ';
-		// x
-		exp = exp.replace(/[\+\-\*\/\s]\w+(?![\'\.])[\+\-\*\/\s]/g, function (match, index, all) {
-			return [prefix, _.trim(match)].join('.');
-		});
-		return _.trim(exp);
-
-		// return exp.replace(/^([\'\w]*)\s*?([\+\-\*\/\.])?\s*?([\'\w]*)?$/, function(total, all, left, operater, right) {
-		// 	if (left.indexOf('\'') === -1) {
-		// 		left = [prefix, left].join('.');
-		// 	}
-		// 	if (right && right.indexOf('\'') === -1) {
-		// 		if (operater !== '.') {
-		// 			right = [prefix, right].join('.');
-		// 		}
-		// 		return left + operater + right;
-		// 	}
-		// 	return left;
-		// });
-	};
-
-	// 计算表达式
-	// strict mode can not use with
-	// new Function
-	var calculateExpression = function calculateExpression(scope, exp) {
-		var prefix = 'scope';
-		exp = addScope(exp);
-		var fn = new Function(prefix, 'return ' + exp);
-		return fn(scope);
-		// with(scope) {
-		// 	return eval(exp);
-		// }
-	};
-
-	// 设置属性值
-	var setScopeValue = function setScopeValue(scope, key, value) {
-		if (~key.indexOf('.')) {
-			var namespaces = key.split('.');
-			var last = namespaces.pop();
-			namespaces.forEach(function (name) {
-				scope = scope[name] || (scope[name] = {});
-			});
-			scope[last] = value;
-		} else {
-			scope[key] = value;
-		}
-	};
-
-	// v-for
-	var vFor = function vFor() {};
-
-	exports.vModel = vModel;
-	exports.vText = vText;
-	exports.vFor = vFor;
-	exports.calculateExpression = calculateExpression;
-	exports.setScopeValue = setScopeValue;
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
-
-	var _model = __webpack_require__(7);
-
-	var _model2 = _interopRequireDefault(_model);
-
-	var _text = __webpack_require__(9);
-
-	var _text2 = _interopRequireDefault(_text);
-
-	var _expression = __webpack_require__(8);
-
-	var _event = __webpack_require__(11);
-
-	var _event2 = _interopRequireDefault(_event);
-
-	var _for = __webpack_require__(12);
-
-	var _for2 = _interopRequireDefault(_for);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	// 设置属性值
-	var setScopeValue = function setScopeValue(scope, key, value) {
-	    if (~key.indexOf('.')) {
-	        var namespaces = key.split('.');
-	        var last = namespaces.pop();
-	        namespaces.forEach(function (name) {
-	            scope = scope[name] || (scope[name] = {});
-	        });
-	        scope[last] = value;
-	    } else {
-	        scope[key] = value;
-	    }
-	};
-
-	exports.vModel = _model2.default;
-	exports.vText = _text2.default;
-	exports.setScopeValue = setScopeValue;
-	exports.calculateExpression = _expression.calculateExpression;
-	exports.vOn = _event2.default;
-	exports.vFor = _for2.default;
-	exports.parseForExpression = _expression.parseForExpression;
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
-	var _expression = __webpack_require__(8);
-
-	var _expression2 = _interopRequireDefault(_expression);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var vModel = function vModel(node, scope, key) {
-	    var tagName = node.tagName.toLowerCase();
-	    var value = (0, _expression2.default)(scope, key);
-	    if (tagName === 'input') {
-	        node.value = value;
-	    } else if (tagName === 'textarea') {
-	        node.innerHTML = value;
-	    }
-	    // node.removeAttribute('v-model');
-	};
-
-	exports.default = vModel;
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.parseForExpression = exports.addScope = exports.calculateExpression = undefined;
-
-	var _util = __webpack_require__(2);
-
-	var _ = _interopRequireWildcard(_util);
+	var _filter = __webpack_require__(6);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -677,16 +508,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	// strict mode can not use with
 	// new Function
 	var calculateExpression = function calculateExpression(scope, exp) {
-
+	    // Plan A
 	    var prefix = 'scope';
 	    exp = addScope(exp);
 	    var fn = new Function(prefix, 'return ' + exp);
 	    return fn(scope);
+	    // Plan B
 	    // with(scope) {
 	    //  return eval(exp);
 	    // }
 	};
 
+	function parseExpression(vm, exp) {
+	    var data = vm.$data;
+	    // debugger;
+	    if (hasFilter(exp)) {
+	        var filterInfo = parseFilter(exp);
+	        var value = calculateExpression(data, filterInfo.param);
+	        return _filter.filter.apply(null, [vm, filterInfo.method, value].concat(filterInfo.args));
+	        // return filter.apply(vm, filterInfo.method, [filterInfo.param].concat(filterInfo.args));
+	    } else {
+	        return calculateExpression(data, exp);
+	    }
+	}
+
+	// v-for expression
 	function parseForExpression(expression) {
 	    // variable name
 	    var valReg = /in\s*([^\s]*)\s*?$/;
@@ -714,42 +560,51 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return ret;
 	}
 
+	// 解析filter表达式
+	// paramName | filterName arg1 arg2
+	function parseFilter(str) {
+	    if (!str || str.indexOf('|') === -1) return null;
+	    var splits = str.split('|');
+	    var paramName = _.trim(splits[0]);
+	    var args = _.trim(splits[1]).split(' ');
+	    var methodName = args.shift();
+	    return {
+	        param: paramName,
+	        args: typeCheck(args),
+	        method: methodName
+	    };
+	}
+
+	// whether expression has filter
+	function hasFilter(exp) {
+	    if (!exp || exp.indexOf('|') === -1) return false;
+	    return true;
+	}
+
+	// 类型转化
+	function typeCheck(args) {
+	    var rets = [];
+	    args.forEach(function (arg, index) {
+	        arg = _.trim(arg);
+	        // number
+	        if (/^[0-9]$/.test(arg)) {
+	            rets[index] = Number(arg);
+	        } else {
+	            // "'string'" => string
+	            rets[index] = arg.replace(/^\'|\'$/g, '');
+	        }
+	    });
+	    return rets;
+	}
+
 	exports.calculateExpression = calculateExpression;
 	exports.addScope = addScope;
 	exports.parseForExpression = parseForExpression;
+	exports.parseFilter = parseFilter;
+	exports.parseExpression = parseExpression;
 
 /***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _expression = __webpack_require__(8);
-
-	var _filter = __webpack_require__(10);
-
-	// v-text
-	var vText = function vText(node, scope, key) {
-		// var scope = vm.$data;
-		// var rets = parseFilter(key);
-		// if (rets) {
-		// 	var value = calculateExpression(scope, rets.param);
-		// 	node.innerHTML = filter.apply(null, [vm, rets.method, value].concat(rets.args));
-		// 	return;
-		// }
-		node.innerHTML = (0, _expression.calculateExpression)(scope, key);
-		// 影响后面attribute遍历
-		// node.removeAttribute('v-text');
-	};
-
-	exports.default = vText;
-
-/***/ },
-/* 10 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -805,7 +660,108 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.parseFilter = parseFilter;
 
 /***/ },
-/* 11 */
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
+
+	var _model = __webpack_require__(8);
+
+	var _model2 = _interopRequireDefault(_model);
+
+	var _text = __webpack_require__(9);
+
+	var _text2 = _interopRequireDefault(_text);
+
+	var _expression = __webpack_require__(5);
+
+	var _event = __webpack_require__(10);
+
+	var _event2 = _interopRequireDefault(_event);
+
+	var _for = __webpack_require__(11);
+
+	var _for2 = _interopRequireDefault(_for);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	// 设置属性值
+	var setScopeValue = function setScopeValue(scope, key, value) {
+	    if (~key.indexOf('.')) {
+	        var namespaces = key.split('.');
+	        var last = namespaces.pop();
+	        namespaces.forEach(function (name) {
+	            scope = scope[name] || (scope[name] = {});
+	        });
+	        scope[last] = value;
+	    } else {
+	        scope[key] = value;
+	    }
+	};
+
+	exports.vModel = _model2.default;
+	exports.vText = _text2.default;
+	exports.setScopeValue = setScopeValue;
+	exports.calculateExpression = _expression.calculateExpression;
+	exports.vOn = _event2.default;
+	exports.vFor = _for2.default;
+	exports.parseForExpression = _expression.parseForExpression;
+	exports.parseExpression = _expression.parseExpression;
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _expression = __webpack_require__(5);
+
+	var vModel = function vModel(node, vm, exp) {
+		var tagName = node.tagName.toLowerCase();
+		// var value = calculateExpression(scope, key);
+		var value = (0, _expression.parseExpression)(vm, exp);
+		if (tagName === 'input') {
+			node.value = value;
+		} else if (tagName === 'textarea') {
+			node.innerHTML = value;
+		}
+		// node.removeAttribute('v-model');
+	};
+
+	exports.default = vModel;
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _expression = __webpack_require__(5);
+
+	// v-text
+	var vText = function vText(node, vm, key) {
+		node.innerHTML = (0, _expression.parseExpression)(vm, key);
+		// 影响后面attribute遍历
+		// node.removeAttribute('v-text');
+	};
+
+	exports.default = vText;
+
+/***/ },
+/* 10 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -827,7 +783,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vOn;
 
 /***/ },
-/* 12 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -836,7 +792,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		value: true
 	});
 
-	var _expression = __webpack_require__(8);
+	var _expression = __webpack_require__(5);
 
 	var _util = __webpack_require__(2);
 
@@ -898,7 +854,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vFor;
 
 /***/ },
-/* 13 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

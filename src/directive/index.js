@@ -2,7 +2,8 @@ import vModel from './model';
 import vText from './text';
 import {
     calculateExpression,
-    parseForExpression
+    parseForExpression,
+    parseExpression
 } from './expression';
 import vOn from './event';
 import vFor from './for';
@@ -31,5 +32,6 @@ export {
     calculateExpression,
     vOn,
     vFor,
-    parseForExpression
+    parseForExpression,
+    parseExpression
 }
