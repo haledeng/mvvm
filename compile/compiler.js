@@ -78,7 +78,6 @@ var Compiler = function () {
 	}, {
 		key: 'traversalAttribute',
 		value: function traversalAttribute(node) {
-
 			var self = this;
 			// 遍历属性
 			var attrs = node.attributes;
@@ -108,12 +107,6 @@ var Compiler = function () {
 				switch (property) {
 					// v-model
 					case 'model':
-						// self.bindWatch(self.$vm.$data, attr.value, function() {
-						// 	vModel(node, self.$vm.$data, attr.value);
-						// });
-						// vModel(node, self.$vm.$data, attr.value);
-
-
 						self.bindWatch(self.$vm, attr.value, function () {
 							(0, _index.vModel)(node, self.$vm, attr.value);
 						});
@@ -122,12 +115,6 @@ var Compiler = function () {
 					// v-text
 					case 'text':
 						// filters
-						// TODO: watcher 中计算表达式有问题
-						// watch 表达式，还是表达式中的变量
-						// self.bindWatch(self.$vm.$data, attr.value, function() {
-						// 	vText(node, self.$vm.$data, attr.value);
-						// });
-						// vText(node, this.$vm.$data, attr.value);
 						self.bindWatch(self.$vm, attr.value, function () {
 							(0, _index.vText)(node, self.$vm, attr.value);
 						});
@@ -156,7 +143,6 @@ var Compiler = function () {
 			node.addEventListener('input', function () {
 				if (node.value != oldVal) {
 					(0, _index.setScopeValue)(self.$vm.$data, key, node.value);
-					// self.$vm.$data[key] = node.value;
 				}
 			}, false);
 		}
@@ -185,21 +171,10 @@ var Compiler = function () {
 			// TODO: filters
 			var _replace = function _replace(scope) {
 				var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
-					// var rets = parseFilter(name);
-					// if (rets) {
-					// 	// 计算参数的值
-					// 	var paramValue = calculateExpression(scope, rets.param);
-					// 	return filter.apply(null, [self.$vm, rets.method, paramValue].concat(rets.args))
-
-					// }
 					if (!keys.length) {
 						keys.push(name);
 					}
-					// name = _.trim(name);
-					// return calculateExpression(scope, name);
-
 					return (0, _index.parseExpression)(self.$vm, name);
-					// return scope[name] !== undefined ? scope[name] : 0;
 				});
 				node.innerHTML = newHtml;
 			};

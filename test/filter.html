@@ -58,17 +58,19 @@
     <div id="app">
         <!-- <p>{{message | upper}}</p> -->
         <!-- <p>{{ a | add 2}}</p> -->
-<!--         <p v-text="a | add '2'"></p>
+        <p v-text="a | add '2'"></p>
         <input type="text" v-model="a | add 2">
         <p>{{ a | add '2' }}</p>
-        <button v-on:click="change">click me</button> -->
+        <button v-on:click="change">click me</button>
 
         <ul>
-            <li v-for="item in list">
-                <p>{{item | upper}}</p>
-           <!--      <p v-text="item | upper"></p> -->
+            <li v-for="(item, index) in list" class="li-item">
+                <p>{{item | upper}} -> {{index + 1}}</p>
+                <p v-text="item | upper"></p>
             </li>
         </ul>
+
+         <button v-on:click="changeList">click me</button>
     </div>
 
 
@@ -80,11 +82,14 @@
             data: {
                 a: 1,
                 message: 'hello MVVM',
-                list: [/*'item1', 'item2', 'item3'*/]
+                list: ['item1', 'item2', 'item3']
             },
             methods: {
                 change: function() {
                     this.a = 3;
+                },
+                changeList: function() {
+                    this.list.push('item4');
                 }
             },
             filters: {
@@ -96,6 +101,12 @@
                 }
             }
         });
+
+        mvvm.$watch('a', function(oldVal, newVal) {
+            console.log(this, oldVal, newVal);
+        });
+
+        console.log(mvvm.message);
     </script>
 </body>
 </html>

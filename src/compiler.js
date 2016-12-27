@@ -15,6 +15,7 @@ import {
 	filter,
 	parseFilter
 } from './filter';
+
 class Compiler {
 	constructor(opts) {
 		this.$el = typeof opts.el === 'string' ? document.querySelector(opts.el) : opts.el;
@@ -60,7 +61,6 @@ class Compiler {
 		_traversal(node);
 	}
 	traversalAttribute(node) {
-
 		var self = this;
 		// 遍历属性
 		var attrs = node.attributes;
@@ -88,12 +88,6 @@ class Compiler {
 			switch (property) {
 				// v-model
 				case 'model':
-					// self.bindWatch(self.$vm.$data, attr.value, function() {
-					// 	vModel(node, self.$vm.$data, attr.value);
-					// });
-					// vModel(node, self.$vm.$data, attr.value);
-
-
 					self.bindWatch(self.$vm, attr.value, function() {
 						vModel(node, self.$vm, attr.value);
 					});
@@ -102,12 +96,6 @@ class Compiler {
 					// v-text
 				case 'text':
 					// filters
-					// TODO: watcher 中计算表达式有问题
-					// watch 表达式，还是表达式中的变量
-					// self.bindWatch(self.$vm.$data, attr.value, function() {
-					// 	vText(node, self.$vm.$data, attr.value);
-					// });
-					// vText(node, this.$vm.$data, attr.value);
 					self.bindWatch(self.$vm, attr.value, function() {
 						vText(node, self.$vm, attr.value);
 					});
@@ -134,7 +122,6 @@ class Compiler {
 		node.addEventListener('input', function() {
 			if (node.value != oldVal) {
 				setScopeValue(self.$vm.$data, key, node.value);
-				// self.$vm.$data[key] = node.value;
 			}
 		}, false);
 	}
@@ -157,21 +144,10 @@ class Compiler {
 		// TODO: filters
 		const _replace = (scope) => {
 			var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
-				// var rets = parseFilter(name);
-				// if (rets) {
-				// 	// 计算参数的值
-				// 	var paramValue = calculateExpression(scope, rets.param);
-				// 	return filter.apply(null, [self.$vm, rets.method, paramValue].concat(rets.args))
-
-				// }
 				if (!keys.length) {
 					keys.push(name);
 				}
-				// name = _.trim(name);
-				// return calculateExpression(scope, name);
-
 				return parseExpression(self.$vm, name);
-				// return scope[name] !== undefined ? scope[name] : 0;
 			});
 			node.innerHTML = newHtml;
 		};

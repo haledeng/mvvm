@@ -6,6 +6,12 @@ A MVVM test library for study. **Do not use in project**
 + Define reactive property.
 + publish/subscribe.
 
+### Function List
++ v-text
++ v-model
++ v-on
++ v-for
++ $watch
 
 ### TODO
 + performance.

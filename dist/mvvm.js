@@ -61,6 +61,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.MVVM = undefined;
 
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * entry
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 	var _compiler = __webpack_require__(1);
 
 	var _compiler2 = _interopRequireDefault(_compiler);
@@ -69,25 +73,57 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _observer2 = _interopRequireDefault(_observer);
 
+	var _watcher = __webpack_require__(3);
+
+	var _watcher2 = _interopRequireDefault(_watcher);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } } /**
-	                                                                                                                                                           * entry
-	                                                                                                                                                           */
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var MVVM = function MVVM(options) {
-		_classCallCheck(this, MVVM);
+	var MVVM = function () {
+		function MVVM(options) {
+			_classCallCheck(this, MVVM);
 
-		this.$data = options.data || {};
-		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
-		this.methods = options.methods;
-		this.filters = options.filters || {};
-		new _observer2.default(this.$data);
-		new _compiler2.default({
-			el: this.$el,
-			vm: this
-		});
-	};
+			this.$data = options.data || {};
+			this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
+			this.methods = options.methods;
+			this.filters = options.filters || {};
+			new _observer2.default(this.$data);
+			new _compiler2.default({
+				el: this.$el,
+				vm: this
+			});
+			this.copyData2Vm();
+		}
+
+		_createClass(MVVM, [{
+			key: 'copyData2Vm',
+			value: function copyData2Vm() {
+				// 将data属性copy到vm下
+				for (var prop in this.$data) {
+					if (this.$data.hasOwnProperty(prop) && !this.hasOwnProperty(prop)) {
+						this[prop] = this.$data[prop];
+					}
+				}
+			}
+		}, {
+			key: '$watch',
+			value: function $watch(paramName, _callback) {
+				var self = this;
+				new _watcher2.default({
+					vm: self,
+					exp: paramName,
+					callback: function callback(vm, newVal, oldVal) {
+						// watch variable change.
+						typeof _callback === 'function' && _callback.call(vm, oldVal, newVal);
+					}
+				});
+			}
+		}]);
+
+		return MVVM;
+	}();
 
 	exports.MVVM = MVVM;
 
@@ -175,7 +211,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'traversalAttribute',
 			value: function traversalAttribute(node) {
-
 				var self = this;
 				// 遍历属性
 				var attrs = node.attributes;
@@ -205,12 +240,6 @@ return /******/ (function(modules) { // webpackBootstrap
 					switch (property) {
 						// v-model
 						case 'model':
-							// self.bindWatch(self.$vm.$data, attr.value, function() {
-							// 	vModel(node, self.$vm.$data, attr.value);
-							// });
-							// vModel(node, self.$vm.$data, attr.value);
-
-
 							self.bindWatch(self.$vm, attr.value, function () {
 								(0, _index.vModel)(node, self.$vm, attr.value);
 							});
@@ -219,12 +248,6 @@ return /******/ (function(modules) { // webpackBootstrap
 						// v-text
 						case 'text':
 							// filters
-							// TODO: watcher 中计算表达式有问题
-							// watch 表达式，还是表达式中的变量
-							// self.bindWatch(self.$vm.$data, attr.value, function() {
-							// 	vText(node, self.$vm.$data, attr.value);
-							// });
-							// vText(node, this.$vm.$data, attr.value);
 							self.bindWatch(self.$vm, attr.value, function () {
 								(0, _index.vText)(node, self.$vm, attr.value);
 							});
@@ -253,7 +276,6 @@ return /******/ (function(modules) { // webpackBootstrap
 				node.addEventListener('input', function () {
 					if (node.value != oldVal) {
 						(0, _index.setScopeValue)(self.$vm.$data, key, node.value);
-						// self.$vm.$data[key] = node.value;
 					}
 				}, false);
 			}
@@ -282,21 +304,10 @@ return /******/ (function(modules) { // webpackBootstrap
 				// TODO: filters
 				var _replace = function _replace(scope) {
 					var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
-						// var rets = parseFilter(name);
-						// if (rets) {
-						// 	// 计算参数的值
-						// 	var paramValue = calculateExpression(scope, rets.param);
-						// 	return filter.apply(null, [self.$vm, rets.method, paramValue].concat(rets.args))
-
-						// }
 						if (!keys.length) {
 							keys.push(name);
 						}
-						// name = _.trim(name);
-						// return calculateExpression(scope, name);
-
 						return (0, _index.parseExpression)(self.$vm, name);
-						// return scope[name] !== undefined ? scope[name] : 0;
 					});
 					node.innerHTML = newHtml;
 				};
@@ -373,35 +384,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	/**
-	 *	事件监听的方式来处理
-	 */
-	// class Watcher {
-	// 	constructor() {
-
-	// 	}
-	// 	on(name, callback) {
-	// 		if (typeof callback === 'function') {
-	// 			if (!Watcher._evMaps[name]) {
-	// 				Watcher._evMaps[name] = [];
-	// 			}
-	// 			Watcher._evMaps[name].push(callback);
-	// 		}
-	// 	}
-	// 	off(name) {
-	// 		if (Watcher._evMaps[name]) {
-	// 			delete Watcher._evMaps[name];
-	// 		}
-	// 	}
-	// 	emit(name) {
-	// 		var callbacks = Watcher._evMaps[name];
-	// 		var args = [].slice.call(arguments, 1);
-	// 		callbacks.forEach(function(callback) {
-	// 			callback(args);
-	// 		});
-	// 	}
-	// }
-	// Watcher._evMaps = {};
 	var uid = 0;
 
 	var Watcher = function () {
@@ -625,60 +607,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 6 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
+	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-	exports.parseFilter = exports.filter = undefined;
-
-	var _util = __webpack_require__(2);
-
-	var _ = _interopRequireWildcard(_util);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
 	// filters 过滤器
 	function filter(vm, name, params) {
 		var method = vm.filters[name];
-		console.log([params].concat([].slice.call(arguments, 3)));
 		return method.apply(vm.$data, [params].concat([].slice.call(arguments, 3)));
 	}
 
-	// 解析filter表达式
-	function parseFilter(str) {
-		if (!str || str.indexOf('|') === -1) return null;
-		var splits = str.split('|');
-		var paramName = _.trim(splits[0]);
-		// paramName | filterName arg1 arg2
-		var args = _.trim(splits[1]).split(' ');
-		var methodName = args.shift();
-		console.log(args);
-		return {
-			param: paramName,
-			args: typeCheck(args),
-			method: methodName
-		};
-	}
-
-	// 类型转化
-	function typeCheck(args) {
-		var rets = [];
-		args.forEach(function (arg, index) {
-			arg = _.trim(arg);
-			if (/^[0-9]$/.test(arg)) {
-				rets[index] = Number(arg);
-			} else {
-				rets[index] = arg;
-			}
-		});
-		return rets;
-	}
-
 	exports.filter = filter;
-	exports.parseFilter = parseFilter;
 
 /***/ },
 /* 7 */
@@ -827,41 +769,42 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+	// 会二次执行，监听的元素变化时，会重新调用vfor
 	function vFor(node, vm, expression) {
 		var parent = node.parentNode || node.__parent__;
 		var tagName = node.tagName.toLowerCase();
 		var expInfo = (0, _expression.parseForExpression)(expression);
 		var scope = vm.$data;
 		var val = (0, _expression.calculateExpression)(scope, expInfo.val);
-		if (!_.isType(val, 'array')) return;
+		if (!_.isType(val, 'array') || !val.length) return;
 		var docFrag = document.createDocumentFragment();
-		var template = node.__template__ || node.innerHTML;
+		// var template = node.__template__ || node.innerHTML;
 		val.forEach(function (item, index) {
 			// 子节点如何编译，Compiler中可以，但是需要修改scope
-			var li = document.createElement(tagName);
+			// var li = document.createElement(tagName);
 			// TODO: attributes
-			li.innerHTML = template;
-			// var li = node.cloneNode(true);
+			// li.innerHTML = template;
+			var li = node.cloneNode(true);
+			// maxnum call
+			li.removeAttribute('v-for');
 			var context = {};
 			context[expInfo.scope] = item;
 			if (expInfo.index !== undefined) {
 				context[expInfo.index] = index;
 			}
+			docFrag.appendChild(li);
 			new _compiler2.default({
 				el: li,
 				// TODO: methods, filters
 				vm: {
-					// mixin deep clone
-					// $data: context
 					$data: _.mixin(context, scope),
 					methods: vm.methods,
 					filters: vm.filters
 				}
 			});
-			docFrag.appendChild(li);
 		});
 		!node.__parent__ && parent.removeChild(node);
-		node.__template__ = template;
+		// node.__template__ = template;
 		// TODO: remove before
 		node.__parent__ = replaceChild(parent, docFrag);
 		// parent.replaceChild(docFrag, parent.lastChild);
