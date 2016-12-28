@@ -11,6 +11,12 @@ var _ = _interopRequireWildcard(_util);
 
 var _filter = require('../filter');
 
+var _bind = require('../parser/bind');
+
+var _bind2 = _interopRequireDefault(_bind);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // +,-,m.n,*,/,>,<,>=,<=,==,===
@@ -54,17 +60,40 @@ var calculateExpression = function calculateExpression(scope, exp) {
     // }
 };
 
-function parseExpression(vm, exp) {
+// v-bind: expression
+function parseExpression(vm, exp, directive) {
     var data = vm.$data;
-    // debugger;
     if (hasFilter(exp)) {
         var filterInfo = parseFilter(exp);
         var value = calculateExpression(data, filterInfo.param);
         return _filter.filter.apply(null, [vm, filterInfo.method, value].concat(filterInfo.args));
-        // return filter.apply(vm, filterInfo.method, [filterInfo.param].concat(filterInfo.args));
     } else {
-        return calculateExpression(data, exp);
+        // TODO: 如何区分bind或其他，不同的directive计算方式不同
+        var value = (0, _bind2.default)(vm, exp);
+        if (Object.keys(value).length) {
+            return value;
+        } else {
+            return calculateExpression(data, exp);
+        }
+        // return calculateExpression(data, exp);
     }
+
+    var value = null;
+    switch (directive) {
+        case 'bind':
+            value = (0, _bind2.default)(vm, exp);
+            break;
+        default:
+            if (hasFilter(exp)) {
+                var filterInfo = parseFilter(exp);
+                value = _filter.filter.apply(null, [vm, filterInfo.method, calculateExpression(data, filterInfo.param)].concat(filterInfo.args));
+            } else {
+                value = calculateExpression(data, exp);
+            }
+            break;
+
+    }
+    return value;
 }
 
 // v-for expression

@@ -2,6 +2,8 @@ import * as _ from '../util';
 import {
     filter
 } from '../filter';
+
+import parseBind from '../parser/bind';
 // +,-,m.n,*,/,>,<,>=,<=,==,===
 // 添加上下文
 // AST?
@@ -41,17 +43,40 @@ const calculateExpression = (scope, exp) => {
     // }
 }
 
-function parseExpression(vm, exp) {
+// v-bind: expression
+function parseExpression(vm, exp, directive) {
     var data = vm.$data;
-    // debugger;
     if (hasFilter(exp)) {
         var filterInfo = parseFilter(exp);
         var value = calculateExpression(data, filterInfo.param);
         return filter.apply(null, [vm, filterInfo.method, value].concat(filterInfo.args));
-        // return filter.apply(vm, filterInfo.method, [filterInfo.param].concat(filterInfo.args));
     } else {
-        return calculateExpression(data, exp);
+        // TODO: 如何区分bind或其他，不同的directive计算方式不同
+        var value = parseBind(vm, exp);
+        if (Object.keys(value).length) {
+            return value;
+        } else {
+            return calculateExpression(data, exp);
+        }
+        // return calculateExpression(data, exp);
     }
+
+    var value = null;
+    switch (directive) {
+        case 'bind':
+            value = parseBind(vm, exp);
+            break;
+        default:
+            if (hasFilter(exp)) {
+                var filterInfo = parseFilter(exp);
+                value = filter.apply(null, [vm, filterInfo.method, calculateExpression(data, filterInfo.param)].concat(filterInfo.args));
+            } else {
+                value = calculateExpression(data, exp);
+            }
+            break;
+
+    }
+    return value;
 }
 
 

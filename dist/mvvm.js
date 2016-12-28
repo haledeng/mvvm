@@ -69,7 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler2 = _interopRequireDefault(_compiler);
 
-	var _observer = __webpack_require__(15);
+	var _observer = __webpack_require__(17);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -140,6 +140,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+	// import vIf from './directive/if';
+	// import vHtml from './directive/html';
+	// import vBind from './directive/bind';
+
 	var _util = __webpack_require__(2);
 
 	var _ = _interopRequireWildcard(_util);
@@ -148,21 +152,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _watcher2 = _interopRequireDefault(_watcher);
 
-	var _index = __webpack_require__(7);
-
-	var _if = __webpack_require__(12);
-
-	var _if2 = _interopRequireDefault(_if);
-
-	var _html = __webpack_require__(13);
-
-	var _html2 = _interopRequireDefault(_html);
-
-	var _bind = __webpack_require__(14);
-
-	var _bind2 = _interopRequireDefault(_bind);
+	var _index = __webpack_require__(8);
 
 	var _filter = __webpack_require__(6);
+
+	var _compiler_props = __webpack_require__(13);
+
+	var _compiler_props2 = _interopRequireDefault(_compiler_props);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -176,16 +172,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 			this.$el = typeof opts.el === 'string' ? document.querySelector(opts.el) : opts.el;
 			this.$vm = opts.vm;
-			this.init();
+			this.traversalNode(this.$el);
 		}
 
 		_createClass(Compiler, [{
-			key: 'init',
-			value: function init() {
-
-				this.traversalNode(this.$el);
-			}
-		}, {
 			key: 'traversalNode',
 			value: function traversalNode(node) {
 				// elements应该是动态变化的
@@ -225,65 +215,6 @@ return /******/ (function(modules) { // webpackBootstrap
 				}
 			}
 		}, {
-			key: '_parseAttr',
-			value: function _parseAttr(node, attr) {
-				// debugger;
-				// 转化属性
-				var self = this;
-				var attrReg = /^v\-([\w\:\']*)/;
-				var matches = attr.name.match(attrReg);
-				var property = matches[1];
-				var eventReg = /on\:(\w*)/;
-				var bindReg = /bind\:(\w*)/;
-				if (eventReg.test(property)) {
-					var eventName = RegExp.$1;
-					_index.vOn.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
-					// event handler
-				} else if (bindReg.test(property)) {
-					var bindProperty = RegExp.$1;
-					// TODO: watcher
-					_bind2.default.call(this.$vm.$data, node, this.$vm, attr.value, bindProperty);
-				} else {
-					switch (property) {
-						// v-model
-						case 'model':
-							self.bindWatch(self.$vm, attr.value, function () {
-								(0, _index.vModel)(node, self.$vm, attr.value);
-							});
-							(0, _index.vModel)(node, self.$vm, attr.value);
-							break;
-						// v-text
-						case 'text':
-							// filters
-							self.bindWatch(self.$vm, attr.value, function () {
-								(0, _index.vText)(node, self.$vm, attr.value);
-							});
-							(0, _index.vText)(node, this.$vm, attr.value);
-							break;
-						case 'html':
-							self.bindWatch(self.$vm, attr.value, function () {
-								(0, _html2.default)(node, self.$vm, attr.value);
-							});
-							(0, _html2.default)(node, this.$vm, attr.value);
-							break;
-						case 'for':
-							var info = (0, _index.parseForExpression)(attr.value);
-							self.bindWatch(self.$vm, info.val, function () {
-								(0, _index.vFor)(node, self.$vm, attr.value);
-							});
-							(0, _index.vFor)(node, this.$vm, attr.value);
-						case 'if':
-							// parse expression
-							self.bindWatch(self.$vm, attr.value, function () {
-								(0, _if2.default)(node, self.$vm, attr.value);
-							});
-							(0, _if2.default)(node, this.$vm, attr.value);
-						default:
-							break;
-					}
-				}
-			}
-		}, {
 			key: 'addInputListener',
 			value: function addInputListener(node, attr) {
 				if (attr.name !== 'v-model') return;
@@ -300,11 +231,12 @@ return /******/ (function(modules) { // webpackBootstrap
 			}
 		}, {
 			key: 'bindWatch',
-			value: function bindWatch(vm, exp, callback) {
+			value: function bindWatch(vm, exp, callback, directive) {
 				var noop = function noop() {};
 				new _watcher2.default({
 					vm: vm,
 					exp: exp,
+					directive: directive || '',
 					callback: callback || noop
 				});
 			}
@@ -334,6 +266,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 		return Compiler;
 	}();
+
+	(0, _compiler_props2.default)(Compiler);
 
 	exports.default = Compiler;
 
@@ -412,6 +346,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.id = uid++;
 			this.vm = opts.vm;
 			this.exp = opts.exp;
+			this.directive = opts.directive;
 			this.callback = opts.callback;
 			this.value = this.get();
 		}
@@ -500,6 +435,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _filter = __webpack_require__(6);
 
+	var _bind = __webpack_require__(7);
+
+	var _bind2 = _interopRequireDefault(_bind);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	// +,-,m.n,*,/,>,<,>=,<=,==,===
@@ -543,17 +484,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // }
 	};
 
-	function parseExpression(vm, exp) {
+	// v-bind: expression
+	function parseExpression(vm, exp, directive) {
 	    var data = vm.$data;
-	    // debugger;
 	    if (hasFilter(exp)) {
 	        var filterInfo = parseFilter(exp);
 	        var value = calculateExpression(data, filterInfo.param);
 	        return _filter.filter.apply(null, [vm, filterInfo.method, value].concat(filterInfo.args));
-	        // return filter.apply(vm, filterInfo.method, [filterInfo.param].concat(filterInfo.args));
 	    } else {
-	        return calculateExpression(data, exp);
+	        // TODO: 如何区分bind或其他，不同的directive计算方式不同
+	        var value = (0, _bind2.default)(vm, exp);
+	        if (Object.keys(value).length) {
+	            return value;
+	        } else {
+	            return calculateExpression(data, exp);
+	        }
+	        // return calculateExpression(data, exp);
 	    }
+
+	    var value = null;
+	    switch (directive) {
+	        case 'bind':
+	            value = (0, _bind2.default)(vm, exp);
+	            break;
+	        default:
+	            if (hasFilter(exp)) {
+	                var filterInfo = parseFilter(exp);
+	                value = _filter.filter.apply(null, [vm, filterInfo.method, calculateExpression(data, filterInfo.param)].concat(filterInfo.args));
+	            } else {
+	                value = calculateExpression(data, exp);
+	            }
+	            break;
+
+	    }
+	    return value;
 	}
 
 	// v-for expression
@@ -651,25 +615,76 @@ return /******/ (function(modules) { // webpackBootstrap
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; // parse bind expression
+
+
+	exports.default = parseBind;
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function hasBind(expression) {}
+
+	/**
+	 * [parseBind description]
+	 * @param  {Object} vm   instance
+	 * @param  {String} attr expression
+	 * @return {Object}      value of the expression
+	 */
+	function parseBind(vm, attr) {
+		attr = _.trim(attr);
+		var data = vm.$data;
+		var computed = vm.computed;
+		var value = {};
+		if (/^\{(.*)\}$/.test(attr)) {
+			// 计算表达式
+			attr.replace(/([^\{\,\:]*):([^\,\:\}]*)/g, function (all, key, val) {
+				value[_.trim(key)] = data[_.trim(val)];
+				return all;
+			});
+		} else if (/\w*/.test(attr)) {
+			// computed or data.property
+			if (_typeof(data[attr]) === 'object') {
+				value = data[attr];
+			} else if (typeof computed[attr] === 'function') {
+				value = computed[attr].apply(data);
+			}
+		}
+		return value;
+	}
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
 	exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
 
-	var _model = __webpack_require__(8);
+	var _model = __webpack_require__(9);
 
 	var _model2 = _interopRequireDefault(_model);
 
-	var _text = __webpack_require__(9);
+	var _text = __webpack_require__(10);
 
 	var _text2 = _interopRequireDefault(_text);
 
 	var _expression = __webpack_require__(5);
 
-	var _on = __webpack_require__(10);
+	var _on = __webpack_require__(11);
 
 	var _on2 = _interopRequireDefault(_on);
 
-	var _for = __webpack_require__(11);
+	var _for = __webpack_require__(12);
 
 	var _for2 = _interopRequireDefault(_for);
 
@@ -699,7 +714,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.parseExpression = _expression.parseExpression;
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -725,7 +740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vModel;
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -747,7 +762,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vText;
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -769,7 +784,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vOn;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -844,7 +859,209 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vFor;
 
 /***/ },
-/* 12 */
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	exports.default = function (Compiler) {
+		// ES6 function写法会导致this解析问题
+		Compiler.prototype._parseAttr = function (node, attr) {
+			var self = this;
+			var attrReg = /^v\-([\w\:\']*)/;
+			var matches = attr.name.match(attrReg);
+			var property = matches[1];
+			var eventReg = /on\:(\w*)/;
+			var bindReg = /bind\:(\w*)/;
+			if (eventReg.test(property)) {
+				var eventName = RegExp.$1;
+				_on2.default.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
+				// event handler
+			} else if (bindReg.test(property)) {
+				var bindProperty = RegExp.$1;
+				self.bindWatch(self.$vm, attr.value, function () {
+					_bind2.default.call(self.$vm.$data, node, self.$vm, attr.value, bindProperty);
+				}, 'bind');
+				// TODO: watcher
+				_bind2.default.call(this.$vm.$data, node, this.$vm, attr.value, bindProperty);
+			} else {
+				switch (property) {
+					// v-model
+					case 'model':
+						self.bindWatch(self.$vm, attr.value, function () {
+							(0, _model2.default)(node, self.$vm, attr.value);
+						}, 'model');
+						(0, _model2.default)(node, self.$vm, attr.value);
+						break;
+					// v-text
+					case 'text':
+						// filters
+						self.bindWatch(self.$vm, attr.value, function () {
+							(0, _text2.default)(node, self.$vm, attr.value);
+						}, 'text');
+						(0, _text2.default)(node, this.$vm, attr.value);
+						break;
+					case 'html':
+						self.bindWatch(self.$vm, attr.value, function () {
+							(0, _html2.default)(node, self.$vm, attr.value);
+						}, 'html');
+						(0, _html2.default)(node, this.$vm, attr.value);
+						break;
+					case 'for':
+						var info = parseForExpression(attr.value);
+						self.bindWatch(self.$vm, info.val, function () {
+							(0, _for2.default)(node, self.$vm, attr.value);
+						}, 'for');
+						(0, _for2.default)(node, this.$vm, attr.value);
+					case 'if':
+						// parse expression
+						self.bindWatch(self.$vm, attr.value, function () {
+							(0, _if2.default)(node, self.$vm, attr.value);
+						}, 'if');
+						(0, _if2.default)(node, this.$vm, attr.value);
+					default:
+						break;
+				}
+			}
+		};
+	};
+
+	var _model = __webpack_require__(9);
+
+	var _model2 = _interopRequireDefault(_model);
+
+	var _text = __webpack_require__(10);
+
+	var _text2 = _interopRequireDefault(_text);
+
+	var _on = __webpack_require__(11);
+
+	var _on2 = _interopRequireDefault(_on);
+
+	var _bind = __webpack_require__(14);
+
+	var _bind2 = _interopRequireDefault(_bind);
+
+	var _html = __webpack_require__(15);
+
+	var _html2 = _interopRequireDefault(_html);
+
+	var _for = __webpack_require__(12);
+
+	var _for2 = _interopRequireDefault(_for);
+
+	var _if = __webpack_require__(16);
+
+	var _if2 = _interopRequireDefault(_if);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.default = vBind;
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	var _bind = __webpack_require__(7);
+
+	var _bind2 = _interopRequireDefault(_bind);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	// 属性转化
+	function transformProperty(property) {
+		if (property === 'class') {
+			return 'className';
+		}
+		return property;
+	}
+
+	function addProperty(node, property, value) {
+		property = transformProperty(property);
+		if (property === 'className') {
+			node[property] = [node[property], value].join(' ');
+		} else {
+			node.setAttribute(property, value);
+		}
+	}
+
+	function removeProperty(node, property, value) {
+		property = transformProperty(property);
+		if (property === 'className') {
+			node[property] = node[property].replace(new RegExp('\\b' + value + '\\b'), '');
+		} else {
+			node.removeAttribute(property);
+		}
+	}
+
+	function vBind(node, vm, attr, property) {
+		// attr = _.trim(attr);
+		// var data = vm.$data;
+		// var computed = vm.computed;
+		// var value = {};
+		// if (/^\{(.*)\}$/.test(attr)) {
+		// 	// 计算表达式
+		// 	attr.replace(/([^\{\,\:]*):([^\,\:\}]*)/g, function(all, key, val) {
+		// 		value[_.trim(key)] = data[_.trim(val)];
+		// 		return all;
+		// 	});
+		// } else if (/\w*/.test(attr)) {
+		// 	// computed or data.property
+		// 	if (data[attr] !== undefined) {
+		// 		value = data[attr];
+		// 	} else if (typeof computed[attr] === 'function') {
+		// 		value = computed[attr].apply(data);
+		// 	}
+		// }
+		var value = (0, _bind2.default)(vm, attr);
+		for (var key in value) {
+			if (value[key]) {
+				addProperty(node, property, key);
+			} else {
+				removeProperty(node, property, key);
+			}
+		}
+	}
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _expression = __webpack_require__(5);
+
+	// v-text
+	var vHtml = function vHtml(node, vm, key) {
+		var value = (0, _expression.parseExpression)(vm, key);
+		node.innerHTML = value;
+		// 影响后面attribute遍历
+		// node.removeAttribute('v-text');
+	};
+
+	exports.default = vHtml;
+
+/***/ },
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -884,100 +1101,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vIf;
 
 /***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _expression = __webpack_require__(5);
-
-	// v-text
-	var vHtml = function vHtml(node, vm, key) {
-		var value = (0, _expression.parseExpression)(vm, key);
-		node.innerHTML = value;
-		// 影响后面attribute遍历
-		// node.removeAttribute('v-text');
-	};
-
-	exports.default = vHtml;
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	exports.default = vBind;
-
-	var _util = __webpack_require__(2);
-
-	var _ = _interopRequireWildcard(_util);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	// 属性转化
-	function transformProperty(property) {
-		if (property === 'class') {
-			return 'className';
-		}
-		return property;
-	}
-
-	function addProperty(node, property, value) {
-		property = transformProperty(property);
-		if (property === 'className') {
-			node[property] = [node[property], value].join(' ');
-		} else {
-			node.setAttribute(property, value);
-		}
-	}
-
-	function removeProperty(node, property, value) {
-		property = transformProperty(property);
-		if (property === 'className') {
-			node[property] = node[property].replace(new RegExp('\\\b' + value + '\\\b'), '');
-		} else {
-			node.removeAttribute(property);
-		}
-	}
-
-	function vBind(node, vm, attr, property) {
-		attr = _.trim(attr);
-		var data = vm.$data;
-		var computed = vm.computed;
-		var value = {};
-		if (/^\{(.*)\}$/.test(attr)) {
-			// 计算表达式
-			attr.replace(/([^\{\,\:]*):([^\,\:\}]*)/g, function (all, key, val) {
-				value[_.trim(key)] = data[_.trim(val)];
-				return all;
-			});
-		} else if (/\w*/.test(attr)) {
-			// computed or data.property
-			if (data[attr] !== undefined) {
-				value = data[attr];
-			} else if (typeof computed[attr] === 'function') {
-				value = computed[attr].apply(data);
-			}
-		}
-		for (var key in value) {
-			if (value[key]) {
-				addProperty(node, property, key);
-			} else {
-				removeProperty(node, property, key);
-			}
-		}
-	}
-
-/***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

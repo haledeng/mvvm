@@ -50,9 +50,10 @@
 </head>
 <body>
     <div id="app">
+        <p v-text="isActive | parseMessage"></p>
         <p class="title" v-bind:class="{active: isActive}">Class 与 Style 绑定</p>
-        <p class="title" v-bind:class="classObject">Class 与 Style 绑定</p>
-        <p class="title" v-bind:class="dataObject">Class 与 Style 绑定</p>
+        <p class="title" v-bind:class="comObject">Class 与 Style 绑定</p>
+        <!-- <p class="title" v-bind:class="dataObject">Class 与 Style 绑定</p> -->
         <button v-on:click="changeActive">Change Active</button>
     </div>
 
@@ -69,15 +70,19 @@
                 }
             },
             computed: {
-                classObject: function() {
+                comObject: function() {
                     return {
                         active: this.isActive
                     }
                 }
             },
+            filters: {
+                parseMessage: function(isActive) {
+                    return isActive ? 'highlight' : 'none';
+                }
+            },
             methods: {
                 changeActive: function() {
-                    console.log('click');
                     this.isActive = 0;
                 }
             }

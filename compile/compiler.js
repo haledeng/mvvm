@@ -6,6 +6,10 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+// import vIf from './directive/if';
+// import vHtml from './directive/html';
+// import vBind from './directive/bind';
+
 var _util = require('./util');
 
 var _ = _interopRequireWildcard(_util);
@@ -16,19 +20,11 @@ var _watcher2 = _interopRequireDefault(_watcher);
 
 var _index = require('./directive/index');
 
-var _if = require('./directive/if');
-
-var _if2 = _interopRequireDefault(_if);
-
-var _html = require('./directive/html');
-
-var _html2 = _interopRequireDefault(_html);
-
-var _bind = require('./directive/bind');
-
-var _bind2 = _interopRequireDefault(_bind);
-
 var _filter = require('./filter');
+
+var _compiler_props = require('./compiler_props');
+
+var _compiler_props2 = _interopRequireDefault(_compiler_props);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -42,16 +38,10 @@ var Compiler = function () {
 
 		this.$el = typeof opts.el === 'string' ? document.querySelector(opts.el) : opts.el;
 		this.$vm = opts.vm;
-		this.init();
+		this.traversalNode(this.$el);
 	}
 
 	_createClass(Compiler, [{
-		key: 'init',
-		value: function init() {
-
-			this.traversalNode(this.$el);
-		}
-	}, {
 		key: 'traversalNode',
 		value: function traversalNode(node) {
 			// elements应该是动态变化的
@@ -91,65 +81,6 @@ var Compiler = function () {
 			}
 		}
 	}, {
-		key: '_parseAttr',
-		value: function _parseAttr(node, attr) {
-			// debugger;
-			// 转化属性
-			var self = this;
-			var attrReg = /^v\-([\w\:\']*)/;
-			var matches = attr.name.match(attrReg);
-			var property = matches[1];
-			var eventReg = /on\:(\w*)/;
-			var bindReg = /bind\:(\w*)/;
-			if (eventReg.test(property)) {
-				var eventName = RegExp.$1;
-				_index.vOn.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
-				// event handler
-			} else if (bindReg.test(property)) {
-				var bindProperty = RegExp.$1;
-				// TODO: watcher
-				_bind2.default.call(this.$vm.$data, node, this.$vm, attr.value, bindProperty);
-			} else {
-				switch (property) {
-					// v-model
-					case 'model':
-						self.bindWatch(self.$vm, attr.value, function () {
-							(0, _index.vModel)(node, self.$vm, attr.value);
-						});
-						(0, _index.vModel)(node, self.$vm, attr.value);
-						break;
-					// v-text
-					case 'text':
-						// filters
-						self.bindWatch(self.$vm, attr.value, function () {
-							(0, _index.vText)(node, self.$vm, attr.value);
-						});
-						(0, _index.vText)(node, this.$vm, attr.value);
-						break;
-					case 'html':
-						self.bindWatch(self.$vm, attr.value, function () {
-							(0, _html2.default)(node, self.$vm, attr.value);
-						});
-						(0, _html2.default)(node, this.$vm, attr.value);
-						break;
-					case 'for':
-						var info = (0, _index.parseForExpression)(attr.value);
-						self.bindWatch(self.$vm, info.val, function () {
-							(0, _index.vFor)(node, self.$vm, attr.value);
-						});
-						(0, _index.vFor)(node, this.$vm, attr.value);
-					case 'if':
-						// parse expression
-						self.bindWatch(self.$vm, attr.value, function () {
-							(0, _if2.default)(node, self.$vm, attr.value);
-						});
-						(0, _if2.default)(node, this.$vm, attr.value);
-					default:
-						break;
-				}
-			}
-		}
-	}, {
 		key: 'addInputListener',
 		value: function addInputListener(node, attr) {
 			if (attr.name !== 'v-model') return;
@@ -166,11 +97,12 @@ var Compiler = function () {
 		}
 	}, {
 		key: 'bindWatch',
-		value: function bindWatch(vm, exp, callback) {
+		value: function bindWatch(vm, exp, callback, directive) {
 			var noop = function noop() {};
 			new _watcher2.default({
 				vm: vm,
 				exp: exp,
+				directive: directive || '',
 				callback: callback || noop
 			});
 		}
@@ -200,5 +132,7 @@ var Compiler = function () {
 
 	return Compiler;
 }();
+
+(0, _compiler_props2.default)(Compiler);
 
 exports.default = Compiler;

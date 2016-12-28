@@ -11,6 +11,7 @@ class Watcher {
 		this.id = uid++;
 		this.vm = opts.vm;
 		this.exp = opts.exp;
+		this.directive = opts.directive;
 		this.callback = opts.callback;
 		this.value = this.get();
 	}
