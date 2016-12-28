@@ -15,9 +15,9 @@ var _text2 = _interopRequireDefault(_text);
 
 var _expression = require('./expression');
 
-var _event = require('./event');
+var _on = require('./on');
 
-var _event2 = _interopRequireDefault(_event);
+var _on2 = _interopRequireDefault(_on);
 
 var _for = require('./for');
 
@@ -43,7 +43,7 @@ exports.vModel = _model2.default;
 exports.vText = _text2.default;
 exports.setScopeValue = setScopeValue;
 exports.calculateExpression = _expression.calculateExpression;
-exports.vOn = _event2.default;
+exports.vOn = _on2.default;
 exports.vFor = _for2.default;
 exports.parseForExpression = _expression.parseForExpression;
 exports.parseExpression = _expression.parseExpression;

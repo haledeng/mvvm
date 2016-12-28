@@ -11,6 +11,8 @@ import {
 	parseExpression
 } from './directive/index';
 
+import vIf from './directive/if';
+
 import {
 	filter,
 	parseFilter
@@ -107,6 +109,12 @@ class Compiler {
 						vFor(node, self.$vm, attr.value);
 					});
 					vFor(node, this.$vm, attr.value);
+				case 'if':
+					// parse expression
+					self.bindWatch(self.$vm, attr.value, function() {
+						vIf(node, self.$vm, attr.value);
+					});
+					vIf(node, this.$vm, attr.value);
 				default:
 					break;
 			}

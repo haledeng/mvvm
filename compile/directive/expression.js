@@ -13,7 +13,7 @@ var _filter = require('../filter');
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-// +,-,m.n,*,/
+// +,-,m.n,*,/,>,<,>=,<=,==,===
 // 添加上下文
 // AST?
 var addScope = function addScope(exp) {
@@ -21,12 +21,15 @@ var addScope = function addScope(exp) {
 
     exp = _.trim(exp);
     // x.y
+    // Math.random()  全局函数调用
+    var globalObject = ['Math'];
     exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
+        if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
         return [prefix, match].join('.');
     });
     exp = ' ' + exp + ' ';
     // x
-    exp = exp.replace(/[\+\-\*\/\s]\w+(?![\'\.])[\+\-\*\/\s]/g, function (match, index, all) {
+    exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
         match = _.trim(match);
         if (/^[0-9]*$/.test(match)) {
             return match;

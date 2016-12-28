@@ -69,7 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler2 = _interopRequireDefault(_compiler);
 
-	var _observer = __webpack_require__(12);
+	var _observer = __webpack_require__(13);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -148,6 +148,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _watcher2 = _interopRequireDefault(_watcher);
 
 	var _index = __webpack_require__(7);
+
+	var _if = __webpack_require__(12);
+
+	var _if2 = _interopRequireDefault(_if);
 
 	var _filter = __webpack_require__(6);
 
@@ -259,6 +263,12 @@ return /******/ (function(modules) { // webpackBootstrap
 								(0, _index.vFor)(node, self.$vm, attr.value);
 							});
 							(0, _index.vFor)(node, this.$vm, attr.value);
+						case 'if':
+							// parse expression
+							self.bindWatch(self.$vm, attr.value, function () {
+								(0, _if2.default)(node, self.$vm, attr.value);
+							});
+							(0, _if2.default)(node, this.$vm, attr.value);
 						default:
 							break;
 					}
@@ -483,7 +493,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-	// +,-,m.n,*,/
+	// +,-,m.n,*,/,>,<,>=,<=,==,===
 	// 添加上下文
 	// AST?
 	var addScope = function addScope(exp) {
@@ -491,12 +501,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    exp = _.trim(exp);
 	    // x.y
+	    // Math.random()  全局函数调用
+	    var globalObject = ['Math'];
 	    exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
+	        if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
 	        return [prefix, match].join('.');
 	    });
 	    exp = ' ' + exp + ' ';
 	    // x
-	    exp = exp.replace(/[\+\-\*\/\s]\w+(?![\'\.])[\+\-\*\/\s]/g, function (match, index, all) {
+	    exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
 	        match = _.trim(match);
 	        if (/^[0-9]*$/.test(match)) {
 	            return match;
@@ -643,9 +656,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _expression = __webpack_require__(5);
 
-	var _event = __webpack_require__(10);
+	var _on = __webpack_require__(10);
 
-	var _event2 = _interopRequireDefault(_event);
+	var _on2 = _interopRequireDefault(_on);
 
 	var _for = __webpack_require__(11);
 
@@ -671,7 +684,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.vText = _text2.default;
 	exports.setScopeValue = setScopeValue;
 	exports.calculateExpression = _expression.calculateExpression;
-	exports.vOn = _event2.default;
+	exports.vOn = _on2.default;
 	exports.vFor = _for2.default;
 	exports.parseForExpression = _expression.parseForExpression;
 	exports.parseExpression = _expression.parseExpression;
@@ -822,6 +835,46 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _expression = __webpack_require__(5);
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function vIf(node, vm, exp) {
+		var value = (0, _expression.calculateExpression)(vm.$data, exp);
+		var parent = node.parentNode || node.__parent__;
+		if (value) {
+			if (node.__parent__) {
+				var newNode = node.cloneNode(true);
+				newNode.removeAttribute('v-if');
+				parent.appendChild(newNode);
+				parent.replaceChild(newNode, node.__anchor__);
+			}
+		} else {
+			// 这里应该是用something来占位，下次value变化是，直接替换
+			// vue中使用注释来占位的,或者创建空的textNode，证实上面的猜想
+			// node.__anchor__ = document.createComment('v-if');
+			node.__anchor__ = document.createTextNode('');
+			parent.replaceChild(node.__anchor__, node);
+			node.__parent__ = parent;
+		}
+	}
+
+	exports.default = vIf;
+
+/***/ },
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

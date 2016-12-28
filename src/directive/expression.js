@@ -2,18 +2,21 @@ import * as _ from '../util';
 import {
     filter
 } from '../filter';
-// +,-,m.n,*,/
+// +,-,m.n,*,/,>,<,>=,<=,==,===
 // 添加上下文
 // AST?
 const addScope = (exp, prefix = 'scope') => {
     exp = _.trim(exp);
     // x.y
+    // Math.random()  全局函数调用
+    var globalObject = ['Math'];
     exp = exp.replace(/\w+(?=\.)/g, function(match, index, all) {
+        if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
         return [prefix, match].join('.');
     });
     exp = ' ' + exp + ' ';
     // x
-    exp = exp.replace(/[\+\-\*\/\s]\w+(?![\'\.])[\+\-\*\/\s]/g, function(match, index, all) {
+    exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function(match, index, all) {
         match = _.trim(match);
         if (/^[0-9]*$/.test(match)) {
             return match;
@@ -95,7 +98,6 @@ function parseFilter(str) {
         method: methodName
     }
 }
-
 
 // whether expression has filter
 function hasFilter(exp) {

@@ -5,7 +5,7 @@ import {
     parseForExpression,
     parseExpression
 } from './expression';
-import vOn from './event';
+import vOn from './on';
 import vFor from './for';
 
 

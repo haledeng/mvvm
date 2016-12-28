@@ -16,6 +16,10 @@ var _watcher2 = _interopRequireDefault(_watcher);
 
 var _index = require('./directive/index');
 
+var _if = require('./directive/if');
+
+var _if2 = _interopRequireDefault(_if);
+
 var _filter = require('./filter');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -126,6 +130,12 @@ var Compiler = function () {
 							(0, _index.vFor)(node, self.$vm, attr.value);
 						});
 						(0, _index.vFor)(node, this.$vm, attr.value);
+					case 'if':
+						// parse expression
+						self.bindWatch(self.$vm, attr.value, function () {
+							(0, _if2.default)(node, self.$vm, attr.value);
+						});
+						(0, _if2.default)(node, this.$vm, attr.value);
 					default:
 						break;
 				}
