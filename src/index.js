@@ -11,6 +11,7 @@ class MVVM {
 		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
 		this.methods = options.methods;
 		this.filters = options.filters || {};
+		this.computed = options.computed || {};
 		new Observer(this.$data);
 		new Compiler({
 			el: this.$el,

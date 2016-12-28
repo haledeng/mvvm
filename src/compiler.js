@@ -13,6 +13,7 @@ import {
 
 import vIf from './directive/if';
 import vHtml from './directive/html';
+import vBind from './directive/bind';
 
 import {
 	filter,
@@ -72,10 +73,15 @@ class Compiler {
 		var matches = attr.name.match(attrReg);
 		var property = matches[1];
 		var eventReg = /on\:(\w*)/;
+		var bindReg = /bind\:(\w*)/;
 		if (eventReg.test(property)) {
 			var eventName = RegExp.$1;
 			vOn.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
 			// event handler
+		} else if (bindReg.test(property)) {
+			var bindProperty = RegExp.$1;
+			// TODO: watcher
+			vBind.call(this.$vm.$data, node, this.$vm, attr.value, bindProperty);
 		} else {
 			switch (property) {
 				// v-model

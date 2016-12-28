@@ -69,7 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler2 = _interopRequireDefault(_compiler);
 
-	var _observer = __webpack_require__(14);
+	var _observer = __webpack_require__(15);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -89,6 +89,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
 			this.methods = options.methods;
 			this.filters = options.filters || {};
+			this.computed = options.computed || {};
 			new _observer2.default(this.$data);
 			new _compiler2.default({
 				el: this.$el,
@@ -156,6 +157,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _html = __webpack_require__(13);
 
 	var _html2 = _interopRequireDefault(_html);
+
+	var _bind = __webpack_require__(14);
+
+	var _bind2 = _interopRequireDefault(_bind);
 
 	var _filter = __webpack_require__(6);
 
@@ -229,10 +234,15 @@ return /******/ (function(modules) { // webpackBootstrap
 				var matches = attr.name.match(attrReg);
 				var property = matches[1];
 				var eventReg = /on\:(\w*)/;
+				var bindReg = /bind\:(\w*)/;
 				if (eventReg.test(property)) {
 					var eventName = RegExp.$1;
 					_index.vOn.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
 					// event handler
+				} else if (bindReg.test(property)) {
+					var bindProperty = RegExp.$1;
+					// TODO: watcher
+					_bind2.default.call(this.$vm.$data, node, this.$vm, attr.value, bindProperty);
 				} else {
 					switch (property) {
 						// v-model
@@ -897,6 +907,77 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.default = vBind;
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	// 属性转化
+	function transformProperty(property) {
+		if (property === 'class') {
+			return 'className';
+		}
+		return property;
+	}
+
+	function addProperty(node, property, value) {
+		property = transformProperty(property);
+		if (property === 'className') {
+			node[property] = [node[property], value].join(' ');
+		} else {
+			node.setAttribute(property, value);
+		}
+	}
+
+	function removeProperty(node, property, value) {
+		property = transformProperty(property);
+		if (property === 'className') {
+			node[property] = node[property].replace(new RegExp('\\\b' + value + '\\\b'), '');
+		} else {
+			node.removeAttribute(property);
+		}
+	}
+
+	function vBind(node, vm, attr, property) {
+		attr = _.trim(attr);
+		var data = vm.$data;
+		var computed = vm.computed;
+		var value = {};
+		if (/^\{(.*)\}$/.test(attr)) {
+			// 计算表达式
+			attr.replace(/([^\{\,\:]*):([^\,\:\}]*)/g, function (all, key, val) {
+				value[_.trim(key)] = data[_.trim(val)];
+				return all;
+			});
+		} else if (/\w*/.test(attr)) {
+			// computed or data.property
+			if (data[attr] !== undefined) {
+				value = data[attr];
+			} else if (typeof computed[attr] === 'function') {
+				value = computed[attr].apply(data);
+			}
+		}
+		for (var key in value) {
+			if (value[key]) {
+				addProperty(node, property, key);
+			} else {
+				removeProperty(node, property, key);
+			}
+		}
+	}
+
+/***/ },
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

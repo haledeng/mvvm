@@ -24,6 +24,10 @@ var _html = require('./directive/html');
 
 var _html2 = _interopRequireDefault(_html);
 
+var _bind = require('./directive/bind');
+
+var _bind2 = _interopRequireDefault(_bind);
+
 var _filter = require('./filter');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -96,10 +100,15 @@ var Compiler = function () {
 			var matches = attr.name.match(attrReg);
 			var property = matches[1];
 			var eventReg = /on\:(\w*)/;
+			var bindReg = /bind\:(\w*)/;
 			if (eventReg.test(property)) {
 				var eventName = RegExp.$1;
 				_index.vOn.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
 				// event handler
+			} else if (bindReg.test(property)) {
+				var bindProperty = RegExp.$1;
+				// TODO: watcher
+				_bind2.default.call(this.$vm.$data, node, this.$vm, attr.value, bindProperty);
 			} else {
 				switch (property) {
 					// v-model
