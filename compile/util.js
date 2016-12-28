@@ -29,6 +29,11 @@ var mixin = function mixin(dest, source) {
 	return dest;
 };
 
+var containOnlyTextNode = function containOnlyTextNode(node) {
+	return !node.children.length && node.childNodes.length;
+};
+
 exports.trim = trim;
 exports.isType = isType;
 exports.mixin = mixin;
+exports.containOnlyTextNode = containOnlyTextNode;

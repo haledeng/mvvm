@@ -12,6 +12,7 @@ import {
 } from './directive/index';
 
 import vIf from './directive/if';
+import vHtml from './directive/html';
 
 import {
 	filter,
@@ -33,21 +34,10 @@ class Compiler {
 		// 遍历方式有问题
 		// 遍历节点
 		var self = this;
-		// var elements = node.getElementsByTagName('*');
-		// elements = [].slice.call(elements);
-		// elements.unshift(node);
-		// elements.forEach(function(element) {
-		// 	self.traversalAttribute(element);
-		// 	// 模板不编译
-		// 	if (self.isTextNode(element) && !element.__template__) {
-		// 		self.parseTextNode(element);
-		// 	}
-		// 	// TODO: removeChild后，elements需要重新获取
-		// });
 
 		function _traversal(node) {
 			self.traversalAttribute(node);
-			if (self.isTextNode(node)) {
+			if (_.containOnlyTextNode(node)) {
 				self.parseTextNode(node);
 			} else {
 				// node has been removed
@@ -103,6 +93,12 @@ class Compiler {
 					});
 					vText(node, this.$vm, attr.value);
 					break;
+				case 'html':
+					self.bindWatch(self.$vm, attr.value, function() {
+						vHtml(node, self.$vm, attr.value);
+					});
+					vHtml(node, this.$vm, attr.value);
+					break;
 				case 'for':
 					var info = parseForExpression(attr.value);
 					self.bindWatch(self.$vm, info.val, function() {
@@ -132,9 +128,6 @@ class Compiler {
 				setScopeValue(self.$vm.$data, key, node.value);
 			}
 		}, false);
-	}
-	isTextNode(node) {
-		return node.children.length === 0 && node.childNodes.length !== 0;
 	}
 	bindWatch(vm, exp, callback) {
 		var noop = function() {};

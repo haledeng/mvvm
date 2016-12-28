@@ -27,6 +27,18 @@
 			overflow-x: hidden;
 			overflow-y: scroll;
 		}
+		button {
+            display: inline-block;
+            width: 80px;
+            text-align: center;
+            height: 32px;
+            line-height: 32px;
+            border-radius: 4px;
+            background: #006dcc;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+        }
 	</style>
 </head>
 <body>
@@ -56,25 +68,9 @@
 		});
 		</pre>
 	<div id="app">
-<!-- 		<p>v-text="a + b":<span v-text="a + b" ></span></p>
 		<p>{{message}}</p>
-		<p v-text="message" v-on:click="add"></p>
-		<input type="text" v-model="message">
-		<p>v-text="inner.msg": <span v-text="inner.msg"></span></p>
-		<input type="text" v-model="inner.msg">
-		<p v-text="add.a + add.b"></p>
-		<p v-on:click="change">click me</p>
-		 -->
-		<p>v-for demo: item in companies</p>
-		<ul>
-			<li v-for="item in companies">{{ item }} -> {{ message }}</li>
-		</ul>
-
-		<p>v-for (item, index) in companies demo:</p>
-		<ul>
-			<li v-for="(item, index) in companies">{{ item }} {{ index * 2 }}</li>
-		</ul>
-		<p v-on:click="changeList">changeList</p>
+		<p v-text="message" ></p>
+		<button v-on:click="change">changeText</button>
 	</div>
 
 
@@ -84,42 +80,14 @@
 		var mvvm = new MVVM({
 			el: '#app',
 			data: {
-				companies: ['microsoft', 'google', 'apple', 'tecent', 'alipay'],
 				message: 'hello MVVM',
-				// inner: {
-				// 	msg: 'hello'
-				// },
-				// add: {
-				// 	a: 3,
-				// 	b: 4
-				// },
-				// a: 1,
-				// b: 2
 			},
 			methods: {
 				change: function() {
 					this.message = 'hell change!';
-				},
-				add: function() {
-					this.a += 2;
-				},
-				changeList: function() {
-					// this.companies = ['baidu'];
-					var randomStr = function(times) {
-						var ret = []
-						for(var i = 0; i < times; i++) {
-							ret.push(String.fromCharCode(97 + Math.floor(26 * Math.random(0, 1))));
-						}
-						return ret.join('');
-					}
-					this.companies.push(randomStr(8));
 				}
 			}
 		});
-
-		setTimeout(function(){
-			mvvm.$data.message = 'hello world';
-		}, 1e3);
 	</script>
 </body>
 </html>

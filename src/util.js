@@ -22,8 +22,13 @@ const mixin = (dest, source, rewrite = false) => {
 	return dest;
 }
 
+const containOnlyTextNode = (node) => {
+	return !node.children.length && node.childNodes.length;
+}
+
 export {
 	trim,
 	isType,
-	mixin
+	mixin,
+	containOnlyTextNode
 }

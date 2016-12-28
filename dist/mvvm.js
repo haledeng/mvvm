@@ -69,7 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler2 = _interopRequireDefault(_compiler);
 
-	var _observer = __webpack_require__(13);
+	var _observer = __webpack_require__(14);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -153,6 +153,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _if2 = _interopRequireDefault(_if);
 
+	var _html = __webpack_require__(13);
+
+	var _html2 = _interopRequireDefault(_html);
+
 	var _filter = __webpack_require__(6);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -183,21 +187,10 @@ return /******/ (function(modules) { // webpackBootstrap
 				// 遍历方式有问题
 				// 遍历节点
 				var self = this;
-				// var elements = node.getElementsByTagName('*');
-				// elements = [].slice.call(elements);
-				// elements.unshift(node);
-				// elements.forEach(function(element) {
-				// 	self.traversalAttribute(element);
-				// 	// 模板不编译
-				// 	if (self.isTextNode(element) && !element.__template__) {
-				// 		self.parseTextNode(element);
-				// 	}
-				// 	// TODO: removeChild后，elements需要重新获取
-				// });
 
 				function _traversal(node) {
 					self.traversalAttribute(node);
-					if (self.isTextNode(node)) {
+					if (_.containOnlyTextNode(node)) {
 						self.parseTextNode(node);
 					} else {
 						// node has been removed
@@ -257,6 +250,12 @@ return /******/ (function(modules) { // webpackBootstrap
 							});
 							(0, _index.vText)(node, this.$vm, attr.value);
 							break;
+						case 'html':
+							self.bindWatch(self.$vm, attr.value, function () {
+								(0, _html2.default)(node, self.$vm, attr.value);
+							});
+							(0, _html2.default)(node, this.$vm, attr.value);
+							break;
 						case 'for':
 							var info = (0, _index.parseForExpression)(attr.value);
 							self.bindWatch(self.$vm, info.val, function () {
@@ -288,11 +287,6 @@ return /******/ (function(modules) { // webpackBootstrap
 						(0, _index.setScopeValue)(self.$vm.$data, key, node.value);
 					}
 				}, false);
-			}
-		}, {
-			key: 'isTextNode',
-			value: function isTextNode(node) {
-				return node.children.length === 0 && node.childNodes.length !== 0;
 			}
 		}, {
 			key: 'bindWatch',
@@ -368,9 +362,14 @@ return /******/ (function(modules) { // webpackBootstrap
 		return dest;
 	};
 
+	var containOnlyTextNode = function containOnlyTextNode(node) {
+		return !node.children.length && node.childNodes.length;
+	};
+
 	exports.trim = trim;
 	exports.isType = isType;
 	exports.mixin = mixin;
+	exports.containOnlyTextNode = containOnlyTextNode;
 
 /***/ },
 /* 3 */
@@ -729,9 +728,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// v-text
 	var vText = function vText(node, vm, key) {
-		node.innerHTML = (0, _expression.parseExpression)(vm, key);
+		var value = (0, _expression.parseExpression)(vm, key);
+		node.textContent = value;
 		// 影响后面attribute遍历
-		// node.removeAttribute('v-text');
+		node.removeAttribute('v-text');
 	};
 
 	exports.default = vText;
@@ -875,6 +875,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _expression = __webpack_require__(5);
+
+	// v-text
+	var vHtml = function vHtml(node, vm, key) {
+		var value = (0, _expression.parseExpression)(vm, key);
+		node.innerHTML = value;
+		// 影响后面attribute遍历
+		// node.removeAttribute('v-text');
+	};
+
+	exports.default = vHtml;
+
+/***/ },
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

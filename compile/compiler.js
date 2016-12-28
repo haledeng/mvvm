@@ -20,6 +20,10 @@ var _if = require('./directive/if');
 
 var _if2 = _interopRequireDefault(_if);
 
+var _html = require('./directive/html');
+
+var _html2 = _interopRequireDefault(_html);
+
 var _filter = require('./filter');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -50,21 +54,10 @@ var Compiler = function () {
 			// 遍历方式有问题
 			// 遍历节点
 			var self = this;
-			// var elements = node.getElementsByTagName('*');
-			// elements = [].slice.call(elements);
-			// elements.unshift(node);
-			// elements.forEach(function(element) {
-			// 	self.traversalAttribute(element);
-			// 	// 模板不编译
-			// 	if (self.isTextNode(element) && !element.__template__) {
-			// 		self.parseTextNode(element);
-			// 	}
-			// 	// TODO: removeChild后，elements需要重新获取
-			// });
 
 			function _traversal(node) {
 				self.traversalAttribute(node);
-				if (self.isTextNode(node)) {
+				if (_.containOnlyTextNode(node)) {
 					self.parseTextNode(node);
 				} else {
 					// node has been removed
@@ -124,6 +117,12 @@ var Compiler = function () {
 						});
 						(0, _index.vText)(node, this.$vm, attr.value);
 						break;
+					case 'html':
+						self.bindWatch(self.$vm, attr.value, function () {
+							(0, _html2.default)(node, self.$vm, attr.value);
+						});
+						(0, _html2.default)(node, this.$vm, attr.value);
+						break;
 					case 'for':
 						var info = (0, _index.parseForExpression)(attr.value);
 						self.bindWatch(self.$vm, info.val, function () {
@@ -155,11 +154,6 @@ var Compiler = function () {
 					(0, _index.setScopeValue)(self.$vm.$data, key, node.value);
 				}
 			}, false);
-		}
-	}, {
-		key: 'isTextNode',
-		value: function isTextNode(node) {
-			return node.children.length === 0 && node.childNodes.length !== 0;
 		}
 	}, {
 		key: 'bindWatch',

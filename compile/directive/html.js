@@ -7,11 +7,11 @@ Object.defineProperty(exports, "__esModule", {
 var _expression = require('./expression');
 
 // v-text
-var vText = function vText(node, vm, key) {
+var vHtml = function vHtml(node, vm, key) {
 	var value = (0, _expression.parseExpression)(vm, key);
-	node.textContent = value;
+	node.innerHTML = value;
 	// 影响后面attribute遍历
-	node.removeAttribute('v-text');
+	// node.removeAttribute('v-text');
 };
 
-exports.default = vText;
+exports.default = vHtml;
