@@ -63,20 +63,20 @@ var calculateExpression = function calculateExpression(scope, exp) {
 // v-bind: expression
 function parseExpression(vm, exp, directive) {
     var data = vm.$data;
-    if (hasFilter(exp)) {
-        var filterInfo = parseFilter(exp);
-        var value = calculateExpression(data, filterInfo.param);
-        return _filter.filter.apply(null, [vm, filterInfo.method, value].concat(filterInfo.args));
-    } else {
-        // TODO: 如何区分bind或其他，不同的directive计算方式不同
-        var value = (0, _bind2.default)(vm, exp);
-        if (Object.keys(value).length) {
-            return value;
-        } else {
-            return calculateExpression(data, exp);
-        }
-        // return calculateExpression(data, exp);
-    }
+    // if (hasFilter(exp)) {
+    //     var filterInfo = parseFilter(exp);
+    //     var value = calculateExpression(data, filterInfo.param);
+    //     return filter.apply(null, [vm, filterInfo.method, value].concat(filterInfo.args));
+    // } else {
+    //     // TODO: 如何区分bind或其他，不同的directive计算方式不同
+    //     var value = parseBind(vm, exp);
+    //     if (Object.keys(value).length) {
+    //         return value;
+    //     } else {
+    //         return calculateExpression(data, exp);
+    //     }
+    //     // return calculateExpression(data, exp);
+    // }
 
     var value = null;
     switch (directive) {
