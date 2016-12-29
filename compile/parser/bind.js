@@ -15,8 +15,6 @@ var _ = _interopRequireWildcard(_util);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-function hasBind(expression) {}
-
 /**
  * [parseBind description]
  * @param  {Object} vm   instance

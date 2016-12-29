@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.parseExpression = exports.parseFilter = exports.parseForExpression = exports.addScope = exports.calculateExpression = undefined;
+exports.parseExpression = exports.parseFilterExpression = exports.parseForExpression = exports.addScope = exports.calculateExpression = undefined;
 
 var _util = require('../util');
 
@@ -14,6 +14,14 @@ var _filter = require('../filter');
 var _bind = require('../parser/bind');
 
 var _bind2 = _interopRequireDefault(_bind);
+
+var _for = require('../parser/for');
+
+var _for2 = _interopRequireDefault(_for);
+
+var _filter2 = require('../parser/filter');
+
+var _filter3 = _interopRequireDefault(_filter2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -70,7 +78,7 @@ function parseExpression(vm, exp, directive) {
             break;
         default:
             if (hasFilter(exp)) {
-                var filterInfo = parseFilter(exp);
+                var filterInfo = (0, _filter3.default)(exp);
                 value = _filter.filter.apply(null, [vm, filterInfo.method, calculateExpression(data, filterInfo.param)].concat(filterInfo.args));
             } else {
                 value = calculateExpression(data, exp);
@@ -81,73 +89,13 @@ function parseExpression(vm, exp, directive) {
     return value;
 }
 
-// v-for expression
-function parseForExpression(expression) {
-    // variable name
-    var valReg = /in\s*([^\s]*)\s*?$/;
-    var ret = {};
-    if (valReg.test(expression)) {
-        ret.val = RegExp.$1;
-    }
-    // template variable name
-    // like: xxx in obj
-    // like: (item, index) in arr
-    // like: (item, value, index) in arr
-    var tempReg = /^\s?(.*)\s*in/;
-    if (tempReg.test(expression)) {
-        var itemStr = _.trim(RegExp.$1);
-        if (~itemStr.indexOf(',')) {
-            itemStr = itemStr.replace(/\(|\)/g, '');
-            itemStr = _.trim(itemStr);
-            var temp = itemStr.split(',');
-            ret.scope = _.trim(temp[0]);
-            ret.index = _.trim(temp[1]);
-        } else {
-            ret.scope = itemStr;
-        }
-    }
-    return ret;
-}
-
-// 解析filter表达式
-// paramName | filterName arg1 arg2
-function parseFilter(str) {
-    if (!str || str.indexOf('|') === -1) return null;
-    var splits = str.split('|');
-    var paramName = _.trim(splits[0]);
-    var args = _.trim(splits[1]).split(' ');
-    var methodName = args.shift();
-    return {
-        param: paramName,
-        args: typeCheck(args),
-        method: methodName
-    };
-}
-
 // whether expression has filter
 function hasFilter(exp) {
     if (!exp || exp.indexOf('|') === -1) return false;
     return true;
 }
-
-// 类型转化
-function typeCheck(args) {
-    var rets = [];
-    args.forEach(function (arg, index) {
-        arg = _.trim(arg);
-        // number
-        if (/^[0-9]$/.test(arg)) {
-            rets[index] = Number(arg);
-        } else {
-            // "'string'" => string
-            rets[index] = arg.replace(/^\'|\'$/g, '');
-        }
-    });
-    return rets;
-}
-
 exports.calculateExpression = calculateExpression;
 exports.addScope = addScope;
-exports.parseForExpression = parseForExpression;
-exports.parseFilter = parseFilter;
+exports.parseForExpression = _for2.default;
+exports.parseFilterExpression = _filter3.default;
 exports.parseExpression = parseExpression;

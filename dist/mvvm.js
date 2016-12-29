@@ -69,7 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler2 = _interopRequireDefault(_compiler);
 
-	var _observer = __webpack_require__(17);
+	var _observer = __webpack_require__(19);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -152,11 +152,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _watcher2 = _interopRequireDefault(_watcher);
 
-	var _index = __webpack_require__(8);
+	var _index = __webpack_require__(10);
 
 	var _filter = __webpack_require__(6);
 
-	var _compiler_props = __webpack_require__(13);
+	var _compiler_props = __webpack_require__(15);
 
 	var _compiler_props2 = _interopRequireDefault(_compiler_props);
 
@@ -244,7 +244,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'parseTextNode',
 			value: function parseTextNode(node) {
 				var self = this;
-				var html = node.innerHTML;
+				var html = node.textContent;
 				var keys = [];
 
 				// TODO: filters
@@ -255,7 +255,7 @@ return /******/ (function(modules) { // webpackBootstrap
 						}
 						return (0, _index.parseExpression)(self.$vm, name);
 					});
-					node.innerHTML = newHtml;
+					node.textContent = newHtml;
 				};
 				_replace(this.$vm.$data);
 				keys.forEach(function (key) {
@@ -346,7 +346,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.id = uid++;
 			this.vm = opts.vm;
 			this.exp = opts.exp;
-			this.directive = opts.directive;
+			this.directive = opts.directive || '';
 			this.callback = opts.callback;
 			this.value = this.get();
 		}
@@ -367,7 +367,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			value: function get() {
 				_depender2.default.target = this;
 				// var value = calculateExpression(this.vm, this.exp);
-				var value = (0, _expression.parseExpression)(this.vm, this.exp);
+				var value = (0, _expression.parseExpression)(this.vm, this.exp, this.directive);
 				_depender2.default.target = null;
 				return value;
 			}
@@ -427,7 +427,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.parseExpression = exports.parseFilter = exports.parseForExpression = exports.addScope = exports.calculateExpression = undefined;
+	exports.parseExpression = exports.parseFilterExpression = exports.parseForExpression = exports.addScope = exports.calculateExpression = undefined;
 
 	var _util = __webpack_require__(2);
 
@@ -438,6 +438,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _bind = __webpack_require__(7);
 
 	var _bind2 = _interopRequireDefault(_bind);
+
+	var _for = __webpack_require__(8);
+
+	var _for2 = _interopRequireDefault(_for);
+
+	var _filter2 = __webpack_require__(9);
+
+	var _filter3 = _interopRequireDefault(_filter2);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -494,7 +502,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            break;
 	        default:
 	            if (hasFilter(exp)) {
-	                var filterInfo = parseFilter(exp);
+	                var filterInfo = (0, _filter3.default)(exp);
 	                value = _filter.filter.apply(null, [vm, filterInfo.method, calculateExpression(data, filterInfo.param)].concat(filterInfo.args));
 	            } else {
 	                value = calculateExpression(data, exp);
@@ -505,75 +513,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return value;
 	}
 
-	// v-for expression
-	function parseForExpression(expression) {
-	    // variable name
-	    var valReg = /in\s*([^\s]*)\s*?$/;
-	    var ret = {};
-	    if (valReg.test(expression)) {
-	        ret.val = RegExp.$1;
-	    }
-	    // template variable name
-	    // like: xxx in obj
-	    // like: (item, index) in arr
-	    // like: (item, value, index) in arr
-	    var tempReg = /^\s?(.*)\s*in/;
-	    if (tempReg.test(expression)) {
-	        var itemStr = _.trim(RegExp.$1);
-	        if (~itemStr.indexOf(',')) {
-	            itemStr = itemStr.replace(/\(|\)/g, '');
-	            itemStr = _.trim(itemStr);
-	            var temp = itemStr.split(',');
-	            ret.scope = _.trim(temp[0]);
-	            ret.index = _.trim(temp[1]);
-	        } else {
-	            ret.scope = itemStr;
-	        }
-	    }
-	    return ret;
-	}
-
-	// 解析filter表达式
-	// paramName | filterName arg1 arg2
-	function parseFilter(str) {
-	    if (!str || str.indexOf('|') === -1) return null;
-	    var splits = str.split('|');
-	    var paramName = _.trim(splits[0]);
-	    var args = _.trim(splits[1]).split(' ');
-	    var methodName = args.shift();
-	    return {
-	        param: paramName,
-	        args: typeCheck(args),
-	        method: methodName
-	    };
-	}
-
 	// whether expression has filter
 	function hasFilter(exp) {
 	    if (!exp || exp.indexOf('|') === -1) return false;
 	    return true;
 	}
-
-	// 类型转化
-	function typeCheck(args) {
-	    var rets = [];
-	    args.forEach(function (arg, index) {
-	        arg = _.trim(arg);
-	        // number
-	        if (/^[0-9]$/.test(arg)) {
-	            rets[index] = Number(arg);
-	        } else {
-	            // "'string'" => string
-	            rets[index] = arg.replace(/^\'|\'$/g, '');
-	        }
-	    });
-	    return rets;
-	}
-
 	exports.calculateExpression = calculateExpression;
 	exports.addScope = addScope;
-	exports.parseForExpression = parseForExpression;
-	exports.parseFilter = parseFilter;
+	exports.parseForExpression = _for2.default;
+	exports.parseFilterExpression = _filter3.default;
 	exports.parseExpression = parseExpression;
 
 /***/ },
@@ -614,8 +562,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-	function hasBind(expression) {}
-
 	/**
 	 * [parseBind description]
 	 * @param  {Object} vm   instance
@@ -653,23 +599,128 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	// v-for expression
+	/**
+	 * v-for expression parser
+	 * @param  {string} expression 
+	 * @return {object}      
+	 * {
+	 *     val: 遍历的变量名
+	 *     scope: 遍历item临时变量
+	 *     index: 遍历索引
+	 * }
+	 */
+	function parseForExpression(expression) {
+	    // variable name
+	    var valReg = /in\s*([^\s]*)\s*?$/;
+	    var ret = {};
+	    if (valReg.test(expression)) {
+	        ret.val = RegExp.$1;
+	    }
+	    // template variable name
+	    // like: xxx in obj
+	    // like: (item, index) in arr
+	    // like: (item, value, index) in arr
+	    var tempReg = /^\s?(.*)\s*in/;
+	    if (tempReg.test(expression)) {
+	        var itemStr = _.trim(RegExp.$1);
+	        if (~itemStr.indexOf(',')) {
+	            itemStr = itemStr.replace(/\(|\)/g, '');
+	            itemStr = _.trim(itemStr);
+	            var temp = itemStr.split(',');
+	            ret.scope = _.trim(temp[0]);
+	            ret.index = _.trim(temp[1]);
+	        } else {
+	            ret.scope = itemStr;
+	        }
+	    }
+	    return ret;
+	}
+
+	exports.default = parseForExpression;
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	// paramName | filterName arg1 arg2
+	function parseFilterExpression(str) {
+	    if (!str || str.indexOf('|') === -1) return null;
+	    var splits = str.split('|');
+	    var paramName = _.trim(splits[0]);
+	    var args = _.trim(splits[1]).split(' ');
+	    var methodName = args.shift();
+	    return {
+	        param: paramName,
+	        args: typeCheck(args),
+	        method: methodName
+	    };
+	}
+
+	// 类型转化
+	// 解析filter表达式
+	function typeCheck(args) {
+	    var rets = [];
+	    args.forEach(function (arg, index) {
+	        arg = _.trim(arg);
+	        // number
+	        if (/^[0-9]$/.test(arg)) {
+	            rets[index] = Number(arg);
+	        } else {
+	            // "'string'" => string
+	            rets[index] = arg.replace(/^\'|\'$/g, '');
+	        }
+	    });
+	    return rets;
+	}
+
+	exports.default = parseFilterExpression;
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
 	exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
 
-	var _model = __webpack_require__(9);
+	var _model = __webpack_require__(11);
 
 	var _model2 = _interopRequireDefault(_model);
 
-	var _text = __webpack_require__(10);
+	var _text = __webpack_require__(12);
 
 	var _text2 = _interopRequireDefault(_text);
 
 	var _expression = __webpack_require__(5);
 
-	var _on = __webpack_require__(11);
+	var _on = __webpack_require__(13);
 
 	var _on2 = _interopRequireDefault(_on);
 
-	var _for = __webpack_require__(12);
+	var _for = __webpack_require__(14);
 
 	var _for2 = _interopRequireDefault(_for);
 
@@ -699,7 +750,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.parseExpression = _expression.parseExpression;
 
 /***/ },
-/* 9 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -725,7 +776,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vModel;
 
 /***/ },
-/* 10 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -747,7 +798,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vText;
 
 /***/ },
-/* 11 */
+/* 13 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -769,7 +820,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vOn;
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -844,7 +895,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vFor;
 
 /***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -897,17 +948,19 @@ return /******/ (function(modules) { // webpackBootstrap
 						(0, _html2.default)(node, this.$vm, attr.value);
 						break;
 					case 'for':
-						var info = parseForExpression(attr.value);
+						var info = (0, _for4.default)(attr.value);
 						self.bindWatch(self.$vm, info.val, function () {
 							(0, _for2.default)(node, self.$vm, attr.value);
 						}, 'for');
 						(0, _for2.default)(node, this.$vm, attr.value);
+						break;
 					case 'if':
 						// parse expression
 						self.bindWatch(self.$vm, attr.value, function () {
 							(0, _if2.default)(node, self.$vm, attr.value);
 						}, 'if');
 						(0, _if2.default)(node, this.$vm, attr.value);
+						break;
 					default:
 						break;
 				}
@@ -915,38 +968,42 @@ return /******/ (function(modules) { // webpackBootstrap
 		};
 	};
 
-	var _model = __webpack_require__(9);
+	var _model = __webpack_require__(11);
 
 	var _model2 = _interopRequireDefault(_model);
 
-	var _text = __webpack_require__(10);
+	var _text = __webpack_require__(12);
 
 	var _text2 = _interopRequireDefault(_text);
 
-	var _on = __webpack_require__(11);
+	var _on = __webpack_require__(13);
 
 	var _on2 = _interopRequireDefault(_on);
 
-	var _bind = __webpack_require__(14);
+	var _bind = __webpack_require__(16);
 
 	var _bind2 = _interopRequireDefault(_bind);
 
-	var _html = __webpack_require__(15);
+	var _html = __webpack_require__(17);
 
 	var _html2 = _interopRequireDefault(_html);
 
-	var _for = __webpack_require__(12);
+	var _for = __webpack_require__(14);
 
 	var _for2 = _interopRequireDefault(_for);
 
-	var _if = __webpack_require__(16);
+	var _if = __webpack_require__(18);
 
 	var _if2 = _interopRequireDefault(_if);
+
+	var _for3 = __webpack_require__(8);
+
+	var _for4 = _interopRequireDefault(_for3);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1024,7 +1081,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1046,7 +1103,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vHtml;
 
 /***/ },
-/* 16 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1086,7 +1143,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vIf;
 
 /***/ },
-/* 17 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

@@ -52,7 +52,7 @@
     <div id="app">
         <p v-text="isActive | parseMessage"></p>
         <p class="title" v-bind:class="{active: isActive}">Class 与 Style 绑定</p>
-        <p class="title" v-bind:class="comObject">Class 与 Style 绑定</p>
+        <!-- <p class="title" v-bind:class="comObject">Class 与 Style 绑定</p> -->
         <!-- <p class="title" v-bind:class="dataObject">Class 与 Style 绑定</p> -->
         <button v-on:click="changeActive">Change Active</button>
     </div>

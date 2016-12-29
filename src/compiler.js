@@ -87,7 +87,7 @@ class Compiler {
 	}
 	parseTextNode(node) {
 		var self = this;
-		var html = node.innerHTML;
+		var html = node.textContent;
 		var keys = [];
 
 		// TODO: filters
@@ -98,7 +98,7 @@ class Compiler {
 				}
 				return parseExpression(self.$vm, name);
 			});
-			node.innerHTML = newHtml;
+			node.textContent = newHtml;
 		};
 		_replace(this.$vm.$data);
 		keys.forEach(function(key) {

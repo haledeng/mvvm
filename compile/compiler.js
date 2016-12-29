@@ -110,7 +110,7 @@ var Compiler = function () {
 		key: 'parseTextNode',
 		value: function parseTextNode(node) {
 			var self = this;
-			var html = node.innerHTML;
+			var html = node.textContent;
 			var keys = [];
 
 			// TODO: filters
@@ -121,7 +121,7 @@ var Compiler = function () {
 					}
 					return (0, _index.parseExpression)(self.$vm, name);
 				});
-				node.innerHTML = newHtml;
+				node.textContent = newHtml;
 			};
 			_replace(this.$vm.$data);
 			keys.forEach(function (key) {

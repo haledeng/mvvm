@@ -5,6 +5,7 @@ import vBind from './directive/bind';
 import vHtml from './directive/html';
 import vFor from './directive/for';
 import vIf from './directive/if';
+import parseForExpression from './parser/for';
 
 
 export default function(Compiler) {
@@ -56,12 +57,14 @@ export default function(Compiler) {
 						vFor(node, self.$vm, attr.value);
 					}, 'for');
 					vFor(node, this.$vm, attr.value);
+					break;
 				case 'if':
 					// parse expression
 					self.bindWatch(self.$vm, attr.value, function() {
 						vIf(node, self.$vm, attr.value);
 					}, 'if');
 					vIf(node, this.$vm, attr.value);
+					break;
 				default:
 					break;
 			}

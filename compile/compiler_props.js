@@ -48,17 +48,19 @@ exports.default = function (Compiler) {
 					(0, _html2.default)(node, this.$vm, attr.value);
 					break;
 				case 'for':
-					var info = parseForExpression(attr.value);
+					var info = (0, _for4.default)(attr.value);
 					self.bindWatch(self.$vm, info.val, function () {
 						(0, _for2.default)(node, self.$vm, attr.value);
 					}, 'for');
 					(0, _for2.default)(node, this.$vm, attr.value);
+					break;
 				case 'if':
 					// parse expression
 					self.bindWatch(self.$vm, attr.value, function () {
 						(0, _if2.default)(node, self.$vm, attr.value);
 					}, 'if');
 					(0, _if2.default)(node, this.$vm, attr.value);
+					break;
 				default:
 					break;
 			}
@@ -93,5 +95,9 @@ var _for2 = _interopRequireDefault(_for);
 var _if = require('./directive/if');
 
 var _if2 = _interopRequireDefault(_if);
+
+var _for3 = require('./parser/for');
+
+var _for4 = _interopRequireDefault(_for3);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }

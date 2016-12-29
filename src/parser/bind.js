@@ -1,10 +1,6 @@
 // parse bind expression
 import * as _ from '../util';
 
-function hasBind(expression) {
-
-}
-
 /**
  * [parseBind description]
  * @param  {Object} vm   instance
