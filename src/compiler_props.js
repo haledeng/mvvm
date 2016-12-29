@@ -63,10 +63,12 @@ export default function(Compiler) {
 					break;
 				case 'if':
 					// parse expression
-					self.bindWatch(self.$vm, attr.value, function() {
-						vIf(node, self.$vm, attr.value);
+
+					watcher = self.bindWatch(self.$vm, attr.value, function() {
+						// debugger;
+						vIf(node, self.$vm, watcher.value);
 					}, 'if');
-					vIf(node, this.$vm, attr.value);
+					vIf(node, this.$vm, watcher.value);
 					break;
 				default:
 					break;

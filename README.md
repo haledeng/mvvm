@@ -18,8 +18,8 @@ A MVVM test library for study. **Do not use in project**
 
 ### history
 + An expression will be calculated in a watcher, no more in directives.
++ support v-else.
 
 
 ### TODO
 + performance.
-+ support v-else

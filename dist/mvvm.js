@@ -354,7 +354,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.exp = opts.exp;
 			this.directive = opts.directive || '';
 			this.callback = opts.callback;
-			this.value = this.get();
+			this.value = this.init();
 		}
 
 		_createClass(Watcher, [{
@@ -369,13 +369,18 @@ return /******/ (function(modules) { // webpackBootstrap
 				// }
 			}
 		}, {
-			key: 'get',
-			value: function get() {
+			key: 'init',
+			value: function init() {
 				_depender2.default.target = this;
 				// var value = calculateExpression(this.vm, this.exp);
-				var value = (0, _expression.parseExpression)(this.vm, this.exp, this.directive);
+				var value = this.get();
 				_depender2.default.target = null;
 				return value;
+			}
+		}, {
+			key: 'get',
+			value: function get() {
+				return (0, _expression.parseExpression)(this.vm, this.exp, this.directive);
 			}
 		}]);
 
@@ -998,10 +1003,12 @@ return /******/ (function(modules) { // webpackBootstrap
 						break;
 					case 'if':
 						// parse expression
-						self.bindWatch(self.$vm, attr.value, function () {
-							(0, _if2.default)(node, self.$vm, attr.value);
+
+						watcher = self.bindWatch(self.$vm, attr.value, function () {
+							// debugger;
+							(0, _if2.default)(node, self.$vm, watcher.value);
 						}, 'if');
-						(0, _if2.default)(node, this.$vm, attr.value);
+						(0, _if2.default)(node, this.$vm, watcher.value);
 						break;
 					default:
 						break;
@@ -1139,26 +1146,62 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-	function vIf(node, vm, exp) {
-		var value = (0, _expression.calculateExpression)(vm.$data, exp);
+	// function vIf(node, vm, exp) {
+	function vIf(node, vm, value) {
 		var parent = node.parentNode || node.__parent__;
+		// difference between nextSibling and nextElementSibling
+		// get from node.childNode and node.children 
+		var nextSibling = node.__nextSibling__ || node.nextElementSibling;
+		// 是否有v-else元素
+		var hasElseNext = node.__hasElse__;
+		if (hasElseNext === undefined) {
+			hasElseNext = node.__hasElse__ = nextSibling && nextSibling.getAttribute('v-else') !== null;
+		}
 		if (value) {
 			if (node.__parent__) {
-				var newNode = node.cloneNode(true);
-				newNode.removeAttribute('v-if');
-				parent.appendChild(newNode);
-				parent.replaceChild(newNode, node.__anchor__);
+				// record the new node in document
+				node.__new__ = insert(node.__new__ || node, parent);
+			} else {
+				// first time
+				// clone新节点，删除v-if
+				node.__new__ = replace(node, parent);
+				node.__parent__ = parent;
+			}
+			if (hasElseNext) {
+				node.__nextSibling__ = nextSibling;
+				remove(nextSibling, parent);
 			}
 		} else {
-			// 这里应该是用something来占位，下次value变化是，直接替换
-			// vue中使用注释来占位的,或者创建空的textNode，证实上面的猜想
-			// node.__anchor__ = document.createComment('v-if');
-			node.__anchor__ = document.createTextNode('');
-			parent.replaceChild(node.__anchor__, node);
-			node.__parent__ = parent;
+			remove(node.__new__ || node, parent);
+			if (hasElseNext) {
+				node.__nextSibling__ = insert(nextSibling, parent);;
+			}
 		}
 	}
 
+	function replace(node, parent) {
+		var newNode = node.cloneNode(true);
+		newNode.removeAttribute('v-if');
+		parent.replaceChild(newNode, node);
+		return newNode;
+	}
+
+	function insert(node, parent) {
+		var newNode = node.cloneNode(true);
+		newNode.removeAttribute('v-if');
+		newNode.removeAttribute('v-else');
+		parent.replaceChild(newNode, node.__anchor__);
+		return newNode;
+	}
+
+	function remove(node, parent) {
+		// 这里应该是用something来占位，下次value变化是，直接替换
+		// vue中使用注释来占位的,或者创建空的textNode，证实上面的猜想
+		// node.__anchor__ = document.createComment('v-if');
+		node.__anchor__ = document.createTextNode('');
+		parent.replaceChild(node.__anchor__, node);
+		node.__parent__ = parent;
+	}
 	exports.default = vIf;
 
 /***/ },

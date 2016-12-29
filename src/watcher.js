@@ -13,7 +13,8 @@ class Watcher {
 		this.exp = opts.exp;
 		this.directive = opts.directive || '';
 		this.callback = opts.callback;
-		this.value = this.get();
+		this.value = this.init();
+
 	}
 	update() {
 		var newVal = this.get();
@@ -24,12 +25,15 @@ class Watcher {
 		this.callback(this.vm, newVal, oldVal);
 		// }
 	}
-	get() {
+	init() {
 		Dep.target = this;
 		// var value = calculateExpression(this.vm, this.exp);
-		var value = parseExpression(this.vm, this.exp, this.directive);
+		var value = this.get();
 		Dep.target = null;
 		return value;
+	}
+	get() {
+		return parseExpression(this.vm, this.exp, this.directive);
 	}
 }
 export default Watcher;

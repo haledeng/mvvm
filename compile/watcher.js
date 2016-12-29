@@ -27,7 +27,7 @@ var Watcher = function () {
 		this.exp = opts.exp;
 		this.directive = opts.directive || '';
 		this.callback = opts.callback;
-		this.value = this.get();
+		this.value = this.init();
 	}
 
 	_createClass(Watcher, [{
@@ -42,13 +42,18 @@ var Watcher = function () {
 			// }
 		}
 	}, {
-		key: 'get',
-		value: function get() {
+		key: 'init',
+		value: function init() {
 			_depender2.default.target = this;
 			// var value = calculateExpression(this.vm, this.exp);
-			var value = (0, _expression.parseExpression)(this.vm, this.exp, this.directive);
+			var value = this.get();
 			_depender2.default.target = null;
 			return value;
+		}
+	}, {
+		key: 'get',
+		value: function get() {
+			return (0, _expression.parseExpression)(this.vm, this.exp, this.directive);
 		}
 	}]);
 
