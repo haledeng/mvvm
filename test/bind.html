@@ -50,11 +50,12 @@
 </head>
 <body>
     <div id="app">
-        <p v-text="isActive | parseMessage"></p>
-        <p class="title" v-bind:class="{active: isActive}">Class 与 Style 绑定</p>
-        <!-- <p class="title" v-bind:class="comObject">Class 与 Style 绑定</p> -->
-        <!-- <p class="title" v-bind:class="dataObject">Class 与 Style 绑定</p> -->
-        <button v-on:click="changeActive">Change Active</button>
+        <p>v-for (item, index) in companies demo:</p>
+        <ul>
+            <li v-for="(item, index) in companies" v-bind:class="{active: item.highlight}" v-on:click="change(item, index)">
+                <p>{{ item.name }}  -> {{ index * 2 }}</p>
+            </li>
+        </ul>
     </div>
 
 
@@ -64,6 +65,16 @@
         var mvvm = new MVVM({
             el: '#app',
             data: {
+                currentIndex: false,
+                companies: [{
+                    name: 'microsoft',
+                    location: 'US',
+                    highlight: true,
+                }, {
+                    name: 'tencent',
+                    location: 'China',
+                    highlight: false
+                }],
                 isActive: 1,
                 dataObject: {
                     active: true
@@ -84,6 +95,12 @@
             methods: {
                 changeActive: function() {
                     this.isActive = 0;
+                },
+                change: function(item, index) {
+                    console.log('click item index:', index);
+                    // index = this[index] || this.$data[index];
+                    item.highlight = !item.highlight;
+                    // this.companies[this.index].highlight = !this.companies[this.index].highlight;
                 }
             }
         });

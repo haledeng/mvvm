@@ -78,6 +78,9 @@ var Observer = function () {
 				self.defineArrayReactive(val, function () {
 					dep.notify();
 				});
+				val.forEach(function (item) {
+					self.observe(item);
+				});
 			} else if (_.isType(val, 'object')) {
 				self.observe(val);
 			}

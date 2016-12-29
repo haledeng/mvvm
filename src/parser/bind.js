@@ -1,5 +1,6 @@
 // parse bind expression
 import * as _ from '../util';
+import calculateExpression from './expression';
 
 /**
  * [parseBind description]
@@ -15,7 +16,8 @@ export default function parseBind(vm, attr) {
 	if (/^\{(.*)\}$/.test(attr)) {
 		// 计算表达式
 		attr.replace(/([^\{\,\:]*):([^\,\:\}]*)/g, function(all, key, val) {
-			value[_.trim(key)] = data[_.trim(val)];
+			// value[_.trim(key)] = data[_.trim(val)];
+			value[_.trim(key)] = calculateExpression(data, _.trim(val));
 			return all;
 		});
 	} else if (/\w*/.test(attr)) {

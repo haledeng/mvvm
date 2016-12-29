@@ -13,6 +13,12 @@ var _util = require('../util');
 
 var _ = _interopRequireWildcard(_util);
 
+var _expression = require('./expression');
+
+var _expression2 = _interopRequireDefault(_expression);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 /**
@@ -29,7 +35,8 @@ function parseBind(vm, attr) {
 	if (/^\{(.*)\}$/.test(attr)) {
 		// 计算表达式
 		attr.replace(/([^\{\,\:]*):([^\,\:\}]*)/g, function (all, key, val) {
-			value[_.trim(key)] = data[_.trim(val)];
+			// value[_.trim(key)] = data[_.trim(val)];
+			value[_.trim(key)] = (0, _expression2.default)(data, _.trim(val));
 			return all;
 		});
 	} else if (/\w*/.test(attr)) {

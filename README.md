@@ -15,5 +15,5 @@ A MVVM test library for study. **Do not use in project**
 
 ### TODO
 + performance.
-+ filters.
-+ delete interface calculateExpression.
++ 表达式计算次数过多
++ v-for循环中click参数问题

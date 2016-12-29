@@ -69,7 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler2 = _interopRequireDefault(_compiler);
 
-	var _observer = __webpack_require__(19);
+	var _observer = __webpack_require__(20);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -152,11 +152,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _watcher2 = _interopRequireDefault(_watcher);
 
-	var _index = __webpack_require__(10);
+	var _index = __webpack_require__(11);
 
 	var _filter = __webpack_require__(6);
 
-	var _compiler_props = __webpack_require__(15);
+	var _compiler_props = __webpack_require__(16);
 
 	var _compiler_props2 = _interopRequireDefault(_compiler_props);
 
@@ -208,7 +208,8 @@ return /******/ (function(modules) { // webpackBootstrap
 				var attrs = node.attributes;
 				for (var i = 0; i < attrs.length; i++) {
 					var item = attrs[i];
-					if (/^v\-([\w\:\']*)/.test(item.name)) {
+					// v-for已经解析了其他的指定了，防止重复解析
+					if (/^v\-([\w\:\']*)/.test(item.name) && node.parentNode) {
 						this._parseAttr(node, item);
 						this.addInputListener(node, item);
 					}
@@ -427,7 +428,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.parseExpression = exports.parseFilterExpression = exports.parseForExpression = exports.addScope = exports.calculateExpression = undefined;
+	exports.parseExpression = exports.parseFilterExpression = exports.parseForExpression = exports.calculateExpression = undefined;
 
 	var _util = __webpack_require__(2);
 
@@ -439,13 +440,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _bind2 = _interopRequireDefault(_bind);
 
-	var _for = __webpack_require__(8);
+	var _for = __webpack_require__(9);
 
 	var _for2 = _interopRequireDefault(_for);
 
-	var _filter2 = __webpack_require__(9);
+	var _filter2 = __webpack_require__(10);
 
 	var _filter3 = _interopRequireDefault(_filter2);
+
+	var _expression = __webpack_require__(8);
+
+	var _expression2 = _interopRequireDefault(_expression);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -454,43 +459,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	// +,-,m.n,*,/,>,<,>=,<=,==,===
 	// 添加上下文
 	// AST?
-	var addScope = function addScope(exp) {
-	    var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
+	// const addScope = (exp, prefix = 'scope') => {
+	//     exp = _.trim(exp);
+	//     // x.y
+	//     // Math.random()  全局函数调用
+	//     var globalObject = ['Math'];
+	//     exp = exp.replace(/\w+(?=\.)/g, function(match, index, all) {
+	//         if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
+	//         return [prefix, match].join('.');
+	//     });
+	//     exp = ' ' + exp + ' ';
+	//     // x
+	//     exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function(match, index, all) {
+	//         match = _.trim(match);
+	//         if (/^[0-9]*$/.test(match)) {
+	//             return match;
+	//         }
+	//         return [prefix, match].join('.');
+	//     });
+	//     return _.trim(exp);
+	// }
 
-	    exp = _.trim(exp);
-	    // x.y
-	    // Math.random()  全局函数调用
-	    var globalObject = ['Math'];
-	    exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
-	        if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
-	        return [prefix, match].join('.');
-	    });
-	    exp = ' ' + exp + ' ';
-	    // x
-	    exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
-	        match = _.trim(match);
-	        if (/^[0-9]*$/.test(match)) {
-	            return match;
-	        }
-	        return [prefix, match].join('.');
-	    });
-	    return _.trim(exp);
-	};
-
-	// 计算表达式
-	// strict mode can not use with
-	// new Function
-	var calculateExpression = function calculateExpression(scope, exp) {
-	    // Plan A
-	    var prefix = 'scope';
-	    exp = addScope(exp);
-	    var fn = new Function(prefix, 'return ' + exp);
-	    return fn(scope);
-	    // Plan B
-	    // with(scope) {
-	    //  return eval(exp);
-	    // }
-	};
+	// // 计算表达式
+	// // strict mode can not use with
+	// // new Function
+	// const calculateExpression = (scope, exp) => {
+	//     // Plan A
+	//     var prefix = 'scope';
+	//     exp = addScope(exp);
+	//     var fn = new Function(prefix, 'return ' + exp);
+	//     return fn(scope);
+	//     // Plan B
+	//     // with(scope) {
+	//     //  return eval(exp);
+	//     // }
+	// }
 
 	// v-bind: expression
 	function parseExpression(vm, exp, directive) {
@@ -503,9 +506,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        default:
 	            if (hasFilter(exp)) {
 	                var filterInfo = (0, _filter3.default)(exp);
-	                value = _filter.filter.apply(null, [vm, filterInfo.method, calculateExpression(data, filterInfo.param)].concat(filterInfo.args));
+	                value = _filter.filter.apply(null, [vm, filterInfo.method, (0, _expression2.default)(data, filterInfo.param)].concat(filterInfo.args));
 	            } else {
-	                value = calculateExpression(data, exp);
+	                value = (0, _expression2.default)(data, exp);
 	            }
 	            break;
 
@@ -518,8 +521,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (!exp || exp.indexOf('|') === -1) return false;
 	    return true;
 	}
-	exports.calculateExpression = calculateExpression;
-	exports.addScope = addScope;
+	exports.calculateExpression = _expression2.default;
 	exports.parseForExpression = _for2.default;
 	exports.parseFilterExpression = _filter3.default;
 	exports.parseExpression = parseExpression;
@@ -560,6 +562,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _ = _interopRequireWildcard(_util);
 
+	var _expression = __webpack_require__(8);
+
+	var _expression2 = _interopRequireDefault(_expression);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	/**
@@ -576,7 +584,8 @@ return /******/ (function(modules) { // webpackBootstrap
 		if (/^\{(.*)\}$/.test(attr)) {
 			// 计算表达式
 			attr.replace(/([^\{\,\:]*):([^\,\:\}]*)/g, function (all, key, val) {
-				value[_.trim(key)] = data[_.trim(val)];
+				// value[_.trim(key)] = data[_.trim(val)];
+				value[_.trim(key)] = (0, _expression2.default)(data, _.trim(val));
 				return all;
 			});
 		} else if (/\w*/.test(attr)) {
@@ -592,6 +601,62 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	var addScope = function addScope(exp) {
+	    var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
+
+	    exp = _.trim(exp);
+	    // x.y
+	    // Math.random()  全局函数调用
+	    var globalObject = ['Math'];
+	    exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
+	        if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
+	        return [prefix, match].join('.');
+	    });
+	    exp = ' ' + exp + ' ';
+	    // x
+	    exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
+	        match = _.trim(match);
+	        if (/^[0-9]*$/.test(match)) {
+	            return match;
+	        }
+	        return [prefix, match].join('.');
+	    });
+	    return _.trim(exp);
+	};
+
+	// 计算表达式
+	// strict mode can not use with
+	// new Function
+	var calculateExpression = function calculateExpression(scope, exp) {
+	    // Plan A
+	    var prefix = 'scope';
+	    exp = addScope(exp);
+	    var fn = new Function(prefix, 'return ' + exp);
+	    return fn(scope);
+	    // Plan B
+	    // with(scope) {
+	    //  return eval(exp);
+	    // }
+	};
+
+	exports.default = calculateExpression;
+
+/***/ },
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -647,7 +712,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = parseForExpression;
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -696,7 +761,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = parseFilterExpression;
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -706,21 +771,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
 
-	var _model = __webpack_require__(11);
+	var _model = __webpack_require__(12);
 
 	var _model2 = _interopRequireDefault(_model);
 
-	var _text = __webpack_require__(12);
+	var _text = __webpack_require__(13);
 
 	var _text2 = _interopRequireDefault(_text);
 
 	var _expression = __webpack_require__(5);
 
-	var _on = __webpack_require__(13);
+	var _on = __webpack_require__(14);
 
 	var _on2 = _interopRequireDefault(_on);
 
-	var _for = __webpack_require__(14);
+	var _for = __webpack_require__(15);
 
 	var _for2 = _interopRequireDefault(_for);
 
@@ -750,7 +815,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.parseExpression = _expression.parseExpression;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -776,7 +841,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vModel;
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -798,29 +863,48 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vText;
 
 /***/ },
-/* 13 */
-/***/ function(module, exports) {
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-	// event hander
-	// 事件多次绑定
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	// v-on:click="method(arg1, arg2, arg3)"
 	function vOn(node, methods, value, eventName) {
 		if (typeof value !== 'string') return;
-		var method = methods[value] || function () {};
+		var fnReg = /([^\(]*)(\(([^\)]*)\))/;
+		// 解析
+		var matches = value.match(fnReg);
 		var self = this;
-		node.addEventListener(eventName, function () {
-			method.call(self);
-		}, false);
-	}
-
+		if (matches) {
+			var method = methods[_.trim(matches[1])] || function () {};
+			var args = matches[3];
+			if (args) {
+				args = args.split(',');
+				args.forEach(function (arg, index) {
+					arg = _.trim(arg);
+					args[index] = self[arg] !== undefined ? self[arg] : '';
+				});
+			}
+			node.addEventListener(eventName, function () {
+				method.apply(self, args);
+			}, false);
+		}
+	} // event hander
+	// 事件多次绑定
 	exports.default = vOn;
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -895,7 +979,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vFor;
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -968,42 +1052,42 @@ return /******/ (function(modules) { // webpackBootstrap
 		};
 	};
 
-	var _model = __webpack_require__(11);
+	var _model = __webpack_require__(12);
 
 	var _model2 = _interopRequireDefault(_model);
 
-	var _text = __webpack_require__(12);
+	var _text = __webpack_require__(13);
 
 	var _text2 = _interopRequireDefault(_text);
 
-	var _on = __webpack_require__(13);
+	var _on = __webpack_require__(14);
 
 	var _on2 = _interopRequireDefault(_on);
 
-	var _bind = __webpack_require__(16);
+	var _bind = __webpack_require__(17);
 
 	var _bind2 = _interopRequireDefault(_bind);
 
-	var _html = __webpack_require__(17);
+	var _html = __webpack_require__(18);
 
 	var _html2 = _interopRequireDefault(_html);
 
-	var _for = __webpack_require__(14);
+	var _for = __webpack_require__(15);
 
 	var _for2 = _interopRequireDefault(_for);
 
-	var _if = __webpack_require__(18);
+	var _if = __webpack_require__(19);
 
 	var _if2 = _interopRequireDefault(_if);
 
-	var _for3 = __webpack_require__(8);
+	var _for3 = __webpack_require__(9);
 
 	var _for4 = _interopRequireDefault(_for3);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1052,24 +1136,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function vBind(node, vm, attr, property) {
-		// attr = _.trim(attr);
-		// var data = vm.$data;
-		// var computed = vm.computed;
-		// var value = {};
-		// if (/^\{(.*)\}$/.test(attr)) {
-		// 	// 计算表达式
-		// 	attr.replace(/([^\{\,\:]*):([^\,\:\}]*)/g, function(all, key, val) {
-		// 		value[_.trim(key)] = data[_.trim(val)];
-		// 		return all;
-		// 	});
-		// } else if (/\w*/.test(attr)) {
-		// 	// computed or data.property
-		// 	if (data[attr] !== undefined) {
-		// 		value = data[attr];
-		// 	} else if (typeof computed[attr] === 'function') {
-		// 		value = computed[attr].apply(data);
-		// 	}
-		// }
 		var value = (0, _bind2.default)(vm, attr);
 		for (var key in value) {
 			if (value[key]) {
@@ -1081,7 +1147,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1103,7 +1169,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vHtml;
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1143,7 +1209,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = vIf;
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1225,6 +1291,9 @@ return /******/ (function(modules) { // webpackBootstrap
 				if (_.isType(val, 'array')) {
 					self.defineArrayReactive(val, function () {
 						dep.notify();
+					});
+					val.forEach(function (item) {
+						self.observe(item);
 					});
 				} else if (_.isType(val, 'object')) {
 					self.observe(val);

@@ -74,7 +74,8 @@ var Compiler = function () {
 			var attrs = node.attributes;
 			for (var i = 0; i < attrs.length; i++) {
 				var item = attrs[i];
-				if (/^v\-([\w\:\']*)/.test(item.name)) {
+				// v-for已经解析了其他的指定了，防止重复解析
+				if (/^v\-([\w\:\']*)/.test(item.name) && node.parentNode) {
 					this._parseAttr(node, item);
 					this.addInputListener(node, item);
 				}
