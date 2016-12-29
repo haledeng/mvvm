@@ -50,12 +50,14 @@
 </head>
 <body>
     <div id="app">
-        <p>v-for (item, index) in companies demo:</p>
+        <p v-text="isActive"></p>
+        <button v-on:click="changeActive">click me</button>
+<!--         <p>v-for (item, index) in companies demo:</p>
         <ul>
             <li v-for="(item, index) in companies" v-bind:class="{active: item.highlight}" v-on:click="change(item, index)">
                 <p>{{ item.name }}  -> {{ index * 2 }}</p>
             </li>
-        </ul>
+        </ul> -->
     </div>
 
 
@@ -94,6 +96,7 @@
             },
             methods: {
                 changeActive: function() {
+                    console.log('click');
                     this.isActive = 0;
                 },
                 change: function(item, index) {

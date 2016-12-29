@@ -1,13 +1,8 @@
-import {
-	parseExpression
-} from './expression';
-
-// v-text
-const vHtml = (node, vm, key) => {
-	var value = parseExpression(vm, key);
+// v-html
+const vHtml = (node, vm, value) => {
 	node.innerHTML = value;
 	// 影响后面attribute遍历
-	// node.removeAttribute('v-text');
+	node.removeAttribute('v-html');
 };
 
 export default vHtml;

@@ -13,39 +13,42 @@ exports.default = function (Compiler) {
 		var property = matches[1];
 		var eventReg = /on\:(\w*)/;
 		var bindReg = /bind\:(\w*)/;
+		var watcher;
 		if (eventReg.test(property)) {
 			var eventName = RegExp.$1;
 			_on2.default.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
 			// event handler
 		} else if (bindReg.test(property)) {
 			var bindProperty = RegExp.$1;
-			self.bindWatch(self.$vm, attr.value, function () {
-				_bind2.default.call(self.$vm.$data, node, self.$vm, attr.value, bindProperty);
+			watcher = self.bindWatch(self.$vm, attr.value, function () {
+				_bind2.default.call(self.$vm.$data, node, self.$vm, watcher.value, bindProperty);
 			}, 'bind');
-			// TODO: watcher
-			_bind2.default.call(this.$vm.$data, node, this.$vm, attr.value, bindProperty);
+			_bind2.default.call(this.$vm.$data, node, this.$vm, watcher.value, bindProperty);
 		} else {
 			switch (property) {
 				// v-model
 				case 'model':
-					self.bindWatch(self.$vm, attr.value, function () {
-						(0, _model2.default)(node, self.$vm, attr.value);
+					// listening input
+					watcher = self.bindWatch(self.$vm, attr.value, function () {
+						(0, _model2.default)(node, self.$vm, watcher.value);
 					}, 'model');
-					(0, _model2.default)(node, self.$vm, attr.value);
+					(0, _model2.default)(node, self.$vm, watcher.value);
+					node.__value__ = watcher.value;
 					break;
 				// v-text
 				case 'text':
 					// filters
-					self.bindWatch(self.$vm, attr.value, function () {
-						(0, _text2.default)(node, self.$vm, attr.value);
+
+					watcher = self.bindWatch(self.$vm, attr.value, function () {
+						(0, _text2.default)(node, self.$vm, watcher.value);
 					}, 'text');
-					(0, _text2.default)(node, this.$vm, attr.value);
+					(0, _text2.default)(node, this.$vm, watcher.value);
 					break;
 				case 'html':
-					self.bindWatch(self.$vm, attr.value, function () {
-						(0, _html2.default)(node, self.$vm, attr.value);
+					watcher = self.bindWatch(self.$vm, attr.value, function () {
+						(0, _html2.default)(node, self.$vm, watcher.value);
 					}, 'html');
-					(0, _html2.default)(node, this.$vm, attr.value);
+					(0, _html2.default)(node, this.$vm, watcher.value);
 					break;
 				case 'for':
 					var info = (0, _for4.default)(attr.value);

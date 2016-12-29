@@ -27,8 +27,7 @@ function removeProperty(node, property, value) {
 	}
 }
 
-export default function vBind(node, vm, attr, property) {
-	var value = parseBind(vm, attr);
+export default function vBind(node, vm, value, property) {
 	for (var key in value) {
 		if (value[key]) {
 			addProperty(node, property, key);

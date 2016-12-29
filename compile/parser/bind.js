@@ -35,7 +35,6 @@ function parseBind(vm, attr) {
 	if (/^\{(.*)\}$/.test(attr)) {
 		// 计算表达式
 		attr.replace(/([^\{\,\:]*):([^\,\:\}]*)/g, function (all, key, val) {
-			// value[_.trim(key)] = data[_.trim(val)];
 			value[_.trim(key)] = (0, _expression2.default)(data, _.trim(val));
 			return all;
 		});

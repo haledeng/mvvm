@@ -8,12 +8,18 @@ A MVVM test library for study. **Do not use in project**
 
 ### Function List
 + v-text
++ v-html
 + v-model
 + v-on
 + v-for
++ v-bind
 + $watch
+
+
+### history
++ An expression will be calculated in a watcher, no more in directives.
+
 
 ### TODO
 + performance.
-+ 表达式计算次数过多
-+ v-for循环中click参数问题
++ support v-else

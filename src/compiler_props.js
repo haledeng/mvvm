@@ -17,39 +17,42 @@ export default function(Compiler) {
 		var property = matches[1];
 		var eventReg = /on\:(\w*)/;
 		var bindReg = /bind\:(\w*)/;
+		var watcher;
 		if (eventReg.test(property)) {
 			var eventName = RegExp.$1;
 			vOn.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
 			// event handler
 		} else if (bindReg.test(property)) {
 			var bindProperty = RegExp.$1;
-			self.bindWatch(self.$vm, attr.value, function() {
-				vBind.call(self.$vm.$data, node, self.$vm, attr.value, bindProperty);
+			watcher = self.bindWatch(self.$vm, attr.value, function() {
+				vBind.call(self.$vm.$data, node, self.$vm, watcher.value, bindProperty);
 			}, 'bind');
-			// TODO: watcher
-			vBind.call(this.$vm.$data, node, this.$vm, attr.value, bindProperty);
+			vBind.call(this.$vm.$data, node, this.$vm, watcher.value, bindProperty);
 		} else {
 			switch (property) {
 				// v-model
 				case 'model':
-					self.bindWatch(self.$vm, attr.value, function() {
-						vModel(node, self.$vm, attr.value);
+					// listening input
+					watcher = self.bindWatch(self.$vm, attr.value, function() {
+						vModel(node, self.$vm, watcher.value);
 					}, 'model');
-					vModel(node, self.$vm, attr.value);
+					vModel(node, self.$vm, watcher.value);
+					node.__value__ = watcher.value;
 					break;
 					// v-text
 				case 'text':
 					// filters
-					self.bindWatch(self.$vm, attr.value, function() {
-						vText(node, self.$vm, attr.value);
+
+					watcher = self.bindWatch(self.$vm, attr.value, function() {
+						vText(node, self.$vm, watcher.value);
 					}, 'text');
-					vText(node, this.$vm, attr.value);
+					vText(node, this.$vm, watcher.value);
 					break;
 				case 'html':
-					self.bindWatch(self.$vm, attr.value, function() {
-						vHtml(node, self.$vm, attr.value);
+					watcher = self.bindWatch(self.$vm, attr.value, function() {
+						vHtml(node, self.$vm, watcher.value);
 					}, 'html');
-					vHtml(node, this.$vm, attr.value);
+					vHtml(node, this.$vm, watcher.value);
 					break;
 				case 'for':
 					var info = parseForExpression(attr.value);

@@ -67,8 +67,8 @@ class Compiler {
 	addInputListener(node, attr) {
 		if (attr.name !== 'v-model') return;
 		var key = attr.value;
-		var oldVal = parseExpression(this.$vm, key);
-		// var oldVal = this.$vm.$data[key];
+		var oldVal = node.__value__;
+		// var oldVal = parseExpression(this.$vm, key);
 		var self = this;
 		// v-model监听
 		node.addEventListener('input', function() {
@@ -79,7 +79,7 @@ class Compiler {
 	}
 	bindWatch(vm, exp, callback, directive) {
 		var noop = function() {};
-		new Watcher({
+		return new Watcher({
 			vm: vm,
 			exp: exp,
 			directive: directive || '',
@@ -90,21 +90,26 @@ class Compiler {
 		var self = this;
 		var html = node.textContent;
 		var keys = [];
+		var watcherMaps = {};
+
+		html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
+			if (!keys.length) {
+				keys.push(name);
+			}
+		});
 
 		// TODO: filters
 		const _replace = (scope) => {
 			var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
-				if (!keys.length) {
-					keys.push(name);
-				}
-				return parseExpression(self.$vm, name);
+				return watcherMaps[name].value;
 			});
 			node.textContent = newHtml;
 		};
-		_replace(this.$vm.$data);
+		// watcher会计算parseExpression，_replace中不单独计算，
 		keys.forEach(function(key) {
-			self.bindWatch(self.$vm, key, _replace);
+			watcherMaps[key] = self.bindWatch(self.$vm, key, _replace);
 		});
+		_replace(this.$vm.$data);
 	}
 }
 

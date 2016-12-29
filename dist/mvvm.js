@@ -220,8 +220,8 @@ return /******/ (function(modules) { // webpackBootstrap
 			value: function addInputListener(node, attr) {
 				if (attr.name !== 'v-model') return;
 				var key = attr.value;
-				var oldVal = (0, _index.parseExpression)(this.$vm, key);
-				// var oldVal = this.$vm.$data[key];
+				var oldVal = node.__value__;
+				// var oldVal = parseExpression(this.$vm, key);
 				var self = this;
 				// v-model监听
 				node.addEventListener('input', function () {
@@ -234,7 +234,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'bindWatch',
 			value: function bindWatch(vm, exp, callback, directive) {
 				var noop = function noop() {};
-				new _watcher2.default({
+				return new _watcher2.default({
 					vm: vm,
 					exp: exp,
 					directive: directive || '',
@@ -247,21 +247,26 @@ return /******/ (function(modules) { // webpackBootstrap
 				var self = this;
 				var html = node.textContent;
 				var keys = [];
+				var watcherMaps = {};
+
+				html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
+					if (!keys.length) {
+						keys.push(name);
+					}
+				});
 
 				// TODO: filters
 				var _replace = function _replace(scope) {
 					var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
-						if (!keys.length) {
-							keys.push(name);
-						}
-						return (0, _index.parseExpression)(self.$vm, name);
+						return watcherMaps[name].value;
 					});
 					node.textContent = newHtml;
 				};
-				_replace(this.$vm.$data);
+				// watcher会计算parseExpression，_replace中不单独计算，
 				keys.forEach(function (key) {
-					self.bindWatch(self.$vm, key, _replace);
+					watcherMaps[key] = self.bindWatch(self.$vm, key, _replace);
 				});
+				_replace(this.$vm.$data);
 			}
 		}]);
 
@@ -456,46 +461,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-	// +,-,m.n,*,/,>,<,>=,<=,==,===
-	// 添加上下文
-	// AST?
-	// const addScope = (exp, prefix = 'scope') => {
-	//     exp = _.trim(exp);
-	//     // x.y
-	//     // Math.random()  全局函数调用
-	//     var globalObject = ['Math'];
-	//     exp = exp.replace(/\w+(?=\.)/g, function(match, index, all) {
-	//         if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
-	//         return [prefix, match].join('.');
-	//     });
-	//     exp = ' ' + exp + ' ';
-	//     // x
-	//     exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function(match, index, all) {
-	//         match = _.trim(match);
-	//         if (/^[0-9]*$/.test(match)) {
-	//             return match;
-	//         }
-	//         return [prefix, match].join('.');
-	//     });
-	//     return _.trim(exp);
-	// }
+	// whether expression has filter
+	function hasFilter(exp) {
+	    if (!exp || exp.indexOf('|') === -1) return false;
+	    return true;
+	}
 
-	// // 计算表达式
-	// // strict mode can not use with
-	// // new Function
-	// const calculateExpression = (scope, exp) => {
-	//     // Plan A
-	//     var prefix = 'scope';
-	//     exp = addScope(exp);
-	//     var fn = new Function(prefix, 'return ' + exp);
-	//     return fn(scope);
-	//     // Plan B
-	//     // with(scope) {
-	//     //  return eval(exp);
-	//     // }
-	// }
-
-	// v-bind: expression
 	function parseExpression(vm, exp, directive) {
 	    var data = vm.$data;
 	    var value = null;
@@ -516,11 +487,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return value;
 	}
 
-	// whether expression has filter
-	function hasFilter(exp) {
-	    if (!exp || exp.indexOf('|') === -1) return false;
-	    return true;
-	}
 	exports.calculateExpression = _expression2.default;
 	exports.parseForExpression = _for2.default;
 	exports.parseFilterExpression = _filter3.default;
@@ -584,7 +550,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		if (/^\{(.*)\}$/.test(attr)) {
 			// 计算表达式
 			attr.replace(/([^\{\,\:]*):([^\,\:\}]*)/g, function (all, key, val) {
-				// value[_.trim(key)] = data[_.trim(val)];
 				value[_.trim(key)] = (0, _expression2.default)(data, _.trim(val));
 				return all;
 			});
@@ -816,45 +781,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 12 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-
-	var _expression = __webpack_require__(5);
-
-	var vModel = function vModel(node, vm, exp) {
+	var vModel = function vModel(node, vm, value) {
 		var tagName = node.tagName.toLowerCase();
-		// var value = calculateExpression(scope, key);
-		var value = (0, _expression.parseExpression)(vm, exp);
 		if (tagName === 'input') {
 			node.value = value;
 		} else if (tagName === 'textarea') {
-			node.innerHTML = value;
+			node.textContent = value;
 		}
-		// node.removeAttribute('v-model');
+		node.removeAttribute('v-model');
 	};
 
 	exports.default = vModel;
 
 /***/ },
 /* 13 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-
-	var _expression = __webpack_require__(5);
-
-	// v-text
-	var vText = function vText(node, vm, key) {
-		var value = (0, _expression.parseExpression)(vm, key);
+	var vText = function vText(node, vm, value) {
 		node.textContent = value;
 		// 影响后面attribute遍历
 		node.removeAttribute('v-text');
@@ -881,7 +836,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// v-on:click="method(arg1, arg2, arg3)"
 	function vOn(node, methods, value, eventName) {
 		if (typeof value !== 'string') return;
-		var fnReg = /([^\(]*)(\(([^\)]*)\))/;
+		var fnReg = /([^\(]*)(\(([^\)]*)\))?/;
 		// 解析
 		var matches = value.match(fnReg);
 		var self = this;
@@ -997,39 +952,42 @@ return /******/ (function(modules) { // webpackBootstrap
 			var property = matches[1];
 			var eventReg = /on\:(\w*)/;
 			var bindReg = /bind\:(\w*)/;
+			var watcher;
 			if (eventReg.test(property)) {
 				var eventName = RegExp.$1;
 				_on2.default.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
 				// event handler
 			} else if (bindReg.test(property)) {
 				var bindProperty = RegExp.$1;
-				self.bindWatch(self.$vm, attr.value, function () {
-					_bind2.default.call(self.$vm.$data, node, self.$vm, attr.value, bindProperty);
+				watcher = self.bindWatch(self.$vm, attr.value, function () {
+					_bind2.default.call(self.$vm.$data, node, self.$vm, watcher.value, bindProperty);
 				}, 'bind');
-				// TODO: watcher
-				_bind2.default.call(this.$vm.$data, node, this.$vm, attr.value, bindProperty);
+				_bind2.default.call(this.$vm.$data, node, this.$vm, watcher.value, bindProperty);
 			} else {
 				switch (property) {
 					// v-model
 					case 'model':
-						self.bindWatch(self.$vm, attr.value, function () {
-							(0, _model2.default)(node, self.$vm, attr.value);
+						// listening input
+						watcher = self.bindWatch(self.$vm, attr.value, function () {
+							(0, _model2.default)(node, self.$vm, watcher.value);
 						}, 'model');
-						(0, _model2.default)(node, self.$vm, attr.value);
+						(0, _model2.default)(node, self.$vm, watcher.value);
+						node.__value__ = watcher.value;
 						break;
 					// v-text
 					case 'text':
 						// filters
-						self.bindWatch(self.$vm, attr.value, function () {
-							(0, _text2.default)(node, self.$vm, attr.value);
+
+						watcher = self.bindWatch(self.$vm, attr.value, function () {
+							(0, _text2.default)(node, self.$vm, watcher.value);
 						}, 'text');
-						(0, _text2.default)(node, this.$vm, attr.value);
+						(0, _text2.default)(node, this.$vm, watcher.value);
 						break;
 					case 'html':
-						self.bindWatch(self.$vm, attr.value, function () {
-							(0, _html2.default)(node, self.$vm, attr.value);
+						watcher = self.bindWatch(self.$vm, attr.value, function () {
+							(0, _html2.default)(node, self.$vm, watcher.value);
 						}, 'html');
-						(0, _html2.default)(node, this.$vm, attr.value);
+						(0, _html2.default)(node, this.$vm, watcher.value);
 						break;
 					case 'for':
 						var info = (0, _for4.default)(attr.value);
@@ -1135,8 +1093,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 	}
 
-	function vBind(node, vm, attr, property) {
-		var value = (0, _bind2.default)(vm, attr);
+	function vBind(node, vm, value, property) {
 		for (var key in value) {
 			if (value[key]) {
 				addProperty(node, property, key);
@@ -1148,22 +1105,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 18 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-
-	var _expression = __webpack_require__(5);
-
-	// v-text
-	var vHtml = function vHtml(node, vm, key) {
-		var value = (0, _expression.parseExpression)(vm, key);
+	// v-html
+	var vHtml = function vHtml(node, vm, value) {
 		node.innerHTML = value;
 		// 影响后面attribute遍历
-		// node.removeAttribute('v-text');
+		node.removeAttribute('v-html');
 	};
 
 	exports.default = vHtml;

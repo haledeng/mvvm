@@ -86,8 +86,8 @@ var Compiler = function () {
 		value: function addInputListener(node, attr) {
 			if (attr.name !== 'v-model') return;
 			var key = attr.value;
-			var oldVal = (0, _index.parseExpression)(this.$vm, key);
-			// var oldVal = this.$vm.$data[key];
+			var oldVal = node.__value__;
+			// var oldVal = parseExpression(this.$vm, key);
 			var self = this;
 			// v-model监听
 			node.addEventListener('input', function () {
@@ -100,7 +100,7 @@ var Compiler = function () {
 		key: 'bindWatch',
 		value: function bindWatch(vm, exp, callback, directive) {
 			var noop = function noop() {};
-			new _watcher2.default({
+			return new _watcher2.default({
 				vm: vm,
 				exp: exp,
 				directive: directive || '',
@@ -113,21 +113,26 @@ var Compiler = function () {
 			var self = this;
 			var html = node.textContent;
 			var keys = [];
+			var watcherMaps = {};
+
+			html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
+				if (!keys.length) {
+					keys.push(name);
+				}
+			});
 
 			// TODO: filters
 			var _replace = function _replace(scope) {
 				var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
-					if (!keys.length) {
-						keys.push(name);
-					}
-					return (0, _index.parseExpression)(self.$vm, name);
+					return watcherMaps[name].value;
 				});
 				node.textContent = newHtml;
 			};
-			_replace(this.$vm.$data);
+			// watcher会计算parseExpression，_replace中不单独计算，
 			keys.forEach(function (key) {
-				self.bindWatch(self.$vm, key, _replace);
+				watcherMaps[key] = self.bindWatch(self.$vm, key, _replace);
 			});
+			_replace(this.$vm.$data);
 		}
 	}]);
 

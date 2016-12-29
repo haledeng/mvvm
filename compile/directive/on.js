@@ -13,7 +13,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 // v-on:click="method(arg1, arg2, arg3)"
 function vOn(node, methods, value, eventName) {
 	if (typeof value !== 'string') return;
-	var fnReg = /([^\(]*)(\(([^\)]*)\))/;
+	var fnReg = /([^\(]*)(\(([^\)]*)\))?/;
 	// 解析
 	var matches = value.match(fnReg);
 	var self = this;

@@ -43,8 +43,7 @@ function removeProperty(node, property, value) {
 	}
 }
 
-function vBind(node, vm, attr, property) {
-	var value = (0, _bind2.default)(vm, attr);
+function vBind(node, vm, value, property) {
 	for (var key in value) {
 		if (value[key]) {
 			addProperty(node, property, key);
