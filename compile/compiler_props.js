@@ -6,74 +6,9 @@ Object.defineProperty(exports, "__esModule", {
 
 exports.default = function (Compiler) {
 
-	function transFlag(name, hook) {
-		return '__' + name + '_' + hook + '__';
-	}
-
-	function setCalledFlag(node, flag) {
-		// var flag = transFlag(name, hook);
-		node[flag] = node[flag] || 0;
-		node[flag]++;
-	}
-
-	// 解析自定义指令
-	Compiler.prototype._parseCustomDirective = function (node, attr, name, maps) {
-		var self = this;
-		var flag = '';
-		var binding = {
-			name: name,
-			expression: attr.value
-		};
-		if (typeof maps.bind === 'function') {
-			if (!node[flag]) {
-				maps.bind(node, binding);
-				setCalledFlag(node, flag);
-			}
-		}
-
-		if (typeof maps.update === 'function') {
-			var watcher = self.bindWatch(self.$vm, attr.value, function (vm, value, oldValue) {
-				maps.update(node, Object.assign({
-					oldValue: oldValue,
-					value: value
-				}, binding));
-			}, name);
-		}
-		// Object.keys(maps).forEach(function(hook) {
-		// 	hookCallback = maps[hook];
-		// 	if (hookCallback === 'function') {
-		// 		flag = transFlag(name, hook);
-		// 	}
-		// 	var binding = {
-		// 		name: name,
-		// 		expression: attr.value
-		// 	};
-
-		// 	switch (hook) {
-		// 		case 'bind':
-		// 			// call only once
-		// 			if (!node[flag]) {
-		// 				hookCallback(node, binding);
-		// 				setCalledFlag(node, flag);
-		// 			}
-		// 			break;
-		// 		case 'update':
-		// 			var watcher = self.bindWatch(self.$vm, attr.value, function(vm, value, oldValue) {
-		// 				hookCallback(node, Object.assign({
-		// 					oldValue: oldValue,
-		// 					value: value
-		// 				}, binding));
-		// 			}, name);
-		// 			break;
-		// 		case 'inserted':
-		// 			break;
-		// 	}
-		// });
-	};
-
 	// ES6 function写法会导致this解析问题
 	Compiler.prototype._parseAttr = function (node, attr) {
-		var customDirectives = this.$vm.constructor.__customDirectives__;
+		var customDirectives = this.$vm.constructor._cusDirectives;
 		var customNames = Object.keys(customDirectives);
 		var self = this;
 		var attrReg = /^v\-([\w\:\']*)/;
@@ -97,26 +32,38 @@ exports.default = function (Compiler) {
 				// v-model
 				case 'model':
 					// listening input
-					watcher = self.bindWatch(self.$vm, attr.value, function () {
-						(0, _model2.default)(node, self.$vm, watcher.value);
-					}, 'model');
-					(0, _model2.default)(node, self.$vm, watcher.value);
-					node.__value__ = watcher.value;
+					// watcher = self.bindWatch(self.$vm, attr.value, function() {
+					// 	vModel(node, self.$vm, watcher.value);
+					// }, 'model');
+					// vModel(node, self.$vm, watcher.value);
+					// node.__value__ = watcher.value;
+					self.$vm.bindDir(Object.assign({
+						expression: attr.value,
+						name: property
+					}, _model2.default), node);
 					break;
 				// v-text
 				case 'text':
 					// filters
 
-					watcher = self.bindWatch(self.$vm, attr.value, function () {
-						(0, _text2.default)(node, self.$vm, watcher.value);
-					}, 'text');
-					(0, _text2.default)(node, this.$vm, watcher.value);
+					// watcher = self.bindWatch(self.$vm, attr.value, function() {
+					// 	vText(node, self.$vm, watcher.value);
+					// }, 'text');
+					// vText(node, this.$vm, watcher.value);
+					self.$vm.bindDir(Object.assign({
+						expression: attr.value,
+						name: property
+					}, _text2.default), node);
 					break;
 				case 'html':
-					watcher = self.bindWatch(self.$vm, attr.value, function () {
-						(0, _html2.default)(node, self.$vm, watcher.value);
-					}, 'html');
-					(0, _html2.default)(node, this.$vm, watcher.value);
+					self.$vm.bindDir(Object.assign({
+						expression: attr.value,
+						name: property
+					}, _html2.default), node);
+					// watcher = self.bindWatch(self.$vm, attr.value, function() {
+					// 	vHtml(node, self.$vm, watcher.value);
+					// }, 'html');
+					// vHtml(node, this.$vm, watcher.value);
 					break;
 				case 'for':
 					var info = (0, _for4.default)(attr.value);
@@ -139,7 +86,11 @@ exports.default = function (Compiler) {
 			}
 
 			if (~customNames.indexOf(property)) {
-				self._parseCustomDirective(node, attr, property, customDirectives[property]);
+				self.$vm.bindDir(Object.assign({
+					expression: attr.value,
+					name: property
+				}, customDirectives[property]), node);
+				// 	self._parseCustomDirective(node, attr, property, customDirectives[property]);
 			}
 		}
 	};

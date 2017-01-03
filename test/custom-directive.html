@@ -44,6 +44,8 @@
 <body>
     <div id="app">
         <p v-demo="message"></p>
+        <p v-text="message"></p>
+        <input type="text" v-model="message">
         <button v-on:click="change">changeText</button>
     </div>
 
@@ -56,7 +58,7 @@
                 node.textContent = 'hello MVVM';
             },
             update: function(node, binding) {
-                node.textContent = binding.value;
+                node.textContent = binding.value.toUpperCase();
             }
         });
         var mvvm = new MVVM({

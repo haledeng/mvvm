@@ -60,22 +60,22 @@ class Compiler {
 			// v-for已经解析了其他的指定了，防止重复解析
 			if (/^v\-([\w\:\']*)/.test(item.name) && node.parentNode) {
 				this._parseAttr(node, item);
-				this.addInputListener(node, item);
+				// this.addInputListener(node, item);
 			}
 		}
 	}
 	addInputListener(node, attr) {
-		if (attr.name !== 'v-model') return;
-		var key = attr.value;
-		var oldVal = node.__value__;
-		// var oldVal = parseExpression(this.$vm, key);
-		var self = this;
-		// v-model监听
-		node.addEventListener('input', function() {
-			if (node.value != oldVal) {
-				setScopeValue(self.$vm.$data, key, node.value);
-			}
-		}, false);
+		// if (attr.name !== 'v-model') return;
+		// var key = attr.value;
+		// var oldVal = node.__value__;
+		// // var oldVal = parseExpression(this.$vm, key);
+		// var self = this;
+		// // v-model监听
+		// node.addEventListener('input', function() {
+		// 	if (node.value != oldVal) {
+		// 		setScopeValue(self.$vm.$data, key, node.value);
+		// 	}
+		// }, false);
 	}
 	bindWatch(vm, exp, callback, directive) {
 		var noop = function() {};

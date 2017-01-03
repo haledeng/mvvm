@@ -128,15 +128,41 @@ return /******/ (function(modules) { // webpackBootstrap
 			}
 		}, {
 			key: 'bindDir',
-			value: function bindDir() {
-				this._directives.push();
+			value: function bindDir(descriptor, node) {
+				var self = this;
+				this._directives.push(new _directive2.default(descriptor, this, node));
 			}
 		}]);
 
 		return MVVM;
 	}();
 
-	(0, _directive2.default)(MVVM);
+	MVVM.directive = function (name, descriptor) {
+		if (!this._cusDirectives) {
+			this._cusDirectives = {};
+		}
+		this._cusDirectives[name] = descriptor;
+		if (descriptor.bind) {
+			var _bind = descriptor.bind;
+			descriptor.bind = function () {
+				var _descriptor = this.descriptor;
+				_bind(this.$el, {
+					expression: this.expression,
+					value: ''
+				});
+			};
+		}
+
+		if (descriptor.update) {
+			var _update = descriptor.update;
+			descriptor.update = function () {
+				_update(this.$el, {
+					expression: this.expression,
+					value: this._watcher.value
+				});
+			};
+		}
+	};
 
 	exports.MVVM = MVVM;
 
@@ -223,24 +249,24 @@ return /******/ (function(modules) { // webpackBootstrap
 					// v-for已经解析了其他的指定了，防止重复解析
 					if (/^v\-([\w\:\']*)/.test(item.name) && node.parentNode) {
 						this._parseAttr(node, item);
-						this.addInputListener(node, item);
+						// this.addInputListener(node, item);
 					}
 				}
 			}
 		}, {
 			key: 'addInputListener',
 			value: function addInputListener(node, attr) {
-				if (attr.name !== 'v-model') return;
-				var key = attr.value;
-				var oldVal = node.__value__;
-				// var oldVal = parseExpression(this.$vm, key);
-				var self = this;
-				// v-model监听
-				node.addEventListener('input', function () {
-					if (node.value != oldVal) {
-						(0, _index.setScopeValue)(self.$vm.$data, key, node.value);
-					}
-				}, false);
+				// if (attr.name !== 'v-model') return;
+				// var key = attr.value;
+				// var oldVal = node.__value__;
+				// // var oldVal = parseExpression(this.$vm, key);
+				// var self = this;
+				// // v-model监听
+				// node.addEventListener('input', function() {
+				// 	if (node.value != oldVal) {
+				// 		setScopeValue(self.$vm.$data, key, node.value);
+				// 	}
+				// }, false);
 			}
 		}, {
 			key: 'bindWatch',
@@ -811,17 +837,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-	var vModel = function vModel(node, vm, value) {
-		var tagName = node.tagName.toLowerCase();
-		if (tagName === 'input') {
-			node.value = value;
-		} else if (tagName === 'textarea') {
-			node.textContent = value;
-		}
-		node.removeAttribute('v-model');
-	};
+	// const vModel = (node, vm, value) => {
+	// 	var tagName = node.tagName.toLowerCase();
+	// 	if (tagName === 'input') {
+	// 		node.value = value;
+	// 	} else if (tagName === 'textarea') {
+	// 		node.textContent = value;
+	// 	}
+	// 	node.removeAttribute('v-model');
+	// }
 
-	exports.default = vModel;
+
+	// export default vModel;
+	// 
+	exports.default = {
+		bind: function bind() {
+			var tagName = this.$el.tagName.toLowerCase();
+			this._attr = tagName === 'input' ? 'value' : 'textContent';
+			this.descriptor.addListener.call(this);
+		},
+		addListener: function addListener() {
+			var self = this;
+			var key = this.$el.getAttribute('v-' + this.name);
+			this.$el.addEventListener('input', function () {
+				self.set(key, this.value);
+			}, false);
+		},
+		update: function update(value) {
+			this.$el[this._attr] = value;
+		}
+	};
 
 /***/ },
 /* 13 */
@@ -838,7 +883,17 @@ return /******/ (function(modules) { // webpackBootstrap
 		node.removeAttribute('v-text');
 	};
 
-	exports.default = vText;
+	exports.default = {
+		// init
+		bind: function bind() {
+			this._attr = 'textContent';
+		},
+		update: function update(value) {
+			this.$el[this._attr] = value;
+		}
+	};
+
+	// export default vText;
 
 /***/ },
 /* 14 */
@@ -968,74 +1023,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.default = function (Compiler) {
 
-		function transFlag(name, hook) {
-			return '__' + name + '_' + hook + '__';
-		}
-
-		function setCalledFlag(node, flag) {
-			// var flag = transFlag(name, hook);
-			node[flag] = node[flag] || 0;
-			node[flag]++;
-		}
-
-		// 解析自定义指令
-		Compiler.prototype._parseCustomDirective = function (node, attr, name, maps) {
-			var self = this;
-			var flag = '';
-			var binding = {
-				name: name,
-				expression: attr.value
-			};
-			if (typeof maps.bind === 'function') {
-				if (!node[flag]) {
-					maps.bind(node, binding);
-					setCalledFlag(node, flag);
-				}
-			}
-
-			if (typeof maps.update === 'function') {
-				var watcher = self.bindWatch(self.$vm, attr.value, function (vm, value, oldValue) {
-					maps.update(node, Object.assign({
-						oldValue: oldValue,
-						value: value
-					}, binding));
-				}, name);
-			}
-			// Object.keys(maps).forEach(function(hook) {
-			// 	hookCallback = maps[hook];
-			// 	if (hookCallback === 'function') {
-			// 		flag = transFlag(name, hook);
-			// 	}
-			// 	var binding = {
-			// 		name: name,
-			// 		expression: attr.value
-			// 	};
-
-			// 	switch (hook) {
-			// 		case 'bind':
-			// 			// call only once
-			// 			if (!node[flag]) {
-			// 				hookCallback(node, binding);
-			// 				setCalledFlag(node, flag);
-			// 			}
-			// 			break;
-			// 		case 'update':
-			// 			var watcher = self.bindWatch(self.$vm, attr.value, function(vm, value, oldValue) {
-			// 				hookCallback(node, Object.assign({
-			// 					oldValue: oldValue,
-			// 					value: value
-			// 				}, binding));
-			// 			}, name);
-			// 			break;
-			// 		case 'inserted':
-			// 			break;
-			// 	}
-			// });
-		};
-
 		// ES6 function写法会导致this解析问题
 		Compiler.prototype._parseAttr = function (node, attr) {
-			var customDirectives = this.$vm.constructor.__customDirectives__;
+			var customDirectives = this.$vm.constructor._cusDirectives;
 			var customNames = Object.keys(customDirectives);
 			var self = this;
 			var attrReg = /^v\-([\w\:\']*)/;
@@ -1059,26 +1049,38 @@ return /******/ (function(modules) { // webpackBootstrap
 					// v-model
 					case 'model':
 						// listening input
-						watcher = self.bindWatch(self.$vm, attr.value, function () {
-							(0, _model2.default)(node, self.$vm, watcher.value);
-						}, 'model');
-						(0, _model2.default)(node, self.$vm, watcher.value);
-						node.__value__ = watcher.value;
+						// watcher = self.bindWatch(self.$vm, attr.value, function() {
+						// 	vModel(node, self.$vm, watcher.value);
+						// }, 'model');
+						// vModel(node, self.$vm, watcher.value);
+						// node.__value__ = watcher.value;
+						self.$vm.bindDir(Object.assign({
+							expression: attr.value,
+							name: property
+						}, _model2.default), node);
 						break;
 					// v-text
 					case 'text':
 						// filters
 
-						watcher = self.bindWatch(self.$vm, attr.value, function () {
-							(0, _text2.default)(node, self.$vm, watcher.value);
-						}, 'text');
-						(0, _text2.default)(node, this.$vm, watcher.value);
+						// watcher = self.bindWatch(self.$vm, attr.value, function() {
+						// 	vText(node, self.$vm, watcher.value);
+						// }, 'text');
+						// vText(node, this.$vm, watcher.value);
+						self.$vm.bindDir(Object.assign({
+							expression: attr.value,
+							name: property
+						}, _text2.default), node);
 						break;
 					case 'html':
-						watcher = self.bindWatch(self.$vm, attr.value, function () {
-							(0, _html2.default)(node, self.$vm, watcher.value);
-						}, 'html');
-						(0, _html2.default)(node, this.$vm, watcher.value);
+						self.$vm.bindDir(Object.assign({
+							expression: attr.value,
+							name: property
+						}, _html2.default), node);
+						// watcher = self.bindWatch(self.$vm, attr.value, function() {
+						// 	vHtml(node, self.$vm, watcher.value);
+						// }, 'html');
+						// vHtml(node, this.$vm, watcher.value);
 						break;
 					case 'for':
 						var info = (0, _for4.default)(attr.value);
@@ -1101,7 +1103,11 @@ return /******/ (function(modules) { // webpackBootstrap
 				}
 
 				if (~customNames.indexOf(property)) {
-					self._parseCustomDirective(node, attr, property, customDirectives[property]);
+					self.$vm.bindDir(Object.assign({
+						expression: attr.value,
+						name: property
+					}, customDirectives[property]), node);
+					// 	self._parseCustomDirective(node, attr, property, customDirectives[property]);
 				}
 			}
 		};
@@ -1216,7 +1222,12 @@ return /******/ (function(modules) { // webpackBootstrap
 		node.removeAttribute('v-html');
 	};
 
-	exports.default = vHtml;
+	exports.default = {
+		bind: function bind() {},
+		update: function update(value) {
+			node.innerHTML = value;
+		}
+	};
 
 /***/ },
 /* 19 */
@@ -1409,7 +1420,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 21 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -1419,47 +1430,82 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // custom directive
 
-	exports.default = function (MVVM) {
-		/**
-	  * define custom directive
-	  * @param  {string} name  directive name
-	  * @param  {object} hooks directive hooks
-	  * @return {[type]}       [description]
-	  */
-		/**
-	  * hooks functions may be following:
-	  * http://vuejs.org/v2/guide/custom-directive.html
-	  */
-		MVVM.directive = function (name, hooks) {
-			if (typeof name !== 'string') return;
-			if (!this.__customDirectives__) {
-				this.__customDirectives__ = {};
-			}
-			if (!this.__customDirectives__[name]) {
-				this.__customDirectives__[name] = hooks;
-			}
-		};
-	};
+	var _watcher = __webpack_require__(3);
+
+	var _watcher2 = _interopRequireDefault(_watcher);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	// export default function(MVVM) {
+	// 	/**
+	// 	 * define custom directive
+	// 	 * @param  {string} name  directive name
+	// 	 * @param  {object} hooks directive hooks
+	// 	 * @return {[type]}       [description]
+	// 	 */
+	// 	*
+	// 	 * hooks functions may be following:
+	// 	 * http://vuejs.org/v2/guide/custom-directive.html
+
+	// 	MVVM.directive = function(name, hooks) {
+	// 		if (typeof name !== 'string') return;
+	// 		if (!this._directives) {
+	// 			this._directives = {};
+	// 		}
+	// 		if (!this._directives[name]) {
+	// 			this._directives[name] = hooks;
+	// 		}
+	// 	}
+	// }
+
 	function noop() {};
 
-	var directive = function () {
-		function directive(descriptor, vm, node) {
-			_classCallCheck(this, directive);
+	var Directive = function () {
+		function Directive(descriptor, vm, node) {
+			_classCallCheck(this, Directive);
 
+			this.descriptor = descriptor;
 			this.bind = descriptor.bind || noop;
 			this.update = descriptor.update || noop;
+			this.expression = descriptor.expression;
+			this.$el = node;
+			this.$vm = vm;
+			this.name = descriptor.name;
+			this._bind();
 		}
 
-		_createClass(directive, [{
+		_createClass(Directive, [{
 			key: '_bind',
-			value: function _bind() {}
+			value: function _bind() {
+				var self = this;
+				if (this.bind) {
+					this.bind();
+				}
+				if (this.update) {
+					this._watcher = new _watcher2.default({
+						vm: this.$vm,
+						exp: this.expression,
+						callback: function callback(vm, value, oldValue) {
+							self.update(value);
+						}
+					});
+
+					this.update(this._watcher.value);
+				}
+			}
+		}, {
+			key: 'set',
+			value: function set(key, value) {
+				this.$vm.$data[key] = value;
+			}
 		}]);
 
-		return directive;
+		return Directive;
 	}();
+
+	exports.default = Directive;
 
 /***/ }
 /******/ ])

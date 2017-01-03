@@ -10,4 +10,9 @@ var vHtml = function vHtml(node, vm, value) {
 	node.removeAttribute('v-html');
 };
 
-exports.default = vHtml;
+exports.default = {
+	bind: function bind() {},
+	update: function update(value) {
+		node.innerHTML = value;
+	}
+};

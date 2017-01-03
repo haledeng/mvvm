@@ -9,4 +9,14 @@ var vText = function vText(node, vm, value) {
 	node.removeAttribute('v-text');
 };
 
-exports.default = vText;
+exports.default = {
+	// init
+	bind: function bind() {
+		this._attr = 'textContent';
+	},
+	update: function update(value) {
+		this.$el[this._attr] = value;
+	}
+};
+
+// export default vText;

@@ -47,9 +47,32 @@ class MVVM {
 }
 
 
-// MVVM.directive = function(name, descriptor) {
+MVVM.directive = function(name, descriptor) {
+	if (!this._cusDirectives) {
+		this._cusDirectives = {};
+	}
+	this._cusDirectives[name] = descriptor;
+	if (descriptor.bind) {
+		var _bind = descriptor.bind;
+		descriptor.bind = function() {
+			var _descriptor = this.descriptor;
+			_bind(this.$el, {
+				expression: this.expression,
+				value: ''
+			});
+		};
+	}
 
-// };
+	if (descriptor.update) {
+		var _update = descriptor.update;
+		descriptor.update = function() {
+			_update(this.$el, {
+				expression: this.expression,
+				value: this._watcher.value
+			});
+		}
+	}
+};
 
 
 export {

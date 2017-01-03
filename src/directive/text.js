@@ -4,4 +4,15 @@ const vText = (node, vm, value) => {
 	node.removeAttribute('v-text');
 };
 
-export default vText;
+
+export default {
+	// init
+	bind: function() {
+		this._attr = 'textContent';
+	},
+	update: function(value) {
+		this.$el[this._attr] = value;
+	}
+}
+
+// export default vText;

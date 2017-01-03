@@ -5,4 +5,11 @@ const vHtml = (node, vm, value) => {
 	node.removeAttribute('v-html');
 };
 
-export default vHtml;
+export default {
+	bind: function() {
+
+	},
+	update: function(value) {
+		node.innerHTML = value;
+	},
+}

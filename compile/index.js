@@ -72,14 +72,40 @@ var MVVM = function () {
 		}
 	}, {
 		key: 'bindDir',
-		value: function bindDir() {
-			this._directives.push();
+		value: function bindDir(descriptor, node) {
+			var self = this;
+			this._directives.push(new _directive2.default(descriptor, this, node));
 		}
 	}]);
 
 	return MVVM;
 }();
 
-(0, _directive2.default)(MVVM);
+MVVM.directive = function (name, descriptor) {
+	if (!this._cusDirectives) {
+		this._cusDirectives = {};
+	}
+	this._cusDirectives[name] = descriptor;
+	if (descriptor.bind) {
+		var _bind = descriptor.bind;
+		descriptor.bind = function () {
+			var _descriptor = this.descriptor;
+			_bind(this.$el, {
+				expression: this.expression,
+				value: ''
+			});
+		};
+	}
+
+	if (descriptor.update) {
+		var _update = descriptor.update;
+		descriptor.update = function () {
+			_update(this.$el, {
+				expression: this.expression,
+				value: this._watcher.value
+			});
+		};
+	}
+};
 
 exports.MVVM = MVVM;
