@@ -13,8 +13,9 @@ A MVVM test library for study. **Do not use in project**
 + v-on
 + v-for
 + v-bind
++ v-if
 + $watch
-
++ computed property.
 
 ### history
 + An expression will be calculated in a watcher, no more in directives.
@@ -23,3 +24,7 @@ A MVVM test library for study. **Do not use in project**
 
 ### TODO
 + performance.
++ directives.
++ custom directives.
++ template.
++ component.

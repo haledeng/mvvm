@@ -15,9 +15,12 @@ function hasFilter(exp) {
     return true;
 }
 
+
+
 function parseExpression(vm, exp, directive) {
     var data = vm.$data;
     var value = null;
+    var vmComputed = vm.computed || {};
     switch (directive) {
         case 'bind':
             value = parseBind(vm, exp);
@@ -27,7 +30,12 @@ function parseExpression(vm, exp, directive) {
                 var filterInfo = parseFilterExpression(exp);
                 value = filter.apply(null, [vm, filterInfo.method, calculateExpression(data, filterInfo.param)].concat(filterInfo.args));
             } else {
-                value = calculateExpression(data, exp);
+                // computed property.
+                if (vmComputed[exp]) {
+                    value = vmComputed[exp].call(vm.$data);
+                } else {
+                    value = calculateExpression(data, exp);
+                }
             }
             break;
 

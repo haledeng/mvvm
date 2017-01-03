@@ -9,8 +9,77 @@ import parseForExpression from './parser/for';
 
 
 export default function(Compiler) {
+
+
+	function transFlag(name, hook) {
+		return '__' + name + '_' + hook + '__'
+	}
+
+	function setCalledFlag(node, flag) {
+		// var flag = transFlag(name, hook);
+		node[flag] = node[flag] || 0;
+		node[flag]++;
+	}
+
+	// 解析自定义指令
+	Compiler.prototype._parseCustomDirective = function(node, attr, name, maps) {
+		var self = this;
+		var flag = '';
+		var binding = {
+			name: name,
+			expression: attr.value
+		};
+		if (typeof maps.bind === 'function') {
+			if (!node[flag]) {
+				maps.bind(node, binding);
+				setCalledFlag(node, flag);
+			}
+		}
+
+		if (typeof maps.update === 'function') {
+			var watcher = self.bindWatch(self.$vm, attr.value, function(vm, value, oldValue) {
+				maps.update(node, Object.assign({
+					oldValue: oldValue,
+					value: value
+				}, binding));
+			}, name);
+		}
+		// Object.keys(maps).forEach(function(hook) {
+		// 	hookCallback = maps[hook];
+		// 	if (hookCallback === 'function') {
+		// 		flag = transFlag(name, hook);
+		// 	}
+		// 	var binding = {
+		// 		name: name,
+		// 		expression: attr.value
+		// 	};
+
+		// 	switch (hook) {
+		// 		case 'bind':
+		// 			// call only once
+		// 			if (!node[flag]) {
+		// 				hookCallback(node, binding);
+		// 				setCalledFlag(node, flag);
+		// 			}
+		// 			break;
+		// 		case 'update':
+		// 			var watcher = self.bindWatch(self.$vm, attr.value, function(vm, value, oldValue) {
+		// 				hookCallback(node, Object.assign({
+		// 					oldValue: oldValue,
+		// 					value: value
+		// 				}, binding));
+		// 			}, name);
+		// 			break;
+		// 		case 'inserted':
+		// 			break;
+		// 	}
+		// });
+	};
+
 	// ES6 function写法会导致this解析问题
 	Compiler.prototype._parseAttr = function(node, attr) {
+		var customDirectives = this.$vm.constructor._directives;
+		var customNames = Object.keys(customDirectives);
 		var self = this;
 		var attrReg = /^v\-([\w\:\']*)/;
 		var matches = attr.name.match(attrReg);
@@ -73,6 +142,11 @@ export default function(Compiler) {
 				default:
 					break;
 			}
+
+			if (~customNames.indexOf(property)) {
+				self._parseCustomDirective(node, attr, property, customDirectives[property]);
+			}
+
 		}
 	}
 }

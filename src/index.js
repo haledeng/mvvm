@@ -5,6 +5,7 @@
 import Compiler from './compiler';
 import Observer from './observer';
 import Watcher from './watcher';
+import Directive from './directive';
 class MVVM {
 	constructor(options) {
 		this.$data = options.data || {};
@@ -12,6 +13,7 @@ class MVVM {
 		this.methods = options.methods;
 		this.filters = options.filters || {};
 		this.computed = options.computed || {};
+		this._directives = [];
 		new Observer(this.$data);
 		new Compiler({
 			el: this.$el,
@@ -38,7 +40,17 @@ class MVVM {
 			}
 		});
 	}
+	bindDir(descriptor, node) {
+		var self = this;
+		this._directives.push(new Directive(descriptor, this, node));
+	}
 }
+
+
+// MVVM.directive = function(name, descriptor) {
+
+// };
+
 
 export {
 	MVVM

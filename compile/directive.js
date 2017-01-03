@@ -3,94 +3,47 @@
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.setScopeValue = exports.calculateExpression = exports.vFor = exports.vText = exports.vModel = undefined;
 
-var _util = require('./util');
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // custom directive
 
-var _ = _interopRequireWildcard(_util);
+exports.default = function (MVVM) {
+	/**
+  * define custom directive
+  * @param  {string} name  directive name
+  * @param  {object} hooks directive hooks
+  * @return {[type]}       [description]
+  */
+	/**
+  * hooks functions may be following:
+  * http://vuejs.org/v2/guide/custom-directive.html
+  */
+	MVVM.directive = function (name, hooks) {
+		if (typeof name !== 'string') return;
+		if (!this.__customDirectives__) {
+			this.__customDirectives__ = {};
+		}
+		if (!this.__customDirectives__[name]) {
+			this.__customDirectives__[name] = hooks;
+		}
+	};
+};
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-// v-model
-var vModel = function vModel(node, scope, key) {
-	var tagName = node.tagName.toLowerCase();
-	var value = calculateExpression(scope, key);
-	if (tagName === 'input') {
-		node.value = value;
-	} else if (tagName === 'textarea') {
-		node.innerHTML = value;
+function noop() {};
+
+var directive = function () {
+	function directive(descriptor, vm, node) {
+		_classCallCheck(this, directive);
+
+		this.bind = descriptor.bind || noop;
+		this.update = descriptor.update || noop;
 	}
-};
 
-// v-text
-var vText = function vText(node, scope, key) {
-	node.innerHTML = calculateExpression(scope, key);
-};
+	_createClass(directive, [{
+		key: '_bind',
+		value: function _bind() {}
+	}]);
 
-// +,-,m.n,*,/
-// 添加上下文
-// AST?
-var addScope = function addScope(exp) {
-	var prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'scope';
-
-	exp = _.trim(exp);
-	// x.y
-	exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
-		return [prefix, match].join('.');
-	});
-	exp = ' ' + exp + ' ';
-	// x
-	exp = exp.replace(/[\+\-\*\/\s]\w+(?![\'\.])[\+\-\*\/\s]/g, function (match, index, all) {
-		return [prefix, _.trim(match)].join('.');
-	});
-	return _.trim(exp);
-
-	// return exp.replace(/^([\'\w]*)\s*?([\+\-\*\/\.])?\s*?([\'\w]*)?$/, function(total, all, left, operater, right) {
-	// 	if (left.indexOf('\'') === -1) {
-	// 		left = [prefix, left].join('.');
-	// 	}
-	// 	if (right && right.indexOf('\'') === -1) {
-	// 		if (operater !== '.') {
-	// 			right = [prefix, right].join('.');
-	// 		}
-	// 		return left + operater + right;
-	// 	}
-	// 	return left;
-	// });
-};
-
-// 计算表达式
-// strict mode can not use with
-// new Function
-var calculateExpression = function calculateExpression(scope, exp) {
-	var prefix = 'scope';
-	exp = addScope(exp);
-	var fn = new Function(prefix, 'return ' + exp);
-	return fn(scope);
-	// with(scope) {
-	// 	return eval(exp);
-	// }
-};
-
-// 设置属性值
-var setScopeValue = function setScopeValue(scope, key, value) {
-	if (~key.indexOf('.')) {
-		var namespaces = key.split('.');
-		var last = namespaces.pop();
-		namespaces.forEach(function (name) {
-			scope = scope[name] || (scope[name] = {});
-		});
-		scope[last] = value;
-	} else {
-		scope[key] = value;
-	}
-};
-
-// v-for
-var vFor = function vFor() {};
-
-exports.vModel = vModel;
-exports.vText = vText;
-exports.vFor = vFor;
-exports.calculateExpression = calculateExpression;
-exports.setScopeValue = setScopeValue;
+	return directive;
+}();

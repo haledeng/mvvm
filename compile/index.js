@@ -21,6 +21,10 @@ var _watcher = require('./watcher');
 
 var _watcher2 = _interopRequireDefault(_watcher);
 
+var _directive = require('./directive');
+
+var _directive2 = _interopRequireDefault(_directive);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -34,6 +38,7 @@ var MVVM = function () {
 		this.methods = options.methods;
 		this.filters = options.filters || {};
 		this.computed = options.computed || {};
+		this._directives = [];
 		new _observer2.default(this.$data);
 		new _compiler2.default({
 			el: this.$el,
@@ -65,9 +70,16 @@ var MVVM = function () {
 				}
 			});
 		}
+	}, {
+		key: 'bindDir',
+		value: function bindDir() {
+			this._directives.push();
+		}
 	}]);
 
 	return MVVM;
 }();
+
+(0, _directive2.default)(MVVM);
 
 exports.MVVM = MVVM;

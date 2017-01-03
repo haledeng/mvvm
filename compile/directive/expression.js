@@ -40,6 +40,7 @@ function hasFilter(exp) {
 function parseExpression(vm, exp, directive) {
     var data = vm.$data;
     var value = null;
+    var vmComputed = vm.computed || {};
     switch (directive) {
         case 'bind':
             value = (0, _bind2.default)(vm, exp);
@@ -49,7 +50,12 @@ function parseExpression(vm, exp, directive) {
                 var filterInfo = (0, _filter3.default)(exp);
                 value = _filter.filter.apply(null, [vm, filterInfo.method, (0, _expression2.default)(data, filterInfo.param)].concat(filterInfo.args));
             } else {
-                value = (0, _expression2.default)(data, exp);
+                // computed property.
+                if (vmComputed[exp]) {
+                    value = vmComputed[exp].call(vm.$data);
+                } else {
+                    value = (0, _expression2.default)(data, exp);
+                }
             }
             break;
 

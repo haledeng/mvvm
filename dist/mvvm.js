@@ -77,6 +77,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _watcher2 = _interopRequireDefault(_watcher);
 
+	var _directive = __webpack_require__(21);
+
+	var _directive2 = _interopRequireDefault(_directive);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -90,6 +94,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.methods = options.methods;
 			this.filters = options.filters || {};
 			this.computed = options.computed || {};
+			this._directives = [];
 			new _observer2.default(this.$data);
 			new _compiler2.default({
 				el: this.$el,
@@ -121,10 +126,17 @@ return /******/ (function(modules) { // webpackBootstrap
 					}
 				});
 			}
+		}, {
+			key: 'bindDir',
+			value: function bindDir() {
+				this._directives.push();
+			}
 		}]);
 
 		return MVVM;
 	}();
+
+	(0, _directive2.default)(MVVM);
 
 	exports.MVVM = MVVM;
 
@@ -475,6 +487,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function parseExpression(vm, exp, directive) {
 	    var data = vm.$data;
 	    var value = null;
+	    var vmComputed = vm.computed || {};
 	    switch (directive) {
 	        case 'bind':
 	            value = (0, _bind2.default)(vm, exp);
@@ -484,7 +497,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var filterInfo = (0, _filter3.default)(exp);
 	                value = _filter.filter.apply(null, [vm, filterInfo.method, (0, _expression2.default)(data, filterInfo.param)].concat(filterInfo.args));
 	            } else {
-	                value = (0, _expression2.default)(data, exp);
+	                // computed property.
+	                if (vmComputed[exp]) {
+	                    value = vmComputed[exp].call(vm.$data);
+	                } else {
+	                    value = (0, _expression2.default)(data, exp);
+	                }
 	            }
 	            break;
 
@@ -949,8 +967,76 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 
 	exports.default = function (Compiler) {
+
+		function transFlag(name, hook) {
+			return '__' + name + '_' + hook + '__';
+		}
+
+		function setCalledFlag(node, flag) {
+			// var flag = transFlag(name, hook);
+			node[flag] = node[flag] || 0;
+			node[flag]++;
+		}
+
+		// 解析自定义指令
+		Compiler.prototype._parseCustomDirective = function (node, attr, name, maps) {
+			var self = this;
+			var flag = '';
+			var binding = {
+				name: name,
+				expression: attr.value
+			};
+			if (typeof maps.bind === 'function') {
+				if (!node[flag]) {
+					maps.bind(node, binding);
+					setCalledFlag(node, flag);
+				}
+			}
+
+			if (typeof maps.update === 'function') {
+				var watcher = self.bindWatch(self.$vm, attr.value, function (vm, value, oldValue) {
+					maps.update(node, Object.assign({
+						oldValue: oldValue,
+						value: value
+					}, binding));
+				}, name);
+			}
+			// Object.keys(maps).forEach(function(hook) {
+			// 	hookCallback = maps[hook];
+			// 	if (hookCallback === 'function') {
+			// 		flag = transFlag(name, hook);
+			// 	}
+			// 	var binding = {
+			// 		name: name,
+			// 		expression: attr.value
+			// 	};
+
+			// 	switch (hook) {
+			// 		case 'bind':
+			// 			// call only once
+			// 			if (!node[flag]) {
+			// 				hookCallback(node, binding);
+			// 				setCalledFlag(node, flag);
+			// 			}
+			// 			break;
+			// 		case 'update':
+			// 			var watcher = self.bindWatch(self.$vm, attr.value, function(vm, value, oldValue) {
+			// 				hookCallback(node, Object.assign({
+			// 					oldValue: oldValue,
+			// 					value: value
+			// 				}, binding));
+			// 			}, name);
+			// 			break;
+			// 		case 'inserted':
+			// 			break;
+			// 	}
+			// });
+		};
+
 		// ES6 function写法会导致this解析问题
 		Compiler.prototype._parseAttr = function (node, attr) {
+			var customDirectives = this.$vm.constructor.__customDirectives__;
+			var customNames = Object.keys(customDirectives);
 			var self = this;
 			var attrReg = /^v\-([\w\:\']*)/;
 			var matches = attr.name.match(attrReg);
@@ -1012,6 +1098,10 @@ return /******/ (function(modules) { // webpackBootstrap
 						break;
 					default:
 						break;
+				}
+
+				if (~customNames.indexOf(property)) {
+					self._parseCustomDirective(node, attr, property, customDirectives[property]);
 				}
 			}
 		};
@@ -1316,6 +1406,60 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 
 	exports.default = Observer;
+
+/***/ },
+/* 21 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // custom directive
+
+	exports.default = function (MVVM) {
+		/**
+	  * define custom directive
+	  * @param  {string} name  directive name
+	  * @param  {object} hooks directive hooks
+	  * @return {[type]}       [description]
+	  */
+		/**
+	  * hooks functions may be following:
+	  * http://vuejs.org/v2/guide/custom-directive.html
+	  */
+		MVVM.directive = function (name, hooks) {
+			if (typeof name !== 'string') return;
+			if (!this.__customDirectives__) {
+				this.__customDirectives__ = {};
+			}
+			if (!this.__customDirectives__[name]) {
+				this.__customDirectives__[name] = hooks;
+			}
+		};
+	};
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function noop() {};
+
+	var directive = function () {
+		function directive(descriptor, vm, node) {
+			_classCallCheck(this, directive);
+
+			this.bind = descriptor.bind || noop;
+			this.update = descriptor.update || noop;
+		}
+
+		_createClass(directive, [{
+			key: '_bind',
+			value: function _bind() {}
+		}]);
+
+		return directive;
+	}();
 
 /***/ }
 /******/ ])
