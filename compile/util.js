@@ -33,7 +33,12 @@ var containOnlyTextNode = function containOnlyTextNode(node) {
 	return !node.children.length && node.childNodes.length;
 };
 
+var upperFirst = function upperFirst(str) {
+	return str.charAt(0).toUpperCase() + str.substring(1);
+};
+
 exports.trim = trim;
 exports.isType = isType;
 exports.mixin = mixin;
+exports.upperFirst = upperFirst;
 exports.containOnlyTextNode = containOnlyTextNode;

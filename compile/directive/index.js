@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
+exports.vHtml = exports.vBind = exports.vIf = exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
 
 var _model = require('./model');
 
@@ -22,6 +22,18 @@ var _on2 = _interopRequireDefault(_on);
 var _for = require('./for');
 
 var _for2 = _interopRequireDefault(_for);
+
+var _bind = require('./bind');
+
+var _bind2 = _interopRequireDefault(_bind);
+
+var _html = require('./html');
+
+var _html2 = _interopRequireDefault(_html);
+
+var _if = require('./if');
+
+var _if2 = _interopRequireDefault(_if);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47,3 +59,6 @@ exports.vOn = _on2.default;
 exports.vFor = _for2.default;
 exports.parseForExpression = _expression.parseForExpression;
 exports.parseExpression = _expression.parseExpression;
+exports.vIf = _if2.default;
+exports.vBind = _bind2.default;
+exports.vHtml = _html2.default;

@@ -7,6 +7,9 @@ import {
 } from './expression';
 import vOn from './on';
 import vFor from './for';
+import vBind from './bind';
+import vHtml from './html';
+import vIf from './if';
 
 
 
@@ -33,5 +36,8 @@ export {
     vOn,
     vFor,
     parseForExpression,
-    parseExpression
+    parseExpression,
+    vIf,
+    vBind,
+    vHtml
 }

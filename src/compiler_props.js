@@ -1,11 +1,14 @@
-import vModel from './directive/model';
-import vText from './directive/text';
-import vOn from './directive/on';
-import vBind from './directive/bind';
-import vHtml from './directive/html';
-import vFor from './directive/for';
-import vIf from './directive/if';
+// import vModel from './directive/model';
+// import vText from './directive/text';
+// import vOn from './directive/on';
+// import vBind from './directive/bind';
+// import vHtml from './directive/html';
+// import vFor from './directive/for';
+// import vIf from './directive/if';
 import parseForExpression from './parser/for';
+
+import * as Dir from './directive/index';
+import * as _ from './util';
 
 
 /**
@@ -25,66 +28,25 @@ export default function(Compiler) {
 		var property = matches[1];
 		var eventReg = /on\:(\w*)/;
 		var bindReg = /bind\:(\w*)/;
-		var watcher;
-		if (eventReg.test(property)) {
-			var eventName = RegExp.$1;
+		var bindOn = /(on|bind)\:(\w*)/
+		if (bindOn.test(property)) {
+			// property = RegExp.$2;
 			self.$vm.bindDir(Object.assign({
 				expression: attr.value,
-				name: 'on',
-				extraName: eventName
-			}, vOn), node);
-			// vOn.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
-			// event handler
-		} else if (bindReg.test(property)) {
-			var bindProperty = RegExp.$1;
-			self.$vm.bindDir(Object.assign({
-				expression: attr.value,
-				name: 'bind',
-				extraName: bindProperty
-			}, vBind), node);
-			// watcher = self.bindWatch(self.$vm, attr.value, function() {
-			// 	vBind.call(self.$vm.$data, node, self.$vm, watcher.value, bindProperty);
-			// }, 'bind');
-			// vBind.call(this.$vm.$data, node, this.$vm, watcher.value, bindProperty);
-
-
+				name: RegExp.$1,
+				extraName: RegExp.$2
+			}, Dir['v' + _.upperFirst(RegExp.$1)]), node);
 		} else {
 			switch (property) {
 				// v-model
 				case 'model':
-					// listening input
-					// watcher = self.bindWatch(self.$vm, attr.value, function() {
-					// 	vModel(node, self.$vm, watcher.value);
-					// }, 'model');
-					// vModel(node, self.$vm, watcher.value);
-					// node.__value__ = watcher.value;
-					self.$vm.bindDir(Object.assign({
-						expression: attr.value,
-						name: property
-					}, vModel), node);
-					break;
-					// v-text
 				case 'text':
-					// filters
-
-					// watcher = self.bindWatch(self.$vm, attr.value, function() {
-					// 	vText(node, self.$vm, watcher.value);
-					// }, 'text');
-					// vText(node, this.$vm, watcher.value);
-					self.$vm.bindDir(Object.assign({
-						expression: attr.value,
-						name: property
-					}, vText), node);
-					break;
 				case 'html':
+				case 'if':
 					self.$vm.bindDir(Object.assign({
 						expression: attr.value,
 						name: property
-					}, vHtml), node);
-					// watcher = self.bindWatch(self.$vm, attr.value, function() {
-					// 	vHtml(node, self.$vm, watcher.value);
-					// }, 'html');
-					// vHtml(node, this.$vm, watcher.value);
+					}, Dir['v' + _.upperFirst(property)]), node);
 					break;
 				case 'for':
 					var info = parseForExpression(attr.value);
@@ -92,38 +54,18 @@ export default function(Compiler) {
 						expression: attr.value,
 						watchExp: info.val,
 						name: property
-					}, vFor), node);
-					// self.bindWatch(self.$vm, info.val, function() {
-					// 	vFor(node, self.$vm, attr.value);
-					// }, 'for');
-					// vFor(node, this.$vm, attr.value);
-					break;
-				case 'if':
-					// parse expression
-
-					// watcher = self.bindWatch(self.$vm, attr.value, function() {
-					// 	// debugger;
-					// 	vIf(node, self.$vm, watcher.value);
-					// }, 'if');
-					// vIf(node, this.$vm, watcher.value);
-					// 
-					self.$vm.bindDir(Object.assign({
-						expression: attr.value,
-						name: property
-					}, vIf), node);
+					}, Dir['v' + _.upperFirst(property)]), node);
 					break;
 				default:
+					console.log(property);
+					if (~customNames.indexOf(property)) {
+						self.$vm.bindDir(Object.assign({
+							expression: attr.value,
+							name: property
+						}, customDirectives[property]), node);
+					}
 					break;
 			}
-
-			if (~customNames.indexOf(property)) {
-				self.$vm.bindDir(Object.assign({
-					expression: attr.value,
-					name: property
-				}, customDirectives[property]), node);
-				// 	self._parseCustomDirective(node, attr, property, customDirectives[property]);
-			}
-
 		}
 	}
 }

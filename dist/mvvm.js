@@ -179,10 +179,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	// import vIf from './directive/if';
-	// import vHtml from './directive/html';
-	// import vBind from './directive/bind';
-
 	var _util = __webpack_require__(2);
 
 	var _ = _interopRequireWildcard(_util);
@@ -195,7 +191,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _filter = __webpack_require__(6);
 
-	var _compiler_props = __webpack_require__(16);
+	var _compiler_props = __webpack_require__(19);
 
 	var _compiler_props2 = _interopRequireDefault(_compiler_props);
 
@@ -250,24 +246,8 @@ return /******/ (function(modules) { // webpackBootstrap
 					// v-for已经解析了其他的指定了，防止重复解析
 					if (/^v\-([\w\:\']*)/.test(item.name) && node.parentNode) {
 						this._parseAttr(node, item);
-						// this.addInputListener(node, item);
 					}
 				}
-			}
-		}, {
-			key: 'addInputListener',
-			value: function addInputListener(node, attr) {
-				// if (attr.name !== 'v-model') return;
-				// var key = attr.value;
-				// var oldVal = node.__value__;
-				// // var oldVal = parseExpression(this.$vm, key);
-				// var self = this;
-				// // v-model监听
-				// node.addEventListener('input', function() {
-				// 	if (node.value != oldVal) {
-				// 		setScopeValue(self.$vm.$data, key, node.value);
-				// 	}
-				// }, false);
 			}
 		}, {
 			key: 'bindWatch',
@@ -355,9 +335,14 @@ return /******/ (function(modules) { // webpackBootstrap
 		return !node.children.length && node.childNodes.length;
 	};
 
+	var upperFirst = function upperFirst(str) {
+		return str.charAt(0).toUpperCase() + str.substring(1);
+	};
+
 	exports.trim = trim;
 	exports.isType = isType;
 	exports.mixin = mixin;
+	exports.upperFirst = upperFirst;
 	exports.containOnlyTextNode = containOnlyTextNode;
 
 /***/ },
@@ -785,7 +770,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
+	exports.vHtml = exports.vBind = exports.vIf = exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
 
 	var _model = __webpack_require__(12);
 
@@ -804,6 +789,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _for = __webpack_require__(15);
 
 	var _for2 = _interopRequireDefault(_for);
+
+	var _bind = __webpack_require__(16);
+
+	var _bind2 = _interopRequireDefault(_bind);
+
+	var _html = __webpack_require__(17);
+
+	var _html2 = _interopRequireDefault(_html);
+
+	var _if = __webpack_require__(18);
+
+	var _if2 = _interopRequireDefault(_if);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -829,6 +826,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.vFor = _for2.default;
 	exports.parseForExpression = _expression.parseForExpression;
 	exports.parseExpression = _expression.parseExpression;
+	exports.vIf = _if2.default;
+	exports.vBind = _bind2.default;
+	exports.vHtml = _html2.default;
 
 /***/ },
 /* 12 */
@@ -1020,170 +1020,13 @@ return /******/ (function(modules) { // webpackBootstrap
 			this._expInfo = (0, _expression.parseForExpression)(this.expression);
 		},
 		update: function update(value) {
-			vFor(this.$el, this.$vm, this.expression);
+			vFor.call(this, this.$el, this.$vm, this.expression);
 		}
 	};
 	// export default vFor
 
 /***/ },
 /* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	exports.default = function (Compiler) {
-
-		// ES6 function写法会导致this解析问题
-		Compiler.prototype._parseAttr = function (node, attr) {
-			var customDirectives = this.$vm.constructor._cusDirectives || {};
-			var customNames = Object.keys(customDirectives);
-			var self = this;
-			var attrReg = /^v\-([\w\:\']*)/;
-			var matches = attr.name.match(attrReg);
-			var property = matches[1];
-			var eventReg = /on\:(\w*)/;
-			var bindReg = /bind\:(\w*)/;
-			var watcher;
-			if (eventReg.test(property)) {
-				var eventName = RegExp.$1;
-				self.$vm.bindDir(Object.assign({
-					expression: attr.value,
-					name: 'on',
-					extraName: eventName
-				}, _on2.default), node);
-				// vOn.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
-				// event handler
-			} else if (bindReg.test(property)) {
-				var bindProperty = RegExp.$1;
-				self.$vm.bindDir(Object.assign({
-					expression: attr.value,
-					name: 'bind',
-					extraName: bindProperty
-				}, _bind2.default), node);
-				// watcher = self.bindWatch(self.$vm, attr.value, function() {
-				// 	vBind.call(self.$vm.$data, node, self.$vm, watcher.value, bindProperty);
-				// }, 'bind');
-				// vBind.call(this.$vm.$data, node, this.$vm, watcher.value, bindProperty);
-
-			} else {
-				switch (property) {
-					// v-model
-					case 'model':
-						// listening input
-						// watcher = self.bindWatch(self.$vm, attr.value, function() {
-						// 	vModel(node, self.$vm, watcher.value);
-						// }, 'model');
-						// vModel(node, self.$vm, watcher.value);
-						// node.__value__ = watcher.value;
-						self.$vm.bindDir(Object.assign({
-							expression: attr.value,
-							name: property
-						}, _model2.default), node);
-						break;
-					// v-text
-					case 'text':
-						// filters
-
-						// watcher = self.bindWatch(self.$vm, attr.value, function() {
-						// 	vText(node, self.$vm, watcher.value);
-						// }, 'text');
-						// vText(node, this.$vm, watcher.value);
-						self.$vm.bindDir(Object.assign({
-							expression: attr.value,
-							name: property
-						}, _text2.default), node);
-						break;
-					case 'html':
-						self.$vm.bindDir(Object.assign({
-							expression: attr.value,
-							name: property
-						}, _html2.default), node);
-						// watcher = self.bindWatch(self.$vm, attr.value, function() {
-						// 	vHtml(node, self.$vm, watcher.value);
-						// }, 'html');
-						// vHtml(node, this.$vm, watcher.value);
-						break;
-					case 'for':
-						var info = (0, _for4.default)(attr.value);
-						self.$vm.bindDir(Object.assign({
-							expression: attr.value,
-							watchExp: info.val,
-							name: property
-						}, _for2.default), node);
-						// self.bindWatch(self.$vm, info.val, function() {
-						// 	vFor(node, self.$vm, attr.value);
-						// }, 'for');
-						// vFor(node, this.$vm, attr.value);
-						break;
-					case 'if':
-						// parse expression
-
-						// watcher = self.bindWatch(self.$vm, attr.value, function() {
-						// 	// debugger;
-						// 	vIf(node, self.$vm, watcher.value);
-						// }, 'if');
-						// vIf(node, this.$vm, watcher.value);
-						// 
-						self.$vm.bindDir(Object.assign({
-							expression: attr.value,
-							name: property
-						}, _if2.default), node);
-						break;
-					default:
-						break;
-				}
-
-				if (~customNames.indexOf(property)) {
-					self.$vm.bindDir(Object.assign({
-						expression: attr.value,
-						name: property
-					}, customDirectives[property]), node);
-					// 	self._parseCustomDirective(node, attr, property, customDirectives[property]);
-				}
-			}
-		};
-	};
-
-	var _model = __webpack_require__(12);
-
-	var _model2 = _interopRequireDefault(_model);
-
-	var _text = __webpack_require__(13);
-
-	var _text2 = _interopRequireDefault(_text);
-
-	var _on = __webpack_require__(14);
-
-	var _on2 = _interopRequireDefault(_on);
-
-	var _bind = __webpack_require__(17);
-
-	var _bind2 = _interopRequireDefault(_bind);
-
-	var _html = __webpack_require__(18);
-
-	var _html2 = _interopRequireDefault(_html);
-
-	var _for = __webpack_require__(15);
-
-	var _for2 = _interopRequireDefault(_for);
-
-	var _if = __webpack_require__(19);
-
-	var _if2 = _interopRequireDefault(_if);
-
-	var _for3 = __webpack_require__(9);
-
-	var _for4 = _interopRequireDefault(_for3);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/***/ },
-/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1250,7 +1093,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 18 */
+/* 17 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1275,7 +1118,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 19 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1360,6 +1203,86 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 	};
 	// export default vIf;
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	exports.default = function (Compiler) {
+
+		// ES6 function写法会导致this解析问题
+		Compiler.prototype._parseAttr = function (node, attr) {
+			var customDirectives = this.$vm.constructor._cusDirectives || {};
+			var customNames = Object.keys(customDirectives);
+			var self = this;
+			var attrReg = /^v\-([\w\:\']*)/;
+			var matches = attr.name.match(attrReg);
+			var property = matches[1];
+			var eventReg = /on\:(\w*)/;
+			var bindReg = /bind\:(\w*)/;
+			var bindOn = /(on|bind)\:(\w*)/;
+			if (bindOn.test(property)) {
+				// property = RegExp.$2;
+				self.$vm.bindDir(Object.assign({
+					expression: attr.value,
+					name: RegExp.$1,
+					extraName: RegExp.$2
+				}, Dir['v' + _.upperFirst(RegExp.$1)]), node);
+			} else {
+				switch (property) {
+					// v-model
+					case 'model':
+					case 'text':
+					case 'html':
+					case 'if':
+						self.$vm.bindDir(Object.assign({
+							expression: attr.value,
+							name: property
+						}, Dir['v' + _.upperFirst(property)]), node);
+						break;
+					case 'for':
+						var info = (0, _for2.default)(attr.value);
+						self.$vm.bindDir(Object.assign({
+							expression: attr.value,
+							watchExp: info.val,
+							name: property
+						}, Dir['v' + _.upperFirst(property)]), node);
+						break;
+					default:
+						console.log(property);
+						if (~customNames.indexOf(property)) {
+							self.$vm.bindDir(Object.assign({
+								expression: attr.value,
+								name: property
+							}, customDirectives[property]), node);
+						}
+						break;
+				}
+			}
+		};
+	};
+
+	var _for = __webpack_require__(9);
+
+	var _for2 = _interopRequireDefault(_for);
+
+	var _index = __webpack_require__(11);
+
+	var Dir = _interopRequireWildcard(_index);
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ },
 /* 20 */

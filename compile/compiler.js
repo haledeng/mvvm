@@ -6,10 +6,6 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-// import vIf from './directive/if';
-// import vHtml from './directive/html';
-// import vBind from './directive/bind';
-
 var _util = require('./util');
 
 var _ = _interopRequireWildcard(_util);
@@ -77,24 +73,8 @@ var Compiler = function () {
 				// v-for已经解析了其他的指定了，防止重复解析
 				if (/^v\-([\w\:\']*)/.test(item.name) && node.parentNode) {
 					this._parseAttr(node, item);
-					// this.addInputListener(node, item);
 				}
 			}
-		}
-	}, {
-		key: 'addInputListener',
-		value: function addInputListener(node, attr) {
-			// if (attr.name !== 'v-model') return;
-			// var key = attr.value;
-			// var oldVal = node.__value__;
-			// // var oldVal = parseExpression(this.$vm, key);
-			// var self = this;
-			// // v-model监听
-			// node.addEventListener('input', function() {
-			// 	if (node.value != oldVal) {
-			// 		setScopeValue(self.$vm.$data, key, node.value);
-			// 	}
-			// }, false);
 		}
 	}, {
 		key: 'bindWatch',

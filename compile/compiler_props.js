@@ -16,137 +16,60 @@ exports.default = function (Compiler) {
 		var property = matches[1];
 		var eventReg = /on\:(\w*)/;
 		var bindReg = /bind\:(\w*)/;
-		var watcher;
-		if (eventReg.test(property)) {
-			var eventName = RegExp.$1;
+		var bindOn = /(on|bind)\:(\w*)/;
+		if (bindOn.test(property)) {
+			// property = RegExp.$2;
 			self.$vm.bindDir(Object.assign({
 				expression: attr.value,
-				name: 'on',
-				extraName: eventName
-			}, _on2.default), node);
-			// vOn.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
-			// event handler
-		} else if (bindReg.test(property)) {
-			var bindProperty = RegExp.$1;
-			self.$vm.bindDir(Object.assign({
-				expression: attr.value,
-				name: 'bind',
-				extraName: bindProperty
-			}, _bind2.default), node);
-			// watcher = self.bindWatch(self.$vm, attr.value, function() {
-			// 	vBind.call(self.$vm.$data, node, self.$vm, watcher.value, bindProperty);
-			// }, 'bind');
-			// vBind.call(this.$vm.$data, node, this.$vm, watcher.value, bindProperty);
-
+				name: RegExp.$1,
+				extraName: RegExp.$2
+			}, Dir['v' + _.upperFirst(RegExp.$1)]), node);
 		} else {
 			switch (property) {
 				// v-model
 				case 'model':
-					// listening input
-					// watcher = self.bindWatch(self.$vm, attr.value, function() {
-					// 	vModel(node, self.$vm, watcher.value);
-					// }, 'model');
-					// vModel(node, self.$vm, watcher.value);
-					// node.__value__ = watcher.value;
-					self.$vm.bindDir(Object.assign({
-						expression: attr.value,
-						name: property
-					}, _model2.default), node);
-					break;
-				// v-text
 				case 'text':
-					// filters
-
-					// watcher = self.bindWatch(self.$vm, attr.value, function() {
-					// 	vText(node, self.$vm, watcher.value);
-					// }, 'text');
-					// vText(node, this.$vm, watcher.value);
-					self.$vm.bindDir(Object.assign({
-						expression: attr.value,
-						name: property
-					}, _text2.default), node);
-					break;
 				case 'html':
+				case 'if':
 					self.$vm.bindDir(Object.assign({
 						expression: attr.value,
 						name: property
-					}, _html2.default), node);
-					// watcher = self.bindWatch(self.$vm, attr.value, function() {
-					// 	vHtml(node, self.$vm, watcher.value);
-					// }, 'html');
-					// vHtml(node, this.$vm, watcher.value);
+					}, Dir['v' + _.upperFirst(property)]), node);
 					break;
 				case 'for':
-					var info = (0, _for4.default)(attr.value);
+					var info = (0, _for2.default)(attr.value);
 					self.$vm.bindDir(Object.assign({
 						expression: attr.value,
 						watchExp: info.val,
 						name: property
-					}, _for2.default), node);
-					// self.bindWatch(self.$vm, info.val, function() {
-					// 	vFor(node, self.$vm, attr.value);
-					// }, 'for');
-					// vFor(node, this.$vm, attr.value);
-					break;
-				case 'if':
-					// parse expression
-
-					// watcher = self.bindWatch(self.$vm, attr.value, function() {
-					// 	// debugger;
-					// 	vIf(node, self.$vm, watcher.value);
-					// }, 'if');
-					// vIf(node, this.$vm, watcher.value);
-					// 
-					self.$vm.bindDir(Object.assign({
-						expression: attr.value,
-						name: property
-					}, _if2.default), node);
+					}, Dir['v' + _.upperFirst(property)]), node);
 					break;
 				default:
+					console.log(property);
+					if (~customNames.indexOf(property)) {
+						self.$vm.bindDir(Object.assign({
+							expression: attr.value,
+							name: property
+						}, customDirectives[property]), node);
+					}
 					break;
-			}
-
-			if (~customNames.indexOf(property)) {
-				self.$vm.bindDir(Object.assign({
-					expression: attr.value,
-					name: property
-				}, customDirectives[property]), node);
-				// 	self._parseCustomDirective(node, attr, property, customDirectives[property]);
 			}
 		}
 	};
 };
 
-var _model = require('./directive/model');
-
-var _model2 = _interopRequireDefault(_model);
-
-var _text = require('./directive/text');
-
-var _text2 = _interopRequireDefault(_text);
-
-var _on = require('./directive/on');
-
-var _on2 = _interopRequireDefault(_on);
-
-var _bind = require('./directive/bind');
-
-var _bind2 = _interopRequireDefault(_bind);
-
-var _html = require('./directive/html');
-
-var _html2 = _interopRequireDefault(_html);
-
-var _for = require('./directive/for');
+var _for = require('./parser/for');
 
 var _for2 = _interopRequireDefault(_for);
 
-var _if = require('./directive/if');
+var _index = require('./directive/index');
 
-var _if2 = _interopRequireDefault(_if);
+var Dir = _interopRequireWildcard(_index);
 
-var _for3 = require('./parser/for');
+var _util = require('./util');
 
-var _for4 = _interopRequireDefault(_for3);
+var _ = _interopRequireWildcard(_util);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }

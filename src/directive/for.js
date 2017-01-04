@@ -57,7 +57,7 @@ export default {
 		this._expInfo = parseForExpression(this.expression);
 	},
 	update: function(value) {
-		vFor(this.$el, this.$vm, this.expression);
+		vFor.call(this, this.$el, this.$vm, this.expression);
 	}
 }
 // export default vFor

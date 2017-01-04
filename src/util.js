@@ -26,9 +26,14 @@ const containOnlyTextNode = (node) => {
 	return !node.children.length && node.childNodes.length;
 }
 
+const upperFirst = (str) => {
+	return str.charAt(0).toUpperCase() + str.substring(1);
+}
+
 export {
 	trim,
 	isType,
 	mixin,
+	upperFirst,
 	containOnlyTextNode
 }
