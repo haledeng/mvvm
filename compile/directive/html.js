@@ -11,8 +11,10 @@ var vHtml = function vHtml(node, vm, value) {
 };
 
 exports.default = {
-	bind: function bind() {},
+	bind: function bind() {
+		this.$el.removeAttribute('v-' + this.name);
+	},
 	update: function update(value) {
-		node.innerHTML = value;
+		this.$el.innerHTML = value;
 	}
 };

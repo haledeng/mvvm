@@ -39,12 +39,12 @@ var MVVM = function () {
 		this.filters = options.filters || {};
 		this.computed = options.computed || {};
 		this._directives = [];
+		this.copyData2Vm();
 		new _observer2.default(this.$data);
 		new _compiler2.default({
 			el: this.$el,
 			vm: this
 		});
-		this.copyData2Vm();
 	}
 
 	_createClass(MVVM, [{
@@ -74,7 +74,7 @@ var MVVM = function () {
 		key: 'bindDir',
 		value: function bindDir(descriptor, node) {
 			var self = this;
-			this._directives.push(new _directive2.default(descriptor, this, node));
+			this._directives.push(new _directive2.default(descriptor, self, node));
 		}
 	}]);
 
@@ -97,6 +97,7 @@ MVVM.directive = function (name, descriptor) {
 		};
 	}
 
+	// 自定义directive，重写方法，传递参数
 	if (descriptor.update) {
 		var _update = descriptor.update;
 		descriptor.update = function () {

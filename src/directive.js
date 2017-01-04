@@ -1,27 +1,11 @@
-// custom directive
+/**
+ * 抽象所有directive的行为
+ * 1. directive的lifecycle： bind, update, unbind
+ * 2.
+ */
+
 
 import Watcher from './watcher';
-// export default function(MVVM) {
-// 	/**
-// 	 * define custom directive
-// 	 * @param  {string} name  directive name
-// 	 * @param  {object} hooks directive hooks
-// 	 * @return {[type]}       [description]
-// 	 */
-// 	*
-// 	 * hooks functions may be following:
-// 	 * http://vuejs.org/v2/guide/custom-directive.html
-
-// 	MVVM.directive = function(name, hooks) {
-// 		if (typeof name !== 'string') return;
-// 		if (!this._directives) {
-// 			this._directives = {};
-// 		}
-// 		if (!this._directives[name]) {
-// 			this._directives[name] = hooks;
-// 		}
-// 	}
-// }
 
 function noop() {};
 
@@ -31,9 +15,12 @@ class Directive {
 		this.bind = descriptor.bind || noop;
 		this.update = descriptor.update || noop;
 		this.expression = descriptor.expression;
+		this.watchExp = descriptor.watchExp || descriptor.expression;
 		this.$el = node;
 		this.$vm = vm;
 		this.name = descriptor.name;
+		// bind, on等后面跟的事件名或属性名
+		this.extraName = descriptor.extraName || descriptor.name;
 		this._bind();
 	}
 	_bind() {
@@ -41,10 +28,13 @@ class Directive {
 		if (this.bind) {
 			this.bind();
 		}
+		// 事件不需要update
+		if (this.name === 'on') return;
 		if (this.update) {
 			this._watcher = new Watcher({
 				vm: this.$vm,
-				exp: this.expression,
+				exp: this.watchExp,
+				directive: this.name,
 				callback: function(vm, value, oldValue) {
 					self.update(value);
 				}

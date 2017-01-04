@@ -7,9 +7,9 @@ const vHtml = (node, vm, value) => {
 
 export default {
 	bind: function() {
-
+		this.$el.removeAttribute('v-' + this.name);
 	},
 	update: function(value) {
-		node.innerHTML = value;
+		this.$el.innerHTML = value;
 	},
 }

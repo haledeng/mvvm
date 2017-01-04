@@ -8,7 +8,7 @@ exports.default = function (Compiler) {
 
 	// ES6 function写法会导致this解析问题
 	Compiler.prototype._parseAttr = function (node, attr) {
-		var customDirectives = this.$vm.constructor._cusDirectives;
+		var customDirectives = this.$vm.constructor._cusDirectives || {};
 		var customNames = Object.keys(customDirectives);
 		var self = this;
 		var attrReg = /^v\-([\w\:\']*)/;
@@ -19,14 +19,25 @@ exports.default = function (Compiler) {
 		var watcher;
 		if (eventReg.test(property)) {
 			var eventName = RegExp.$1;
-			_on2.default.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
+			self.$vm.bindDir(Object.assign({
+				expression: attr.value,
+				name: 'on',
+				extraName: eventName
+			}, _on2.default), node);
+			// vOn.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
 			// event handler
 		} else if (bindReg.test(property)) {
 			var bindProperty = RegExp.$1;
-			watcher = self.bindWatch(self.$vm, attr.value, function () {
-				_bind2.default.call(self.$vm.$data, node, self.$vm, watcher.value, bindProperty);
-			}, 'bind');
-			_bind2.default.call(this.$vm.$data, node, this.$vm, watcher.value, bindProperty);
+			self.$vm.bindDir(Object.assign({
+				expression: attr.value,
+				name: 'bind',
+				extraName: bindProperty
+			}, _bind2.default), node);
+			// watcher = self.bindWatch(self.$vm, attr.value, function() {
+			// 	vBind.call(self.$vm.$data, node, self.$vm, watcher.value, bindProperty);
+			// }, 'bind');
+			// vBind.call(this.$vm.$data, node, this.$vm, watcher.value, bindProperty);
+
 		} else {
 			switch (property) {
 				// v-model
@@ -67,19 +78,29 @@ exports.default = function (Compiler) {
 					break;
 				case 'for':
 					var info = (0, _for4.default)(attr.value);
-					self.bindWatch(self.$vm, info.val, function () {
-						(0, _for2.default)(node, self.$vm, attr.value);
-					}, 'for');
-					(0, _for2.default)(node, this.$vm, attr.value);
+					self.$vm.bindDir(Object.assign({
+						expression: attr.value,
+						watchExp: info.val,
+						name: property
+					}, _for2.default), node);
+					// self.bindWatch(self.$vm, info.val, function() {
+					// 	vFor(node, self.$vm, attr.value);
+					// }, 'for');
+					// vFor(node, this.$vm, attr.value);
 					break;
 				case 'if':
 					// parse expression
 
-					watcher = self.bindWatch(self.$vm, attr.value, function () {
-						// debugger;
-						(0, _if2.default)(node, self.$vm, watcher.value);
-					}, 'if');
-					(0, _if2.default)(node, this.$vm, watcher.value);
+					// watcher = self.bindWatch(self.$vm, attr.value, function() {
+					// 	// debugger;
+					// 	vIf(node, self.$vm, watcher.value);
+					// }, 'if');
+					// vIf(node, this.$vm, watcher.value);
+					// 
+					self.$vm.bindDir(Object.assign({
+						expression: attr.value,
+						name: property
+					}, _if2.default), node);
 					break;
 				default:
 					break;

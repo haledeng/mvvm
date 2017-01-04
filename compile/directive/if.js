@@ -19,10 +19,11 @@ function vIf(node, vm, value) {
 	// get from node.childNode and node.children 
 	var nextSibling = node.__nextSibling__ || node.nextElementSibling;
 	// 是否有v-else元素
-	var hasElseNext = node.__hasElse__;
-	if (hasElseNext === undefined) {
-		hasElseNext = node.__hasElse__ = nextSibling && nextSibling.getAttribute('v-else') !== null;
-	}
+	// var hasElseNext = node.__hasElse__;
+	// if (hasElseNext === undefined) {
+	// 	hasElseNext = node.__hasElse__ = nextSibling && nextSibling.getAttribute('v-else') !== null
+	// }
+	var hasElseNext = this._hasElseNext;
 	if (value) {
 		if (node.__parent__) {
 			// record the new node in document
@@ -68,4 +69,14 @@ function remove(node, parent) {
 	parent.replaceChild(node.__anchor__, node);
 	node.__parent__ = parent;
 }
-exports.default = vIf;
+
+exports.default = {
+	bind: function bind() {
+		var nextSibling = this.$el.nextElementSibling;
+		this._hasElseNext = nextSibling && nextSibling.getAttribute('v-else') !== null;
+	},
+	update: function update(value) {
+		vIf.call(this, this.$el, this.$vm, value);
+	}
+};
+// export default vIf;

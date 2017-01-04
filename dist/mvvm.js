@@ -95,12 +95,12 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.filters = options.filters || {};
 			this.computed = options.computed || {};
 			this._directives = [];
+			this.copyData2Vm();
 			new _observer2.default(this.$data);
 			new _compiler2.default({
 				el: this.$el,
 				vm: this
 			});
-			this.copyData2Vm();
 		}
 
 		_createClass(MVVM, [{
@@ -130,7 +130,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'bindDir',
 			value: function bindDir(descriptor, node) {
 				var self = this;
-				this._directives.push(new _directive2.default(descriptor, this, node));
+				this._directives.push(new _directive2.default(descriptor, self, node));
 			}
 		}]);
 
@@ -153,6 +153,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			};
 		}
 
+		// 自定义directive，重写方法，传递参数
 		if (descriptor.update) {
 			var _update = descriptor.update;
 			descriptor.update = function () {
@@ -223,7 +224,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 				function _traversal(node) {
 					self.traversalAttribute(node);
-					if (_.containOnlyTextNode(node)) {
+					if (node.parentNode && _.containOnlyTextNode(node)) {
 						self.parseTextNode(node);
 					} else {
 						// node has been removed
@@ -288,7 +289,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				var watcherMaps = {};
 
 				html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
-					if (!keys.length) {
+					if (keys.indexOf(name) === -1) {
 						keys.push(name);
 					}
 				});
@@ -660,6 +661,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var prefix = 'scope';
 	    exp = addScope(exp);
 	    var fn = new Function(prefix, 'return ' + exp);
+	    // console.log(exp, scope);
 	    return fn(scope);
 	    // Plan B
 	    // with(scope) {
@@ -932,9 +934,18 @@ return /******/ (function(modules) { // webpackBootstrap
 				method.apply(self, args);
 			}, false);
 		}
-	} // event hander
+	}
+
+	// export default vOn;
+
+	// event hander
 	// 事件多次绑定
-	exports.default = vOn;
+	exports.default = {
+		bind: function bind() {
+			// TODO：vOn里面的scope不一定是data，特别是在v-for中
+			vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
+		}
+	};
 
 /***/ },
 /* 15 */
@@ -963,18 +974,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	// 会二次执行，监听的元素变化时，会重新调用vfor
 	function vFor(node, vm, expression) {
 		var parent = node.parentNode || node.__parent__;
-		var tagName = node.tagName.toLowerCase();
-		var expInfo = (0, _expression.parseForExpression)(expression);
+		// var expInfo = parseForExpression(expression);
+		var expInfo = this._expInfo;
 		var scope = vm.$data;
 		var val = (0, _expression.calculateExpression)(scope, expInfo.val);
 		if (!_.isType(val, 'array') || !val.length) return;
 		var docFrag = document.createDocumentFragment();
-		// var template = node.__template__ || node.innerHTML;
 		val.forEach(function (item, index) {
 			// 子节点如何编译，Compiler中可以，但是需要修改scope
-			// var li = document.createElement(tagName);
-			// TODO: attributes
-			// li.innerHTML = template;
 			var li = node.cloneNode(true);
 			// maxnum call
 			li.removeAttribute('v-for');
@@ -986,12 +993,11 @@ return /******/ (function(modules) { // webpackBootstrap
 			docFrag.appendChild(li);
 			new _compiler2.default({
 				el: li,
-				// TODO: methods, filters
-				vm: {
-					$data: _.mixin(context, scope),
-					methods: vm.methods,
-					filters: vm.filters
-				}
+				vm: Object.assign({
+					bindDir: vm.bindDir
+				}, vm, {
+					$data: _.mixin(context, scope)
+				})
 			});
 		});
 		!node.__parent__ && parent.removeChild(node);
@@ -1009,7 +1015,15 @@ return /******/ (function(modules) { // webpackBootstrap
 		return newNode;
 	}
 
-	exports.default = vFor;
+	exports.default = {
+		bind: function bind() {
+			this._expInfo = (0, _expression.parseForExpression)(this.expression);
+		},
+		update: function update(value) {
+			vFor(this.$el, this.$vm, this.expression);
+		}
+	};
+	// export default vFor
 
 /***/ },
 /* 16 */
@@ -1025,7 +1039,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 		// ES6 function写法会导致this解析问题
 		Compiler.prototype._parseAttr = function (node, attr) {
-			var customDirectives = this.$vm.constructor._cusDirectives;
+			var customDirectives = this.$vm.constructor._cusDirectives || {};
 			var customNames = Object.keys(customDirectives);
 			var self = this;
 			var attrReg = /^v\-([\w\:\']*)/;
@@ -1036,14 +1050,25 @@ return /******/ (function(modules) { // webpackBootstrap
 			var watcher;
 			if (eventReg.test(property)) {
 				var eventName = RegExp.$1;
-				_on2.default.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
+				self.$vm.bindDir(Object.assign({
+					expression: attr.value,
+					name: 'on',
+					extraName: eventName
+				}, _on2.default), node);
+				// vOn.call(this.$vm.$data, node, this.$vm.methods, attr.value, eventName);
 				// event handler
 			} else if (bindReg.test(property)) {
 				var bindProperty = RegExp.$1;
-				watcher = self.bindWatch(self.$vm, attr.value, function () {
-					_bind2.default.call(self.$vm.$data, node, self.$vm, watcher.value, bindProperty);
-				}, 'bind');
-				_bind2.default.call(this.$vm.$data, node, this.$vm, watcher.value, bindProperty);
+				self.$vm.bindDir(Object.assign({
+					expression: attr.value,
+					name: 'bind',
+					extraName: bindProperty
+				}, _bind2.default), node);
+				// watcher = self.bindWatch(self.$vm, attr.value, function() {
+				// 	vBind.call(self.$vm.$data, node, self.$vm, watcher.value, bindProperty);
+				// }, 'bind');
+				// vBind.call(this.$vm.$data, node, this.$vm, watcher.value, bindProperty);
+
 			} else {
 				switch (property) {
 					// v-model
@@ -1084,19 +1109,29 @@ return /******/ (function(modules) { // webpackBootstrap
 						break;
 					case 'for':
 						var info = (0, _for4.default)(attr.value);
-						self.bindWatch(self.$vm, info.val, function () {
-							(0, _for2.default)(node, self.$vm, attr.value);
-						}, 'for');
-						(0, _for2.default)(node, this.$vm, attr.value);
+						self.$vm.bindDir(Object.assign({
+							expression: attr.value,
+							watchExp: info.val,
+							name: property
+						}, _for2.default), node);
+						// self.bindWatch(self.$vm, info.val, function() {
+						// 	vFor(node, self.$vm, attr.value);
+						// }, 'for');
+						// vFor(node, this.$vm, attr.value);
 						break;
 					case 'if':
 						// parse expression
 
-						watcher = self.bindWatch(self.$vm, attr.value, function () {
-							// debugger;
-							(0, _if2.default)(node, self.$vm, watcher.value);
-						}, 'if');
-						(0, _if2.default)(node, this.$vm, watcher.value);
+						// watcher = self.bindWatch(self.$vm, attr.value, function() {
+						// 	// debugger;
+						// 	vIf(node, self.$vm, watcher.value);
+						// }, 'if');
+						// vIf(node, this.$vm, watcher.value);
+						// 
+						self.$vm.bindDir(Object.assign({
+							expression: attr.value,
+							name: property
+						}, _if2.default), node);
 						break;
 					default:
 						break;
@@ -1156,7 +1191,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-	exports.default = vBind;
 
 	var _util = __webpack_require__(2);
 
@@ -1206,6 +1240,15 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 	}
 
+	// export default vBind;
+
+	exports.default = {
+		bind: function bind() {},
+		update: function update(value) {
+			vBind(this.$el, this.$vm, value, this.extraName);
+		}
+	};
+
 /***/ },
 /* 18 */
 /***/ function(module, exports) {
@@ -1223,9 +1266,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	exports.default = {
-		bind: function bind() {},
+		bind: function bind() {
+			this.$el.removeAttribute('v-' + this.name);
+		},
 		update: function update(value) {
-			node.innerHTML = value;
+			this.$el.innerHTML = value;
 		}
 	};
 
@@ -1254,10 +1299,11 @@ return /******/ (function(modules) { // webpackBootstrap
 		// get from node.childNode and node.children 
 		var nextSibling = node.__nextSibling__ || node.nextElementSibling;
 		// 是否有v-else元素
-		var hasElseNext = node.__hasElse__;
-		if (hasElseNext === undefined) {
-			hasElseNext = node.__hasElse__ = nextSibling && nextSibling.getAttribute('v-else') !== null;
-		}
+		// var hasElseNext = node.__hasElse__;
+		// if (hasElseNext === undefined) {
+		// 	hasElseNext = node.__hasElse__ = nextSibling && nextSibling.getAttribute('v-else') !== null
+		// }
+		var hasElseNext = this._hasElseNext;
 		if (value) {
 			if (node.__parent__) {
 				// record the new node in document
@@ -1303,7 +1349,17 @@ return /******/ (function(modules) { // webpackBootstrap
 		parent.replaceChild(node.__anchor__, node);
 		node.__parent__ = parent;
 	}
-	exports.default = vIf;
+
+	exports.default = {
+		bind: function bind() {
+			var nextSibling = this.$el.nextElementSibling;
+			this._hasElseNext = nextSibling && nextSibling.getAttribute('v-else') !== null;
+		},
+		update: function update(value) {
+			vIf.call(this, this.$el, this.$vm, value);
+		}
+	};
+	// export default vIf;
 
 /***/ },
 /* 20 */
@@ -1428,7 +1484,11 @@ return /******/ (function(modules) { // webpackBootstrap
 		value: true
 	});
 
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // custom directive
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 抽象所有directive的行为
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 1. directive的lifecycle： bind, update, unbind
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 2.
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
 
 	var _watcher = __webpack_require__(3);
 
@@ -1437,28 +1497,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	// export default function(MVVM) {
-	// 	/**
-	// 	 * define custom directive
-	// 	 * @param  {string} name  directive name
-	// 	 * @param  {object} hooks directive hooks
-	// 	 * @return {[type]}       [description]
-	// 	 */
-	// 	*
-	// 	 * hooks functions may be following:
-	// 	 * http://vuejs.org/v2/guide/custom-directive.html
-
-	// 	MVVM.directive = function(name, hooks) {
-	// 		if (typeof name !== 'string') return;
-	// 		if (!this._directives) {
-	// 			this._directives = {};
-	// 		}
-	// 		if (!this._directives[name]) {
-	// 			this._directives[name] = hooks;
-	// 		}
-	// 	}
-	// }
 
 	function noop() {};
 
@@ -1470,9 +1508,12 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.bind = descriptor.bind || noop;
 			this.update = descriptor.update || noop;
 			this.expression = descriptor.expression;
+			this.watchExp = descriptor.watchExp || descriptor.expression;
 			this.$el = node;
 			this.$vm = vm;
 			this.name = descriptor.name;
+			// bind, on等后面跟的事件名或属性名
+			this.extraName = descriptor.extraName || descriptor.name;
 			this._bind();
 		}
 
@@ -1483,10 +1524,13 @@ return /******/ (function(modules) { // webpackBootstrap
 				if (this.bind) {
 					this.bind();
 				}
+				// 事件不需要update
+				if (this.name === 'on') return;
 				if (this.update) {
 					this._watcher = new _watcher2.default({
 						vm: this.$vm,
-						exp: this.expression,
+						exp: this.watchExp,
+						directive: this.name,
 						callback: function callback(vm, value, oldValue) {
 							self.update(value);
 						}

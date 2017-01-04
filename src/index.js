@@ -14,12 +14,12 @@ class MVVM {
 		this.filters = options.filters || {};
 		this.computed = options.computed || {};
 		this._directives = [];
+		this.copyData2Vm();
 		new Observer(this.$data);
 		new Compiler({
 			el: this.$el,
 			vm: this
 		});
-		this.copyData2Vm();
 	}
 	copyData2Vm() {
 		// 将data属性copy到vm下
@@ -42,7 +42,7 @@ class MVVM {
 	}
 	bindDir(descriptor, node) {
 		var self = this;
-		this._directives.push(new Directive(descriptor, this, node));
+		this._directives.push(new Directive(descriptor, self, node));
 	}
 }
 
@@ -63,6 +63,7 @@ MVVM.directive = function(name, descriptor) {
 		};
 	}
 
+	// 自定义directive，重写方法，传递参数
 	if (descriptor.update) {
 		var _update = descriptor.update;
 		descriptor.update = function() {

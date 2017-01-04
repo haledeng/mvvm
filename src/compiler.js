@@ -36,7 +36,7 @@ class Compiler {
 
 		function _traversal(node) {
 			self.traversalAttribute(node);
-			if (_.containOnlyTextNode(node)) {
+			if (node.parentNode && _.containOnlyTextNode(node)) {
 				self.parseTextNode(node);
 			} else {
 				// node has been removed
@@ -93,7 +93,7 @@ class Compiler {
 		var watcherMaps = {};
 
 		html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
-			if (!keys.length) {
+			if (keys.indexOf(name) === -1) {
 				keys.push(name);
 			}
 		});

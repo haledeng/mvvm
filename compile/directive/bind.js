@@ -3,7 +3,6 @@
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.default = vBind;
 
 var _util = require('../util');
 
@@ -52,3 +51,12 @@ function vBind(node, vm, value, property) {
 		}
 	}
 }
+
+// export default vBind;
+
+exports.default = {
+	bind: function bind() {},
+	update: function update(value) {
+		vBind(this.$el, this.$vm, value, this.extraName);
+	}
+};

@@ -26,6 +26,18 @@
             height: 300px;
             overflow-x: hidden;
             overflow-y: scroll;
+        }        
+        button {
+            display: inline-block;
+            width: 80px;
+            text-align: center;
+            height: 32px;
+            line-height: 32px;
+            border-radius: 4px;
+            background: #006dcc;
+            border: none;
+            color: #fff;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -67,7 +79,7 @@
         <ul>
             <li v-for="(item, index) in companies">{{ item.name }}  -> {{ index * 2 }}</li>
         </ul>
-        <p v-on:click="changeList">changeList</p>
+        <button v-on:click="changeList">changeList</button>
     </div>
 
 

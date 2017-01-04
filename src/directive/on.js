@@ -26,4 +26,13 @@ function vOn(node, methods, value, eventName) {
 
 }
 
-export default vOn;
+
+
+// export default vOn;
+
+export default {
+	bind: function() {
+		// TODO：vOn里面的scope不一定是data，特别是在v-for中
+		vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
+	}
+}

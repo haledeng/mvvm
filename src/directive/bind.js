@@ -27,12 +27,23 @@ function removeProperty(node, property, value) {
 	}
 }
 
-export default function vBind(node, vm, value, property) {
+function vBind(node, vm, value, property) {
 	for (var key in value) {
 		if (value[key]) {
 			addProperty(node, property, key);
 		} else {
 			removeProperty(node, property, key);
 		}
+	}
+}
+
+// export default vBind;
+
+export default {
+	bind: function() {
+
+	},
+	update: function(value) {
+		vBind(this.$el, this.$vm, value, this.extraName);
 	}
 }
