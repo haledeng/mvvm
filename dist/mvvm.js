@@ -129,7 +129,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'bindDir',
 			value: function bindDir(descriptor, node) {
-				var self = this;
+				// 切换上下文
+				var self = descriptor.context || this;
+				// var self = this;
 				this._directives.push(new _directive2.default(descriptor, self, node));
 			}
 		}]);
@@ -913,7 +915,33 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+	var addScope = function addScope(exp) {
+		var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
+
+		exp = _.trim(exp);
+		// x.y
+		// Math.random()  全局函数调用
+		var globalObject = ['Math'];
+		exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
+			if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
+			return [prefix, match].join('.');
+		});
+		exp = ' ' + exp + ' ';
+		// x
+		exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
+			match = _.trim(match);
+			if (/^[0-9]*$/.test(match)) {
+				return match;
+			}
+			return [prefix, match].join('.');
+		});
+		return _.trim(exp);
+	};
+
 	// v-on:click="method(arg1, arg2, arg3)"
+	// v-on:click="item.a=4"
+	// event hander
+	// 事件多次绑定
 	function vOn(node, methods, value, eventName) {
 		if (typeof value !== 'string') return;
 		var fnReg = /([^\(]*)(\(([^\)]*)\))?/;
@@ -921,7 +949,8 @@ return /******/ (function(modules) { // webpackBootstrap
 		var matches = value.match(fnReg);
 		var self = this;
 		if (matches) {
-			var method = methods[_.trim(matches[1])] || function () {};
+			// 函数调用或者表达式
+			var method = methods[_.trim(matches[1])] || new Function(addScope(value, 'this'));
 			var args = matches[3];
 			if (args) {
 				args = args.split(',');
@@ -938,8 +967,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// export default vOn;
 
-	// event hander
-	// 事件多次绑定
 	exports.default = {
 		bind: function bind() {
 			// TODO：vOn里面的scope不一定是data，特别是在v-for中
@@ -1229,10 +1256,13 @@ return /******/ (function(modules) { // webpackBootstrap
 			var bindOn = /(on|bind)\:(\w*)/;
 			if (bindOn.test(property)) {
 				// property = RegExp.$2;
+				// console.log(self.$vm.$data);
+
 				self.$vm.bindDir(Object.assign({
 					expression: attr.value,
 					name: RegExp.$1,
-					extraName: RegExp.$2
+					extraName: RegExp.$2,
+					context: self.$vm
 				}, Dir['v' + _.upperFirst(RegExp.$1)]), node);
 			} else {
 				switch (property) {

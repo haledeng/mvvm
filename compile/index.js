@@ -73,7 +73,9 @@ var MVVM = function () {
 	}, {
 		key: 'bindDir',
 		value: function bindDir(descriptor, node) {
-			var self = this;
+			// 切换上下文
+			var self = descriptor.context || this;
+			// var self = this;
 			this._directives.push(new _directive2.default(descriptor, self, node));
 		}
 	}]);

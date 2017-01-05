@@ -41,7 +41,9 @@ class MVVM {
 		});
 	}
 	bindDir(descriptor, node) {
-		var self = this;
+		// 切换上下文
+		var self = descriptor.context || this;
+		// var self = this;
 		this._directives.push(new Directive(descriptor, self, node));
 	}
 }

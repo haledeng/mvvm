@@ -31,10 +31,13 @@ export default function(Compiler) {
 		var bindOn = /(on|bind)\:(\w*)/
 		if (bindOn.test(property)) {
 			// property = RegExp.$2;
+			// console.log(self.$vm.$data);
+
 			self.$vm.bindDir(Object.assign({
 				expression: attr.value,
 				name: RegExp.$1,
-				extraName: RegExp.$2
+				extraName: RegExp.$2,
+				context: self.$vm
 			}, Dir['v' + _.upperFirst(RegExp.$1)]), node);
 		} else {
 			switch (property) {
