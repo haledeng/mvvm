@@ -25,11 +25,17 @@ class Watcher {
 		this.callback(this.vm, newVal, oldVal);
 		// }
 	}
-	init() {
+	beforeGet() {
 		Dep.target = this;
+	}
+	afterGet() {
+		Dep.target = null
+	}
+	init() {
+		this.beforeGet();
 		// var value = calculateExpression(this.vm, this.exp);
 		var value = this.get();
-		Dep.target = null;
+		this.afterGet();
 		return value;
 	}
 	get() {

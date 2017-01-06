@@ -12,7 +12,7 @@ function transformProperty(property) {
 function addProperty(node, property, value) {
 	property = transformProperty(property);
 	if (property === 'className') {
-		node[property] = [node[property], value].join(' ');
+		node[property] = _.trim([node[property], value].join(' '));
 	} else {
 		node.setAttribute(property, value);
 	}
@@ -21,7 +21,7 @@ function addProperty(node, property, value) {
 function removeProperty(node, property, value) {
 	property = transformProperty(property);
 	if (property === 'className') {
-		node[property] = node[property].replace(new RegExp('\\b' + value + '\\b'), '')
+		node[property] = node[property].replace(new RegExp('\\b' + value + '\\b'), '');
 	} else {
 		node.removeAttribute(property);
 	}

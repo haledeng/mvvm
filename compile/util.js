@@ -40,7 +40,7 @@ var upperFirst = function upperFirst(str) {
 var addScope = function addScope(exp) {
 	var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
 
-	exp = _.trim(exp);
+	exp = trim(exp);
 	// x.y
 	// Math.random()  全局函数调用
 	var globalObject = ['Math'];
@@ -51,13 +51,13 @@ var addScope = function addScope(exp) {
 	exp = ' ' + exp + ' ';
 	// x
 	exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
-		match = _.trim(match);
+		match = trim(match);
 		if (/^[0-9]*$/.test(match)) {
 			return match;
 		}
 		return [prefix, match].join('.');
 	});
-	return _.trim(exp);
+	return trim(exp);
 };
 
 exports.trim = trim;

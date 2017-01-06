@@ -344,7 +344,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var addScope = function addScope(exp) {
 		var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
 
-		exp = _.trim(exp);
+		exp = trim(exp);
 		// x.y
 		// Math.random()  全局函数调用
 		var globalObject = ['Math'];
@@ -355,13 +355,13 @@ return /******/ (function(modules) { // webpackBootstrap
 		exp = ' ' + exp + ' ';
 		// x
 		exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
-			match = _.trim(match);
+			match = trim(match);
 			if (/^[0-9]*$/.test(match)) {
 				return match;
 			}
 			return [prefix, match].join('.');
 		});
-		return _.trim(exp);
+		return trim(exp);
 	};
 
 	exports.trim = trim;
@@ -419,12 +419,22 @@ return /******/ (function(modules) { // webpackBootstrap
 				// }
 			}
 		}, {
+			key: 'beforeGet',
+			value: function beforeGet() {
+				_depender2.default.target = this;
+			}
+		}, {
+			key: 'afterGet',
+			value: function afterGet() {
+				_depender2.default.target = null;
+			}
+		}, {
 			key: 'init',
 			value: function init() {
-				_depender2.default.target = this;
+				this.beforeGet();
 				// var value = calculateExpression(this.vm, this.exp);
 				var value = this.get();
-				_depender2.default.target = null;
+				this.afterGet();
 				return value;
 			}
 		}, {
@@ -976,6 +986,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+	// TODO: for循环作用域控制
+
 	// 会二次执行，监听的元素变化时，会重新调用vfor
 	function vFor(node, vm, expression) {
 		var parent = node.parentNode || node.__parent__;
@@ -990,17 +1002,24 @@ return /******/ (function(modules) { // webpackBootstrap
 			var li = node.cloneNode(true);
 			// maxnum call
 			li.removeAttribute('v-for');
+			var nodeScope = li.__scope__ = {};
 			var context = {};
 			context[expInfo.scope] = item;
 			if (expInfo.index !== undefined) {
 				context[expInfo.index] = index;
+				nodeScope.$index = expInfo.index;
+				nodeScope.index = index;
 			}
 			docFrag.appendChild(li);
+			nodeScope.$item = expInfo.scope;
+			nodeScope.item = item;
+			/**
+	   * item直接挂在$data下面，其中操作item会导致问题，
+	   * 都是操作同一份item
+	   */
 			new _compiler2.default({
 				el: li,
-				vm: Object.assign({
-					bindDir: vm.bindDir
-				}, vm, {
+				vm: Object.assign(vm.__proto__, vm, {
 					$data: _.mixin(context, scope)
 				})
 			});
@@ -1063,7 +1082,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function addProperty(node, property, value) {
 		property = transformProperty(property);
 		if (property === 'className') {
-			node[property] = [node[property], value].join(' ');
+			node[property] = _.trim([node[property], value].join(' '));
 		} else {
 			node.setAttribute(property, value);
 		}
@@ -1229,13 +1248,8 @@ return /******/ (function(modules) { // webpackBootstrap
 			var attrReg = /^v\-([\w\:\']*)/;
 			var matches = attr.name.match(attrReg);
 			var property = matches[1];
-			var eventReg = /on\:(\w*)/;
-			var bindReg = /bind\:(\w*)/;
 			var bindOn = /(on|bind)\:(\w*)/;
 			if (bindOn.test(property)) {
-				// property = RegExp.$2;
-				// console.log(self.$vm.$data);
-
 				self.$vm.bindDir(Object.assign({
 					expression: attr.value,
 					name: RegExp.$1,
@@ -1454,6 +1468,9 @@ return /******/ (function(modules) { // webpackBootstrap
 				var self = this;
 				if (this.bind) {
 					this.bind();
+					// this.$el.removeAttribute('v-' + this.name);
+					// console.log(this.$el, 'v-' + this.name + ':' + this.extraName);
+					// this.$el.removeAttribute('v-' + this.name + ':' + this.extraName);
 				}
 				// 事件不需要update
 				if (this.name === 'on') return;

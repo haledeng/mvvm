@@ -31,7 +31,7 @@ const upperFirst = (str) => {
 }
 
 const addScope = (exp, prefix = 'scope') => {
-	exp = _.trim(exp);
+	exp = trim(exp);
 	// x.y
 	// Math.random()  全局函数调用
 	var globalObject = ['Math'];
@@ -42,13 +42,13 @@ const addScope = (exp, prefix = 'scope') => {
 	exp = ' ' + exp + ' ';
 	// x
 	exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function(match, index, all) {
-		match = _.trim(match);
+		match = trim(match);
 		if (/^[0-9]*$/.test(match)) {
 			return match;
 		}
 		return [prefix, match].join('.');
 	});
-	return _.trim(exp);
+	return trim(exp);
 }
 
 export {

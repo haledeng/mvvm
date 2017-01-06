@@ -5,7 +5,7 @@ import {
 import * as _ from '../util';
 import Compiler from '../compiler';
 
-
+// TODO: for循环作用域控制
 
 // 会二次执行，监听的元素变化时，会重新调用vfor
 function vFor(node, vm, expression) {
@@ -21,17 +21,24 @@ function vFor(node, vm, expression) {
 		var li = node.cloneNode(true);
 		// maxnum call
 		li.removeAttribute('v-for');
+		var nodeScope = li.__scope__ = {};
 		var context = {};
 		context[expInfo.scope] = item;
 		if (expInfo.index !== undefined) {
 			context[expInfo.index] = index;
+			nodeScope.$index = expInfo.index;
+			nodeScope.index = index;
 		}
 		docFrag.appendChild(li);
+		nodeScope.$item = expInfo.scope;
+		nodeScope.item = item;
+		/**
+		 * item直接挂在$data下面，其中操作item会导致问题，
+		 * 都是操作同一份item
+		 */
 		new Compiler({
 			el: li,
-			vm: Object.assign({
-				bindDir: vm.bindDir
-			}, vm, {
+			vm: Object.assign(vm.__proto__, vm, {
 				$data: _.mixin(context, scope),
 			})
 		});

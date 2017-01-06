@@ -42,12 +42,22 @@ var Watcher = function () {
 			// }
 		}
 	}, {
+		key: 'beforeGet',
+		value: function beforeGet() {
+			_depender2.default.target = this;
+		}
+	}, {
+		key: 'afterGet',
+		value: function afterGet() {
+			_depender2.default.target = null;
+		}
+	}, {
 		key: 'init',
 		value: function init() {
-			_depender2.default.target = this;
+			this.beforeGet();
 			// var value = calculateExpression(this.vm, this.exp);
 			var value = this.get();
-			_depender2.default.target = null;
+			this.afterGet();
 			return value;
 		}
 	}, {

@@ -26,13 +26,8 @@ export default function(Compiler) {
 		var attrReg = /^v\-([\w\:\']*)/;
 		var matches = attr.name.match(attrReg);
 		var property = matches[1];
-		var eventReg = /on\:(\w*)/;
-		var bindReg = /bind\:(\w*)/;
 		var bindOn = /(on|bind)\:(\w*)/
 		if (bindOn.test(property)) {
-			// property = RegExp.$2;
-			// console.log(self.$vm.$data);
-
 			self.$vm.bindDir(Object.assign({
 				expression: attr.value,
 				name: RegExp.$1,

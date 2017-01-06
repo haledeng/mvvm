@@ -18,6 +18,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+// TODO: for循环作用域控制
+
 // 会二次执行，监听的元素变化时，会重新调用vfor
 function vFor(node, vm, expression) {
 	var parent = node.parentNode || node.__parent__;
@@ -32,17 +34,24 @@ function vFor(node, vm, expression) {
 		var li = node.cloneNode(true);
 		// maxnum call
 		li.removeAttribute('v-for');
+		var nodeScope = li.__scope__ = {};
 		var context = {};
 		context[expInfo.scope] = item;
 		if (expInfo.index !== undefined) {
 			context[expInfo.index] = index;
+			nodeScope.$index = expInfo.index;
+			nodeScope.index = index;
 		}
 		docFrag.appendChild(li);
+		nodeScope.$item = expInfo.scope;
+		nodeScope.item = item;
+		/**
+   * item直接挂在$data下面，其中操作item会导致问题，
+   * 都是操作同一份item
+   */
 		new _compiler2.default({
 			el: li,
-			vm: Object.assign({
-				bindDir: vm.bindDir
-			}, vm, {
+			vm: Object.assign(vm.__proto__, vm, {
 				$data: _.mixin(context, scope)
 			})
 		});
