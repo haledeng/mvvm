@@ -30,10 +30,32 @@ const upperFirst = (str) => {
 	return str.charAt(0).toUpperCase() + str.substring(1);
 }
 
+const addScope = (exp, prefix = 'scope') => {
+	exp = _.trim(exp);
+	// x.y
+	// Math.random()  全局函数调用
+	var globalObject = ['Math'];
+	exp = exp.replace(/\w+(?=\.)/g, function(match, index, all) {
+		if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
+		return [prefix, match].join('.');
+	});
+	exp = ' ' + exp + ' ';
+	// x
+	exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function(match, index, all) {
+		match = _.trim(match);
+		if (/^[0-9]*$/.test(match)) {
+			return match;
+		}
+		return [prefix, match].join('.');
+	});
+	return _.trim(exp);
+}
+
 export {
 	trim,
 	isType,
 	mixin,
 	upperFirst,
-	containOnlyTextNode
+	containOnlyTextNode,
+	addScope
 }

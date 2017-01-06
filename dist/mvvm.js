@@ -341,11 +341,35 @@ return /******/ (function(modules) { // webpackBootstrap
 		return str.charAt(0).toUpperCase() + str.substring(1);
 	};
 
+	var addScope = function addScope(exp) {
+		var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
+
+		exp = _.trim(exp);
+		// x.y
+		// Math.random()  全局函数调用
+		var globalObject = ['Math'];
+		exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
+			if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
+			return [prefix, match].join('.');
+		});
+		exp = ' ' + exp + ' ';
+		// x
+		exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
+			match = _.trim(match);
+			if (/^[0-9]*$/.test(match)) {
+				return match;
+			}
+			return [prefix, match].join('.');
+		});
+		return _.trim(exp);
+	};
+
 	exports.trim = trim;
 	exports.isType = isType;
 	exports.mixin = mixin;
 	exports.upperFirst = upperFirst;
 	exports.containOnlyTextNode = containOnlyTextNode;
+	exports.addScope = addScope;
 
 /***/ },
 /* 3 */
@@ -617,36 +641,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-	var addScope = function addScope(exp) {
-	    var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
-
-	    exp = _.trim(exp);
-	    // x.y
-	    // Math.random()  全局函数调用
-	    var globalObject = ['Math'];
-	    exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
-	        if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
-	        return [prefix, match].join('.');
-	    });
-	    exp = ' ' + exp + ' ';
-	    // x
-	    exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
-	        match = _.trim(match);
-	        if (/^[0-9]*$/.test(match)) {
-	            return match;
-	        }
-	        return [prefix, match].join('.');
-	    });
-	    return _.trim(exp);
-	};
-
 	// 计算表达式
 	// strict mode can not use with
 	// new Function
 	var calculateExpression = function calculateExpression(scope, exp) {
 	    // Plan A
 	    var prefix = 'scope';
-	    exp = addScope(exp);
+	    exp = _.addScope(exp);
 	    var fn = new Function(prefix, 'return ' + exp);
 	    // console.log(exp, scope);
 	    return fn(scope);
@@ -915,33 +916,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-	var addScope = function addScope(exp) {
-		var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
-
-		exp = _.trim(exp);
-		// x.y
-		// Math.random()  全局函数调用
-		var globalObject = ['Math'];
-		exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
-			if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
-			return [prefix, match].join('.');
-		});
-		exp = ' ' + exp + ' ';
-		// x
-		exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
-			match = _.trim(match);
-			if (/^[0-9]*$/.test(match)) {
-				return match;
-			}
-			return [prefix, match].join('.');
-		});
-		return _.trim(exp);
-	};
-
 	// v-on:click="method(arg1, arg2, arg3)"
 	// v-on:click="item.a=4"
-	// event hander
-	// 事件多次绑定
 	function vOn(node, methods, value, eventName) {
 		if (typeof value !== 'string') return;
 		var fnReg = /([^\(]*)(\(([^\)]*)\))?/;
@@ -950,7 +926,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		var self = this;
 		if (matches) {
 			// 函数调用或者表达式
-			var method = methods[_.trim(matches[1])] || new Function(addScope(value, 'this'));
+			var method = methods[_.trim(matches[1])] || new Function(_.addScope(value, 'this'));
 			var args = matches[3];
 			if (args) {
 				args = args.split(',');
@@ -967,6 +943,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// export default vOn;
 
+	// event hander
+	// 事件多次绑定
 	exports.default = {
 		bind: function bind() {
 			// TODO：vOn里面的scope不一定是data，特别是在v-for中

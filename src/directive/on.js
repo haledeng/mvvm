@@ -2,27 +2,6 @@
 // 事件多次绑定
 import * as _ from '../util';
 
-const addScope = (exp, prefix = 'scope') => {
-	exp = _.trim(exp);
-	// x.y
-	// Math.random()  全局函数调用
-	var globalObject = ['Math'];
-	exp = exp.replace(/\w+(?=\.)/g, function(match, index, all) {
-		if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
-		return [prefix, match].join('.');
-	});
-	exp = ' ' + exp + ' ';
-	// x
-	exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function(match, index, all) {
-		match = _.trim(match);
-		if (/^[0-9]*$/.test(match)) {
-			return match;
-		}
-		return [prefix, match].join('.');
-	});
-	return _.trim(exp);
-}
-
 // v-on:click="method(arg1, arg2, arg3)"
 // v-on:click="item.a=4"
 function vOn(node, methods, value, eventName) {
@@ -33,7 +12,7 @@ function vOn(node, methods, value, eventName) {
 	var self = this;
 	if (matches) {
 		// 函数调用或者表达式
-		var method = methods[_.trim(matches[1])] || new Function(addScope(value, 'this'));
+		var method = methods[_.trim(matches[1])] || new Function(_.addScope(value, 'this'));
 		var args = matches[3];
 		if (args) {
 			args = args.split(',');

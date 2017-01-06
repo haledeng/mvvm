@@ -37,8 +37,32 @@ var upperFirst = function upperFirst(str) {
 	return str.charAt(0).toUpperCase() + str.substring(1);
 };
 
+var addScope = function addScope(exp) {
+	var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
+
+	exp = _.trim(exp);
+	// x.y
+	// Math.random()  全局函数调用
+	var globalObject = ['Math'];
+	exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
+		if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
+		return [prefix, match].join('.');
+	});
+	exp = ' ' + exp + ' ';
+	// x
+	exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
+		match = _.trim(match);
+		if (/^[0-9]*$/.test(match)) {
+			return match;
+		}
+		return [prefix, match].join('.');
+	});
+	return _.trim(exp);
+};
+
 exports.trim = trim;
 exports.isType = isType;
 exports.mixin = mixin;
 exports.upperFirst = upperFirst;
 exports.containOnlyTextNode = containOnlyTextNode;
+exports.addScope = addScope;
