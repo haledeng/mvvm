@@ -24,6 +24,7 @@ var Watcher = function () {
 
 		this.id = uid++;
 		this.vm = opts.vm;
+		this.$el = opts.$el;
 		this.exp = opts.exp;
 		this.directive = opts.directive || '';
 		this.callback = opts.callback;
@@ -63,7 +64,7 @@ var Watcher = function () {
 	}, {
 		key: 'get',
 		value: function get() {
-			return (0, _expression.parseExpression)(this.vm, this.exp, this.directive);
+			return (0, _expression.parseExpression)(this.vm, this.exp, this.directive, this.$el);
 		}
 	}]);
 

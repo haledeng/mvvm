@@ -36,6 +36,7 @@ class Directive {
 		if (this.update) {
 			this._watcher = new Watcher({
 				vm: this.$vm,
+				$el: this.$el,
 				exp: this.watchExp,
 				directive: this.name,
 				callback: function(vm, value, oldValue) {

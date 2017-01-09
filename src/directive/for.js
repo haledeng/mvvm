@@ -20,8 +20,12 @@ function vFor(node, vm, expression) {
 		// 子节点如何编译，Compiler中可以，但是需要修改scope
 		var li = node.cloneNode(true);
 		// maxnum call
+		// TODO：v-for里面bind,on等作用域控制
+		// 这里就替换节点里面的所有item？
 		li.removeAttribute('v-for');
-		var nodeScope = li.__scope__ = {};
+		var nodeScope = li.__scope__ = {
+			val: expInfo.val
+		};
 		var context = {};
 		context[expInfo.scope] = item;
 		if (expInfo.index !== undefined) {
@@ -35,6 +39,8 @@ function vFor(node, vm, expression) {
 		/**
 		 * item直接挂在$data下面，其中操作item会导致问题，
 		 * 都是操作同一份item
+		 * 渲染的时候，其实没有什么问题，每次item都不一致，
+		 * 但是write的时候，有问题
 		 */
 		new Compiler({
 			el: li,

@@ -10,6 +10,7 @@ class Watcher {
 	constructor(opts) {
 		this.id = uid++;
 		this.vm = opts.vm;
+		this.$el = opts.$el;
 		this.exp = opts.exp;
 		this.directive = opts.directive || '';
 		this.callback = opts.callback;
@@ -39,7 +40,7 @@ class Watcher {
 		return value;
 	}
 	get() {
-		return parseExpression(this.vm, this.exp, this.directive);
+		return parseExpression(this.vm, this.exp, this.directive, this.$el);
 	}
 }
 export default Watcher;

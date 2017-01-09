@@ -37,15 +37,21 @@ function hasFilter(exp) {
     return true;
 }
 
-function parseExpression(vm, exp, directive) {
+function parseExpression(vm, exp, directive, node) {
     var data = vm.$data;
     var value = null;
     var vmComputed = vm.computed || {};
+    // in v-for
+    if (node && node.__scope__) {
+        var scope = node.__scope__;
+        exp = exp.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
+    }
     switch (directive) {
         case 'bind':
             value = (0, _bind2.default)(vm, exp);
             break;
         default:
+
             if (hasFilter(exp)) {
                 var filterInfo = (0, _filter3.default)(exp);
                 value = _filter.filter.apply(null, [vm, filterInfo.method, (0, _expression2.default)(data, filterInfo.param)].concat(filterInfo.args));

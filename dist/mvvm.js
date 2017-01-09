@@ -348,7 +348,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		// x.y
 		// Math.random()  全局函数调用
 		var globalObject = ['Math'];
-		exp = exp.replace(/\w+(?=\.)/g, function (match, index, all) {
+		exp = exp.replace(/[\w\[\]]+(?=\.)/g, function (match, index, all) {
 			if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
 			return [prefix, match].join('.');
 		});
@@ -401,6 +401,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 			this.id = uid++;
 			this.vm = opts.vm;
+			this.$el = opts.$el;
 			this.exp = opts.exp;
 			this.directive = opts.directive || '';
 			this.callback = opts.callback;
@@ -440,7 +441,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'get',
 			value: function get() {
-				return (0, _expression.parseExpression)(this.vm, this.exp, this.directive);
+				return (0, _expression.parseExpression)(this.vm, this.exp, this.directive, this.$el);
 			}
 		}]);
 
@@ -532,15 +533,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return true;
 	}
 
-	function parseExpression(vm, exp, directive) {
+	function parseExpression(vm, exp, directive, node) {
 	    var data = vm.$data;
 	    var value = null;
 	    var vmComputed = vm.computed || {};
+	    // in v-for
+	    if (node && node.__scope__) {
+	        var scope = node.__scope__;
+	        exp = exp.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
+	    }
 	    switch (directive) {
 	        case 'bind':
 	            value = (0, _bind2.default)(vm, exp);
 	            break;
 	        default:
+
 	            if (hasFilter(exp)) {
 	                var filterInfo = (0, _filter3.default)(exp);
 	                value = _filter.filter.apply(null, [vm, filterInfo.method, (0, _expression2.default)(data, filterInfo.param)].concat(filterInfo.args));
@@ -929,6 +936,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// v-on:click="method(arg1, arg2, arg3)"
 	// v-on:click="item.a=4"
 	function vOn(node, methods, value, eventName) {
+		// console.log(node.__scope__);
 		if (typeof value !== 'string') return;
 		var fnReg = /([^\(]*)(\(([^\)]*)\))?/;
 		// 解析
@@ -936,7 +944,14 @@ return /******/ (function(modules) { // webpackBootstrap
 		var self = this;
 		if (matches) {
 			// 函数调用或者表达式
-			var method = methods[_.trim(matches[1])] || new Function(_.addScope(value, 'this'));
+			var method = methods[_.trim(matches[1])];
+			// for语句内部on表达式
+			if (!method && node.__scope__) {
+				var scope = node.__scope__;
+				// TODO: RegExp 
+				value = value.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
+				method = new Function(_.addScope(value, 'this'));
+			}
 			var args = matches[3];
 			if (args) {
 				args = args.split(',');
@@ -947,6 +962,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			}
 			node.addEventListener(eventName, function () {
 				method.apply(self, args);
+				// watcher表达式计算有问题
 			}, false);
 		}
 	}
@@ -1001,8 +1017,12 @@ return /******/ (function(modules) { // webpackBootstrap
 			// 子节点如何编译，Compiler中可以，但是需要修改scope
 			var li = node.cloneNode(true);
 			// maxnum call
+			// TODO：v-for里面bind,on等作用域控制
+			// 这里就替换节点里面的所有item？
 			li.removeAttribute('v-for');
-			var nodeScope = li.__scope__ = {};
+			var nodeScope = li.__scope__ = {
+				val: expInfo.val
+			};
 			var context = {};
 			context[expInfo.scope] = item;
 			if (expInfo.index !== undefined) {
@@ -1016,6 +1036,8 @@ return /******/ (function(modules) { // webpackBootstrap
 			/**
 	   * item直接挂在$data下面，其中操作item会导致问题，
 	   * 都是操作同一份item
+	   * 渲染的时候，其实没有什么问题，每次item都不一致，
+	   * 但是write的时候，有问题
 	   */
 			new _compiler2.default({
 				el: li,
@@ -1477,6 +1499,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				if (this.update) {
 					this._watcher = new _watcher2.default({
 						vm: this.$vm,
+						$el: this.$el,
 						exp: this.watchExp,
 						directive: this.name,
 						callback: function callback(vm, value, oldValue) {

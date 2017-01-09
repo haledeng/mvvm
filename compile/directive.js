@@ -52,6 +52,7 @@ var Directive = function () {
 			if (this.update) {
 				this._watcher = new _watcher2.default({
 					vm: this.$vm,
+					$el: this.$el,
 					exp: this.watchExp,
 					directive: this.name,
 					callback: function callback(vm, value, oldValue) {

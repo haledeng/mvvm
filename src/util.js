@@ -35,7 +35,7 @@ const addScope = (exp, prefix = 'scope') => {
 	// x.y
 	// Math.random()  全局函数调用
 	var globalObject = ['Math'];
-	exp = exp.replace(/\w+(?=\.)/g, function(match, index, all) {
+	exp = exp.replace(/[\w\[\]]+(?=\.)/g, function(match, index, all) {
 		if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
 		return [prefix, match].join('.');
 	});
