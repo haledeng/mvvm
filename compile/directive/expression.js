@@ -17,8 +17,6 @@ var _bind2 = _interopRequireDefault(_bind);
 
 var _for = require('../parser/for');
 
-var _for2 = _interopRequireDefault(_for);
-
 var _filter2 = require('../parser/filter');
 
 var _filter3 = _interopRequireDefault(_filter2);
@@ -42,10 +40,11 @@ function parseExpression(vm, exp, directive, node) {
     var value = null;
     var vmComputed = vm.computed || {};
     // in v-for
-    if (node && node.__scope__) {
-        var scope = node.__scope__;
-        exp = exp.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
-    }
+    // if (node && node.__scope__) {
+    //     var scope = node.__scope__;
+    //     exp = exp.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
+    // }
+    exp = (0, _for.parseItemScope)(node, exp);
     switch (directive) {
         case 'bind':
             value = (0, _bind2.default)(vm, exp);
@@ -70,6 +69,6 @@ function parseExpression(vm, exp, directive, node) {
 }
 
 exports.calculateExpression = _expression2.default;
-exports.parseForExpression = _for2.default;
+exports.parseForExpression = _for.parseForExpression;
 exports.parseFilterExpression = _filter3.default;
 exports.parseExpression = parseExpression;

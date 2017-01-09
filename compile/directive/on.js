@@ -8,10 +8,18 @@ var _util = require('../util');
 
 var _ = _interopRequireWildcard(_util);
 
+var _for = require('../parser/for');
+
+var _for2 = _interopRequireDefault(_for);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // v-on:click="method(arg1, arg2, arg3)"
 // v-on:click="item.a=4"
+// event hander
+// 事件多次绑定
 function vOn(node, methods, value, eventName) {
 	// console.log(node.__scope__);
 	if (typeof value !== 'string') return;
@@ -23,12 +31,13 @@ function vOn(node, methods, value, eventName) {
 		// 函数调用或者表达式
 		var method = methods[_.trim(matches[1])];
 		// for语句内部on表达式
-		if (!method && node.__scope__) {
-			var scope = node.__scope__;
-			// TODO: RegExp 
-			value = value.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
-			method = new Function(_.addScope(value, 'this'));
-		}
+		if (!method /* && node.__scope__*/) {
+				// var scope = node.__scope__;
+				// TODO: RegExp 
+				// value = value.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
+				value = (0, _for2.default)(node, value);
+				method = new Function(_.addScope(value, 'this'));
+			}
 		var args = matches[3];
 		if (args) {
 			args = args.split(',');
@@ -46,8 +55,6 @@ function vOn(node, methods, value, eventName) {
 
 // export default vOn;
 
-// event hander
-// 事件多次绑定
 exports.default = {
 	bind: function bind() {
 		// TODO：vOn里面的scope不一定是data，特别是在v-for中

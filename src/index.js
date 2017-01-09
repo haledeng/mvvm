@@ -2,7 +2,7 @@
  * entry
  */
 
-import Compiler from './compiler';
+import Compiler from './compiler/compiler';
 import Observer from './observer';
 import Watcher from './watcher';
 import Directive from './directive';

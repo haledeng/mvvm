@@ -6,17 +6,17 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _util = require('./util');
+var _util = require('../util');
 
 var _ = _interopRequireWildcard(_util);
 
-var _watcher = require('./watcher');
+var _watcher = require('../watcher');
 
 var _watcher2 = _interopRequireDefault(_watcher);
 
-var _index = require('./directive/index');
+var _index = require('../directive/index');
 
-var _filter = require('./filter');
+var _filter = require('../filter');
 
 var _compiler_props = require('./compiler_props');
 

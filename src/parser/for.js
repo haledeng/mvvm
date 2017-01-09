@@ -38,4 +38,15 @@ function parseForExpression(expression) {
 }
 
 
+// (item, index) in arr
+// item => arr[i]
+function parseItemScope(node, expression) {
+    if (node && node.__scope__) {
+        var scope = node.__scope__;
+        expression = expression.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
+    }
+    return expression;
+}
+
+
 export default parseForExpression;

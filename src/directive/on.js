@@ -1,6 +1,7 @@
 // event hander
 // 事件多次绑定
 import * as _ from '../util';
+import parseItemScope from '../parser/for';
 
 // v-on:click="method(arg1, arg2, arg3)"
 // v-on:click="item.a=4"
@@ -15,10 +16,11 @@ function vOn(node, methods, value, eventName) {
 		// 函数调用或者表达式
 		var method = methods[_.trim(matches[1])];
 		// for语句内部on表达式
-		if (!method && node.__scope__) {
-			var scope = node.__scope__;
+		if (!method /* && node.__scope__*/ ) {
+			// var scope = node.__scope__;
 			// TODO: RegExp 
-			value = value.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
+			// value = value.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
+			value = parseItemScope(node, value);
 			method = new Function(_.addScope(value, 'this'));
 		}
 		var args = matches[3];

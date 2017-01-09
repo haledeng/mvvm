@@ -9,7 +9,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * entry
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
 
-var _compiler = require('./compiler');
+var _compiler = require('./compiler/compiler');
 
 var _compiler2 = _interopRequireDefault(_compiler);
 

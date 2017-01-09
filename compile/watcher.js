@@ -56,7 +56,6 @@ var Watcher = function () {
 		key: 'init',
 		value: function init() {
 			this.beforeGet();
-			// var value = calculateExpression(this.vm, this.exp);
 			var value = this.get();
 			this.afterGet();
 			return value;

@@ -3,7 +3,7 @@ import {
 	parseForExpression
 } from './expression';
 import * as _ from '../util';
-import Compiler from '../compiler';
+import Compiler from '../compiler/compiler';
 
 // TODO: for循环作用域控制
 

@@ -10,7 +10,7 @@ var _util = require('../util');
 
 var _ = _interopRequireWildcard(_util);
 
-var _compiler = require('../compiler');
+var _compiler = require('../compiler/compiler');
 
 var _compiler2 = _interopRequireDefault(_compiler);
 

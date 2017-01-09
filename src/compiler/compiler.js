@@ -1,5 +1,5 @@
-import * as _ from './util';
-import Watcher from './watcher';
+import * as _ from '../util';
+import Watcher from '../watcher';
 import {
 	vModel,
 	vText,
@@ -9,12 +9,12 @@ import {
 	vFor,
 	parseForExpression,
 	parseExpression
-} from './directive/index';
+} from '../directive/index';
 
 import {
 	filter,
 	parseFilter
-} from './filter';
+} from '../filter';
 
 import CompilerMixin from './compiler_props';
 
