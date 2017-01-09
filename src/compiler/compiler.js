@@ -17,6 +17,7 @@ import {
 } from '../filter';
 
 import CompilerMixin from './compiler_props';
+import ComponentMixin from './compiler_component';
 
 class Compiler {
 	constructor(opts) {
@@ -32,11 +33,12 @@ class Compiler {
 
 		function _traversal(node) {
 			self.traversalAttribute(node);
-			if (node.parentNode && _.containOnlyTextNode(node)) {
+			self.parseCustomComponent(node);
+			if ((node.parentNode || node.nodeType == 11) && _.containOnlyTextNode(node)) {
 				self.parseTextNode(node);
 			} else {
 				// node has been removed
-				if (node.parentNode) {
+				if (node.parentNode || node.nodeType == 11) {
 					var elements = node.children;
 					elements = [].slice.call(elements);
 					elements.forEach(function(element) {
@@ -47,10 +49,19 @@ class Compiler {
 		}
 		_traversal(node);
 	}
+	parseCustomComponent(node) {
+		if (!node.tagName) return;
+		var tagName = node.tagName.toLowerCase();
+		var globalComonent = this.$vm.constructor._globalCom || {};
+		var comNames = Object.keys(globalComonent);
+		if (~comNames.indexOf(tagName)) {
+			this._parseComponent(node);
+		}
+	}
 	traversalAttribute(node) {
 		var self = this;
 		// 遍历属性
-		var attrs = node.attributes;
+		var attrs = node.attributes || [];
 		for (var i = 0; i < attrs.length; i++) {
 			var item = attrs[i];
 			// v-for已经解析了其他的指定了，防止重复解析
@@ -97,6 +108,6 @@ class Compiler {
 
 
 CompilerMixin(Compiler);
-
+ComponentMixin(Compiler);
 
 export default Compiler;

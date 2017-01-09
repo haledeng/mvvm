@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MVVM Framework</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        html, body, pre {
+            font-family: 'Consolas';
+        }
+
+        input {
+            display: block;
+            line-height: 30px;
+            font-size: 14px;
+            padding-left: 10px;
+        }
+        input, p {
+            margin: 5px;
+        }
+        pre {
+            border: 1px solid #eee;
+            height: 300px;
+            overflow-x: hidden;
+            overflow-y: scroll;
+        }
+        button {
+            display: inline-block;
+            width: 80px;
+            text-align: center;
+            height: 32px;
+            line-height: 32px;
+            border-radius: 4px;
+            background: #006dcc;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+        }
+        .title {
+            font-size: 16px;
+            font-weight: bolder;
+        }
+        .active {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <my-ele></my-ele>
+    </div>
+
+
+
+    <script src="../dist/mvvm.js"></script>
+    <script>
+        MVVM.component('my-ele', {
+            template: '<p>{{message}}</p>',
+            data: {
+                message: 'hello world'
+            }
+        });
+        var mvvm = new MVVM({
+            el: '#app',
+            data: {
+            },
+            computed: {
+                comObject: function() {
+                    return {
+                        active: this.isActive
+                    }
+                }
+            },
+            filters: {
+                parseMessage: function(isActive) {
+                    return isActive ? 'highlight' : 'none';
+                }
+            },
+            methods: {
+                changeActive: function() {
+                    console.log('click');
+                    this.isActive = !this.isActive;
+                },
+                change: function(item, index) {
+                    console.log('click item index:', index);
+                    // index = this[index] || this.$data[index];
+                    item.highlight = !item.highlight;
+                    // this.companies[this.index].highlight = !this.companies[this.index].highlight;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

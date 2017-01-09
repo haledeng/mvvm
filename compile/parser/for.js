@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.parseItemScope = exports.parseForExpression = undefined;
 
 var _util = require('../util');
 
@@ -58,4 +59,5 @@ function parseItemScope(node, expression) {
     return expression;
 }
 
-exports.default = parseForExpression;
+exports.parseForExpression = parseForExpression;
+exports.parseItemScope = parseItemScope;

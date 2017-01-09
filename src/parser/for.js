@@ -49,4 +49,7 @@ function parseItemScope(node, expression) {
 }
 
 
-export default parseForExpression;
+export {
+    parseForExpression,
+    parseItemScope
+};

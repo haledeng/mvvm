@@ -111,4 +111,11 @@ MVVM.directive = function (name, descriptor) {
 	}
 };
 
+MVVM.component = function (name, options) {
+	if (!this._globalCom) {
+		this._globalCom = {};
+	}
+	this._globalCom[name] = options;
+};
+
 exports.MVVM = MVVM;

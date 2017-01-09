@@ -69,7 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler2 = _interopRequireDefault(_compiler);
 
-	var _observer = __webpack_require__(20);
+	var _observer = __webpack_require__(21);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -77,7 +77,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _watcher2 = _interopRequireDefault(_watcher);
 
-	var _directive = __webpack_require__(21);
+	var _directive = __webpack_require__(22);
 
 	var _directive2 = _interopRequireDefault(_directive);
 
@@ -167,6 +167,13 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 	};
 
+	MVVM.component = function (name, options) {
+		if (!this._globalCom) {
+			this._globalCom = {};
+		}
+		this._globalCom[name] = options;
+	};
+
 	exports.MVVM = MVVM;
 
 /***/ },
@@ -197,6 +204,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler_props2 = _interopRequireDefault(_compiler_props);
 
+	var _compiler_component = __webpack_require__(20);
+
+	var _compiler_component2 = _interopRequireDefault(_compiler_component);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -222,11 +233,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 				function _traversal(node) {
 					self.traversalAttribute(node);
-					if (node.parentNode && _.containOnlyTextNode(node)) {
+					self.parseCustomComponent(node);
+					if ((node.parentNode || node.nodeType == 11) && _.containOnlyTextNode(node)) {
 						self.parseTextNode(node);
 					} else {
 						// node has been removed
-						if (node.parentNode) {
+						if (node.parentNode || node.nodeType == 11) {
 							var elements = node.children;
 							elements = [].slice.call(elements);
 							elements.forEach(function (element) {
@@ -238,11 +250,22 @@ return /******/ (function(modules) { // webpackBootstrap
 				_traversal(node);
 			}
 		}, {
+			key: 'parseCustomComponent',
+			value: function parseCustomComponent(node) {
+				if (!node.tagName) return;
+				var tagName = node.tagName.toLowerCase();
+				var globalComonent = this.$vm.constructor._globalCom || {};
+				var comNames = Object.keys(globalComonent);
+				if (~comNames.indexOf(tagName)) {
+					this._parseComponent(node);
+				}
+			}
+		}, {
 			key: 'traversalAttribute',
 			value: function traversalAttribute(node) {
 				var self = this;
 				// 遍历属性
-				var attrs = node.attributes;
+				var attrs = node.attributes || [];
 				for (var i = 0; i < attrs.length; i++) {
 					var item = attrs[i];
 					// v-for已经解析了其他的指定了，防止重复解析
@@ -295,6 +318,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 
 	(0, _compiler_props2.default)(Compiler);
+	(0, _compiler_component2.default)(Compiler);
 
 	exports.default = Compiler;
 
@@ -683,6 +707,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
+	exports.parseItemScope = exports.parseForExpression = undefined;
 
 	var _util = __webpack_require__(2);
 
@@ -738,7 +763,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return expression;
 	}
 
-	exports.default = parseForExpression;
+	exports.parseForExpression = parseForExpression;
+	exports.parseItemScope = parseItemScope;
 
 /***/ },
 /* 10 */
@@ -1340,6 +1366,40 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 20 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	exports.default = function (Compiler) {
+		function copyNode() {}
+
+		Compiler.prototype._parseComponent = function (node) {
+			var allCom = this.$vm.constructor._globalCom;
+			var descriptor = allCom[node.tagName.toLowerCase()];
+			var template = descriptor.template;
+			var data = descriptor.data;
+			var frag = document.createDocumentFragment();
+			var div = document.createElement('div');
+			div.innerHTML = template;
+			[].slice.call(div.children).forEach(function (child) {
+				frag.appendChild(child);
+			});
+			new Compiler({
+				el: frag,
+				vm: {
+					$data: data
+				}
+			});
+			node.parentNode.replaceChild(frag, node);
+		};
+	};
+
+/***/ },
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1452,7 +1512,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Observer;
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

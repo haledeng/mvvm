@@ -22,6 +22,10 @@ var _compiler_props = require('./compiler_props');
 
 var _compiler_props2 = _interopRequireDefault(_compiler_props);
 
+var _compiler_component = require('./compiler_component');
+
+var _compiler_component2 = _interopRequireDefault(_compiler_component);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -47,11 +51,12 @@ var Compiler = function () {
 
 			function _traversal(node) {
 				self.traversalAttribute(node);
-				if (node.parentNode && _.containOnlyTextNode(node)) {
+				self.parseCustomComponent(node);
+				if ((node.parentNode || node.nodeType == 11) && _.containOnlyTextNode(node)) {
 					self.parseTextNode(node);
 				} else {
 					// node has been removed
-					if (node.parentNode) {
+					if (node.parentNode || node.nodeType == 11) {
 						var elements = node.children;
 						elements = [].slice.call(elements);
 						elements.forEach(function (element) {
@@ -63,11 +68,22 @@ var Compiler = function () {
 			_traversal(node);
 		}
 	}, {
+		key: 'parseCustomComponent',
+		value: function parseCustomComponent(node) {
+			if (!node.tagName) return;
+			var tagName = node.tagName.toLowerCase();
+			var globalComonent = this.$vm.constructor._globalCom || {};
+			var comNames = Object.keys(globalComonent);
+			if (~comNames.indexOf(tagName)) {
+				this._parseComponent(node);
+			}
+		}
+	}, {
 		key: 'traversalAttribute',
 		value: function traversalAttribute(node) {
 			var self = this;
 			// 遍历属性
-			var attrs = node.attributes;
+			var attrs = node.attributes || [];
 			for (var i = 0; i < attrs.length; i++) {
 				var item = attrs[i];
 				// v-for已经解析了其他的指定了，防止重复解析
@@ -120,5 +136,6 @@ var Compiler = function () {
 }();
 
 (0, _compiler_props2.default)(Compiler);
+(0, _compiler_component2.default)(Compiler);
 
 exports.default = Compiler;
