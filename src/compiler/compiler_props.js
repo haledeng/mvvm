@@ -30,7 +30,6 @@ export default function(Compiler) {
 		var property = matches[1];
 		var bindOn = /(on|bind)\:(\w*)/
 		if (bindOn.test(property)) {
-			console.log(property);
 			self.$vm.bindDir(Object.assign({
 				expression: attr.value,
 				name: RegExp.$1,

@@ -84,7 +84,7 @@ MVVM.component = function(name, options) {
 	}
 	this._globalCom[name] = options;
 	options.name = name;
-	options.data = typeof options.data === 'function' ? options.data() : options.data;
+	// options.data = typeof options.data === 'function' ? options.data() : options.data;
 	// new Observer(options.data);
 
 };

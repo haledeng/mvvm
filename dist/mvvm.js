@@ -176,7 +176,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 		this._globalCom[name] = options;
 		options.name = name;
-		options.data = typeof options.data === 'function' ? options.data() : options.data;
+		// options.data = typeof options.data === 'function' ? options.data() : options.data;
 		// new Observer(options.data);
 	};
 
@@ -316,14 +316,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 				// TODO: filters
 				var _replace = function _replace(scope) {
+					// console.log(watcherMaps[name].value);
 					var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
+						// console.log(watcherMaps[name].value);
 						return watcherMaps[name].value;
 					});
 					node.textContent = newHtml;
 				};
 				// watcher会计算parseExpression，_replace中不单独计算，
 				keys.forEach(function (key) {
+					// console.log(key);
 					watcherMaps[key] = self.bindWatch(self.$vm, key, _replace);
+					// console.log(watcherMaps[key].value);
 				});
 				_replace(this.$vm.$data);
 			}
@@ -455,6 +459,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				// @TODO: [], {}引用类型，指向了同一个值
 				// if (oldVal != newVal) {
 				this.value = newVal;
+				console.log(this.vm);
 				this.callback(this.vm, newVal, oldVal);
 				// }
 			}
@@ -1035,9 +1040,9 @@ return /******/ (function(modules) { // webpackBootstrap
 					self.$vm.methods[self.expression].call(self.$vm.$data);
 				});
 			} else {
-				this.$vm.$data.$emit = function (name) {
-					self.$vm.$emit.call(self.$vm, name);
-				};
+				// this.$vm.$data.$emit = function(name) {
+				// 	self.$vm.$emit.call(self.$vm, name);
+				// };
 				vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
 			}
 		}
@@ -1338,7 +1343,6 @@ return /******/ (function(modules) { // webpackBootstrap
 			var property = matches[1];
 			var bindOn = /(on|bind)\:(\w*)/;
 			if (bindOn.test(property)) {
-				console.log(property);
 				self.$vm.bindDir(Object.assign({
 					expression: attr.value,
 					name: RegExp.$1,
@@ -1404,35 +1408,37 @@ return /******/ (function(modules) { // webpackBootstrap
 		Compiler.prototype._parseComponent = function (node) {
 			var allCom = this.$vm.constructor._globalCom;
 			var descriptor = allCom[node.tagName.toLowerCase()];
-			var template = descriptor.template;
-			var frag = document.createDocumentFragment();
-			if (/^#/.test(template)) {
-				var tempDom = document.querySelector(template);
-				template = tempDom.innerHTML;
-				tempDom.parentNode.removeChild(tempDom);
-			}
-			var div = document.createElement('div');
-			div.innerHTML = template;
-			[].slice.call(div.children).forEach(function (child) {
-				frag.appendChild(child);
-			});
-			// var instance = new Component(descriptor.name, descriptor);
-			// var vm = this.$vm;
+			// var template = descriptor.template;
+			// var frag = document.createDocumentFragment();
+			// if (/^#/.test(template)) {
+			// 	var tempDom = document.querySelector(template);
+			// 	template = tempDom.innerHTML;
+			// 	tempDom.parentNode.removeChild(tempDom);
+			// }
+			// var div = document.createElement('div');
+			// div.innerHTML = template;
+			// [].slice.call(div.children).forEach(function(child) {
+			// 	frag.appendChild(child);
+			// });
+			var instance = new _component2.default(descriptor.name, descriptor);
+			var vm = this.$vm;
 			// console.log(instance);
 			var comVm = Object.assign(vm.__proto__, vm, {
-				$data: typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data,
-				methods: descriptor.methods
+				$data: instance.data,
+				methods: instance.methods
+				// $data: typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data,
+				// methods: descriptor.methods
 			});
 
 			//  TODO: 组件和原来VM的关系
 			//  每个Componet的instance是沙箱模式
-			vm.copyData2Vm.call(comVm);
-			frag.uid = ++cid;
+			// vm.copyData2Vm.call(comVm);
+			// frag.uid = ++cid;
 			new Compiler({
-				el: frag,
+				el: instance.frag,
 				vm: comVm
 			});
-			node.parentNode.replaceChild(frag, node);
+			node.parentNode.replaceChild(instance.frag, node);
 		};
 	};
 

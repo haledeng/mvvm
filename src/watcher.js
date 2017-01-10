@@ -23,6 +23,7 @@ class Watcher {
 		// @TODO: [], {}引用类型，指向了同一个值
 		// if (oldVal != newVal) {
 		this.value = newVal;
+		console.log(this.vm);
 		this.callback(this.vm, newVal, oldVal);
 		// }
 	}

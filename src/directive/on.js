@@ -57,9 +57,9 @@ export default {
 				self.$vm.methods[self.expression].call(self.$vm.$data);
 			});
 		} else {
-			this.$vm.$data.$emit = function(name) {
-				self.$vm.$emit.call(self.$vm, name);
-			};
+			// this.$vm.$data.$emit = function(name) {
+			// 	self.$vm.$emit.call(self.$vm, name);
+			// };
 			vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
 		}
 	}
