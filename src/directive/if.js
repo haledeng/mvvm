@@ -12,11 +12,7 @@ function vIf(node, vm, value) {
 	// difference between nextSibling and nextElementSibling
 	// get from node.childNode and node.children 
 	var nextSibling = node.__nextSibling__ || node.nextElementSibling;
-	// 是否有v-else元素
-	// var hasElseNext = node.__hasElse__;
-	// if (hasElseNext === undefined) {
-	// 	hasElseNext = node.__hasElse__ = nextSibling && nextSibling.getAttribute('v-else') !== null
-	// }
+
 	var hasElseNext = this._hasElseNext;
 	if (value) {
 		if (node.__parent__) {
@@ -67,6 +63,7 @@ function remove(node, parent) {
 
 export default {
 	bind: function() {
+		// 是否有v-else元素
 		var nextSibling = this.$el.nextElementSibling;
 		this._hasElseNext = nextSibling && nextSibling.getAttribute('v-else') !== null
 	},

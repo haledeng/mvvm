@@ -26,5 +26,5 @@ export default {
 	},
 	update: function(value) {
 		this.$el[this._attr] = value;
-	},
+	}
 }

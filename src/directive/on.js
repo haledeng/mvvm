@@ -1,7 +1,9 @@
 // event hander
 // 事件多次绑定
 import * as _ from '../util';
-import parseItemScope from '../parser/for';
+import {
+	parseItemScope
+} from '../parser/for';
 
 // v-on:click="method(arg1, arg2, arg3)"
 // v-on:click="item.a=4"
@@ -40,12 +42,25 @@ function vOn(node, methods, value, eventName) {
 }
 
 
+var allowEvents = ['click', 'submit', 'touch', 'mousedown'];
+
 
 // export default vOn;
 
 export default {
 	bind: function() {
+		var self = this;
 		// TODO：vOn里面的scope不一定是data，特别是在v-for中
-		vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
+		if (allowEvents.indexOf(this.extraName) === -1) {
+			// custom event;
+			this.$vm.$on(this.extraName, function() {
+				self.$vm.methods[self.expression].call(self.$vm.$data);
+			});
+		} else {
+			this.$vm.$data.$emit = function(name) {
+				self.$vm.$emit.call(self.$vm, name);
+			};
+			vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
+		}
 	}
 }

@@ -35,6 +35,10 @@ function vBind(node, vm, value, property) {
 			removeProperty(node, property, key);
 		}
 	}
+	// issue
+	// 删除会导致后面的属性遍历有问题
+	// 在遍历数组同时，在删除数组元素
+	// node.removeAttribute('v-bind:' + property);
 }
 
 // export default vBind;

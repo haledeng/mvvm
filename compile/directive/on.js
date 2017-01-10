@@ -10,10 +10,6 @@ var _ = _interopRequireWildcard(_util);
 
 var _for = require('../parser/for');
 
-var _for2 = _interopRequireDefault(_for);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // v-on:click="method(arg1, arg2, arg3)"
@@ -35,7 +31,7 @@ function vOn(node, methods, value, eventName) {
 				// var scope = node.__scope__;
 				// TODO: RegExp 
 				// value = value.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
-				value = (0, _for2.default)(node, value);
+				value = (0, _for.parseItemScope)(node, value);
 				method = new Function(_.addScope(value, 'this'));
 			}
 		var args = matches[3];
@@ -53,11 +49,24 @@ function vOn(node, methods, value, eventName) {
 	}
 }
 
+var allowEvents = ['click', 'submit', 'touch', 'mousedown'];
+
 // export default vOn;
 
 exports.default = {
 	bind: function bind() {
+		var self = this;
 		// TODO：vOn里面的scope不一定是data，特别是在v-for中
-		vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
+		if (allowEvents.indexOf(this.extraName) === -1) {
+			// custom event;
+			this.$vm.$on(this.extraName, function () {
+				self.$vm.methods[self.expression].call(self.$vm.$data);
+			});
+		} else {
+			this.$vm.$data.$emit = function (name) {
+				self.$vm.$emit.call(self.$vm, name);
+			};
+			vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
+		}
 	}
 };

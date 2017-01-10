@@ -84,13 +84,20 @@ var Compiler = function () {
 			var self = this;
 			// 遍历属性
 			var attrs = node.attributes || [];
+			var dirs = [];
 			for (var i = 0; i < attrs.length; i++) {
 				var item = attrs[i];
 				// v-for已经解析了其他的指定了，防止重复解析
 				if (/^v\-([\w\:\']*)/.test(item.name) && node.parentNode) {
 					this._parseAttr(node, item);
+					dirs.push(item.name);
 				}
 			}
+
+			// remove all directives
+			// dirs.forEach(function(dir) {
+			// 	node.removeAttribute(dir);
+			// });
 		}
 	}, {
 		key: 'bindWatch',

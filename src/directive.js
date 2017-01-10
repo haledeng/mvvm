@@ -27,9 +27,6 @@ class Directive {
 		var self = this;
 		if (this.bind) {
 			this.bind();
-			// this.$el.removeAttribute('v-' + this.name);
-			// console.log(this.$el, 'v-' + this.name + ':' + this.extraName);
-			// this.$el.removeAttribute('v-' + this.name + ':' + this.extraName);
 		}
 		// 事件不需要update
 		if (this.name === 'on') return;

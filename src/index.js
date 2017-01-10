@@ -6,6 +6,7 @@ import Compiler from './compiler/compiler';
 import Observer from './observer';
 import Watcher from './watcher';
 import Directive from './directive';
+import eventMixin from './events';
 class MVVM {
 	constructor(options) {
 		this.$data = options.data || {};
@@ -43,7 +44,6 @@ class MVVM {
 	bindDir(descriptor, node) {
 		// 切换上下文
 		var self = descriptor.context || this;
-		// var self = this;
 		this._directives.push(new Directive(descriptor, self, node));
 	}
 }
@@ -83,7 +83,13 @@ MVVM.component = function(name, options) {
 		this._globalCom = {};
 	}
 	this._globalCom[name] = options;
+	options.name = name;
+	options.data = typeof options.data === 'function' ? options.data() : options.data;
+	// new Observer(options.data);
+
 };
+
+eventMixin(MVVM);
 
 export {
 	MVVM

@@ -51,18 +51,34 @@
 <body>
     <div id="app">
         <my-ele></my-ele>
+        <cus-ele></cus-ele>
     </div>
 
+
+    <script type="text/x-template" id="hello-world-template">
+        <p>{{message}}</p><p>hello, {{name}}</p>
+    </script>
 
 
     <script src="../dist/mvvm.js"></script>
     <script>
         MVVM.component('my-ele', {
-            template: '<p>{{message}}</p>',
-            data: {
-                message: 'hello world'
+            template: '#hello-world-template',
+            data: function() {
+                return  {
+                    message: 'hello world',
+                    name: 'helondeng'  
+                }
             }
         });
+
+        MVVM.component('cus-ele',  {
+            template: '<ul><li>{{li}}->{{Date.now()}}</li><li>{{li}}->{{Math.random()}}</li><li>{{li}}->{{Math.random()}}</li></ul>',
+            data: {
+                li: 'text hello'
+            }
+        });
+
         var mvvm = new MVVM({
             el: '#app',
             data: {

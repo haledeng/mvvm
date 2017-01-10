@@ -34,7 +34,7 @@ const addScope = (exp, prefix = 'scope') => {
 	exp = trim(exp);
 	// x.y
 	// Math.random()  全局函数调用
-	var globalObject = ['Math'];
+	var globalObject = ['Math', 'window', 'Date', 'navigator'];
 	exp = exp.replace(/[\w\[\]]+(?=\.)/g, function(match, index, all) {
 		if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
 		return [prefix, match].join('.');

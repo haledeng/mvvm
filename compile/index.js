@@ -25,6 +25,10 @@ var _directive = require('./directive');
 
 var _directive2 = _interopRequireDefault(_directive);
 
+var _events = require('./events');
+
+var _events2 = _interopRequireDefault(_events);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -75,7 +79,6 @@ var MVVM = function () {
 		value: function bindDir(descriptor, node) {
 			// 切换上下文
 			var self = descriptor.context || this;
-			// var self = this;
 			this._directives.push(new _directive2.default(descriptor, self, node));
 		}
 	}]);
@@ -116,6 +119,11 @@ MVVM.component = function (name, options) {
 		this._globalCom = {};
 	}
 	this._globalCom[name] = options;
+	options.name = name;
+	options.data = typeof options.data === 'function' ? options.data() : options.data;
+	// new Observer(options.data);
 };
+
+(0, _events2.default)(MVVM);
 
 exports.MVVM = MVVM;
