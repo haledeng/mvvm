@@ -15,6 +15,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var id = 0;
+
 var Component = function () {
 	function Component(name, descriptor) {
 		_classCallCheck(this, Component);
@@ -22,6 +24,7 @@ var Component = function () {
 		this.name = name;
 		this.template = descriptor.template;
 		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+		this.data.uid = ++id;
 		this.methods = descriptor.methods;
 		this.init();
 	}
@@ -31,10 +34,6 @@ var Component = function () {
 		value: function init() {
 			new _observer2.default(this.data);
 			this.render();
-			// new Compiler({
-			// 	el: this.frag,
-			// 	vm: Object.assign({})
-			// });
 		}
 	}, {
 		key: 'render',
@@ -52,6 +51,7 @@ var Component = function () {
 				frag.appendChild(child);
 			});
 			this.frag = frag;
+			frag.uid = id;
 		}
 	}]);
 

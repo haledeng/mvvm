@@ -98,7 +98,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.methods = options.methods;
 			this.filters = options.filters || {};
 			this.computed = options.computed || {};
-			this._directives = [];
+			// this._directives = [];
 			this.copyData2Vm();
 			new _observer2.default(this.$data);
 			new _compiler2.default({
@@ -133,6 +133,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'bindDir',
 			value: function bindDir(descriptor, node) {
+				if (!this._directives) {
+					this._directives = [];
+				}
 				// 切换上下文
 				var self = descriptor.context || this;
 				this._directives.push(new _directive2.default(descriptor, self, node));
@@ -316,18 +319,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 				// TODO: filters
 				var _replace = function _replace(scope) {
-					// console.log(watcherMaps[name].value);
 					var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
-						// console.log(watcherMaps[name].value);
 						return watcherMaps[name].value;
 					});
 					node.textContent = newHtml;
 				};
 				// watcher会计算parseExpression，_replace中不单独计算，
 				keys.forEach(function (key) {
-					// console.log(key);
 					watcherMaps[key] = self.bindWatch(self.$vm, key, _replace);
-					// console.log(watcherMaps[key].value);
 				});
 				_replace(this.$vm.$data);
 			}
@@ -442,7 +441,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		function Watcher(opts) {
 			_classCallCheck(this, Watcher);
 
-			this.id = uid++;
+			this.id = ++uid;
 			this.vm = opts.vm;
 			this.$el = opts.$el;
 			this.exp = opts.exp;
@@ -459,7 +458,6 @@ return /******/ (function(modules) { // webpackBootstrap
 				// @TODO: [], {}引用类型，指向了同一个值
 				// if (oldVal != newVal) {
 				this.value = newVal;
-				console.log(this.vm);
 				this.callback(this.vm, newVal, oldVal);
 				// }
 			}
@@ -523,7 +521,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: "notify",
 			value: function notify() {
 				this.subs.forEach(function (sub) {
-					sub.update();
+					sub.update.call(sub);
 				});
 			}
 		}]);
@@ -1033,16 +1031,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = {
 		bind: function bind() {
 			var self = this;
+			if (!this.$vm._listenedFn) {
+				this.$vm._listenedFn = [];
+			}
 			// TODO：vOn里面的scope不一定是data，特别是在v-for中
 			if (allowEvents.indexOf(this.extraName) === -1) {
-				// custom event;
-				this.$vm.$on(this.extraName, function () {
-					self.$vm.methods[self.expression].call(self.$vm.$data);
-				});
+				// 重复方法不监听
+				if (this.$vm._listenedFn.indexOf(self.expression) === -1) {
+					this.$vm._listenedFn.push(self.expression);
+					// custom event;
+					this.$vm.$on(this.extraName, function () {
+						self.$vm.methods[self.expression].call(self.$vm.$data);
+					});
+				}
 			} else {
-				// this.$vm.$data.$emit = function(name) {
-				// 	self.$vm.$emit.call(self.$vm, name);
-				// };
+				// 向父节点dispatch事件
+				var parent = self.$vm.$parent;
+				this.$vm.$data.$emit = function (name) {
+					parent.$emit.call(parent, name);
+				};
 				vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
 			}
 		}
@@ -1408,27 +1415,13 @@ return /******/ (function(modules) { // webpackBootstrap
 		Compiler.prototype._parseComponent = function (node) {
 			var allCom = this.$vm.constructor._globalCom;
 			var descriptor = allCom[node.tagName.toLowerCase()];
-			// var template = descriptor.template;
-			// var frag = document.createDocumentFragment();
-			// if (/^#/.test(template)) {
-			// 	var tempDom = document.querySelector(template);
-			// 	template = tempDom.innerHTML;
-			// 	tempDom.parentNode.removeChild(tempDom);
-			// }
-			// var div = document.createElement('div');
-			// div.innerHTML = template;
-			// [].slice.call(div.children).forEach(function(child) {
-			// 	frag.appendChild(child);
-			// });
 			var instance = new _component2.default(descriptor.name, descriptor);
 			var vm = this.$vm;
-			// console.log(instance);
-			var comVm = Object.assign(vm.__proto__, vm, {
-				$data: instance.data,
-				methods: instance.methods
-				// $data: typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data,
-				// methods: descriptor.methods
-			});
+
+			var comVm = Object.create(vm.__proto__);
+			comVm.methods = instance.methods;
+			comVm.$data = instance.data;
+			comVm.$parent = vm;
 
 			//  TODO: 组件和原来VM的关系
 			//  每个Componet的instance是沙箱模式
@@ -1469,6 +1462,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	var id = 0;
+
 	var Component = function () {
 		function Component(name, descriptor) {
 			_classCallCheck(this, Component);
@@ -1476,6 +1471,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.name = name;
 			this.template = descriptor.template;
 			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+			this.data.uid = ++id;
 			this.methods = descriptor.methods;
 			this.init();
 		}
@@ -1485,10 +1481,6 @@ return /******/ (function(modules) { // webpackBootstrap
 			value: function init() {
 				new _observer2.default(this.data);
 				this.render();
-				// new Compiler({
-				// 	el: this.frag,
-				// 	vm: Object.assign({})
-				// });
 			}
 		}, {
 			key: 'render',
@@ -1506,6 +1498,7 @@ return /******/ (function(modules) { // webpackBootstrap
 					frag.appendChild(child);
 				});
 				this.frag = frag;
+				frag.uid = id;
 			}
 		}]);
 
@@ -1608,8 +1601,10 @@ return /******/ (function(modules) { // webpackBootstrap
 					configurable: false,
 					enumerable: true,
 					set: function set(newVal) {
+						// debugger;
 						if (newVal !== val) {
 							val = newVal;
+							// console.log('set', self.$data);
 							self.observe(newVal);
 							dep.notify();
 						}
@@ -1720,10 +1715,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			if (!this._events) {
 				this._events = {};
 			}
-			if (!this._events[name]) {
-				this._events[name] = [];
-			}
-			this._events[name].push(callback);
+			(this._events[name] || (this._events[name] = [])).push(callback);
 		};
 
 		Lib.prototype.$emit = function (name) {

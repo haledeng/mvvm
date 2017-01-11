@@ -126,18 +126,14 @@ var Compiler = function () {
 
 			// TODO: filters
 			var _replace = function _replace(scope) {
-				// console.log(watcherMaps[name].value);
 				var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
-					// console.log(watcherMaps[name].value);
 					return watcherMaps[name].value;
 				});
 				node.textContent = newHtml;
 			};
 			// watcher会计算parseExpression，_replace中不单独计算，
 			keys.forEach(function (key) {
-				// console.log(key);
 				watcherMaps[key] = self.bindWatch(self.$vm, key, _replace);
-				// console.log(watcherMaps[key].value);
 			});
 			_replace(this.$vm.$data);
 		}

@@ -49,7 +49,7 @@
     </head>
     <body>
         <div id="counter-event-example">
-            <!-- <p>{{total}}</p> -->
+            <p>{{total}}</p>
             <button-counter v-on:increment="incrementTotal"></button-counter>
             <button-counter v-on:increment="incrementTotal"></button-counter>
         </div>
@@ -64,8 +64,8 @@
             },
             methods: {
                 increment: function () {
-                    this.counter += 1
-                    // this.$emit('increment');
+                    this.counter += 1;
+                    this.$emit('increment');
                 }
             },
         });
@@ -76,6 +76,7 @@
             },
             methods: {
                 incrementTotal: function () {
+                    console.log('incrementTotal');
                     this.total += 1
                 }
             }

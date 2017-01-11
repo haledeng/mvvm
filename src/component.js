@@ -1,20 +1,18 @@
 // import Compiler from './complier/complier';
 import Observer from './observer';
+var id = 0;
 class Component {
 	constructor(name, descriptor) {
 		this.name = name;
 		this.template = descriptor.template;
 		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+		this.data.uid = ++id;
 		this.methods = descriptor.methods;
 		this.init();
 	}
 	init() {
 		new Observer(this.data);
 		this.render();
-		// new Compiler({
-		// 	el: this.frag,
-		// 	vm: Object.assign({})
-		// });
 	}
 	render() {
 		var frag = document.createDocumentFragment();
@@ -30,6 +28,7 @@ class Component {
 			frag.appendChild(child);
 		});
 		this.frag = frag;
+		frag.uid = id;
 	}
 }
 

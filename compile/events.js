@@ -9,10 +9,7 @@ exports.default = function (Lib) {
 		if (!this._events) {
 			this._events = {};
 		}
-		if (!this._events[name]) {
-			this._events[name] = [];
-		}
-		this._events[name].push(callback);
+		(this._events[name] || (this._events[name] = [])).push(callback);
 	};
 
 	Lib.prototype.$emit = function (name) {

@@ -14,7 +14,7 @@ class MVVM {
 		this.methods = options.methods;
 		this.filters = options.filters || {};
 		this.computed = options.computed || {};
-		this._directives = [];
+		// this._directives = [];
 		this.copyData2Vm();
 		new Observer(this.$data);
 		new Compiler({
@@ -42,6 +42,9 @@ class MVVM {
 		});
 	}
 	bindDir(descriptor, node) {
+		if (!this._directives) {
+			this._directives = [];
+		}
 		// 切换上下文
 		var self = descriptor.context || this;
 		this._directives.push(new Directive(descriptor, self, node));

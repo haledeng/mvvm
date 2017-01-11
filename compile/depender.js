@@ -24,7 +24,7 @@ var Dep = function () {
 		key: "notify",
 		value: function notify() {
 			this.subs.forEach(function (sub) {
-				sub.update();
+				sub.update.call(sub);
 			});
 		}
 	}]);

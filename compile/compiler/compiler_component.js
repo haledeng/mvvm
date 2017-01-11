@@ -8,27 +8,13 @@ exports.default = function (Compiler) {
 	Compiler.prototype._parseComponent = function (node) {
 		var allCom = this.$vm.constructor._globalCom;
 		var descriptor = allCom[node.tagName.toLowerCase()];
-		// var template = descriptor.template;
-		// var frag = document.createDocumentFragment();
-		// if (/^#/.test(template)) {
-		// 	var tempDom = document.querySelector(template);
-		// 	template = tempDom.innerHTML;
-		// 	tempDom.parentNode.removeChild(tempDom);
-		// }
-		// var div = document.createElement('div');
-		// div.innerHTML = template;
-		// [].slice.call(div.children).forEach(function(child) {
-		// 	frag.appendChild(child);
-		// });
 		var instance = new _component2.default(descriptor.name, descriptor);
 		var vm = this.$vm;
-		// console.log(instance);
-		var comVm = Object.assign(vm.__proto__, vm, {
-			$data: instance.data,
-			methods: instance.methods
-			// $data: typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data,
-			// methods: descriptor.methods
-		});
+
+		var comVm = Object.create(vm.__proto__);
+		comVm.methods = instance.methods;
+		comVm.$data = instance.data;
+		comVm.$parent = vm;
 
 		//  TODO: 组件和原来VM的关系
 		//  每个Componet的instance是沙箱模式

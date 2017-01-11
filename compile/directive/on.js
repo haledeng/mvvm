@@ -56,16 +56,25 @@ var allowEvents = ['click', 'submit', 'touch', 'mousedown'];
 exports.default = {
 	bind: function bind() {
 		var self = this;
+		if (!this.$vm._listenedFn) {
+			this.$vm._listenedFn = [];
+		}
 		// TODO：vOn里面的scope不一定是data，特别是在v-for中
 		if (allowEvents.indexOf(this.extraName) === -1) {
-			// custom event;
-			this.$vm.$on(this.extraName, function () {
-				self.$vm.methods[self.expression].call(self.$vm.$data);
-			});
+			// 重复方法不监听
+			if (this.$vm._listenedFn.indexOf(self.expression) === -1) {
+				this.$vm._listenedFn.push(self.expression);
+				// custom event;
+				this.$vm.$on(this.extraName, function () {
+					self.$vm.methods[self.expression].call(self.$vm.$data);
+				});
+			}
 		} else {
-			// this.$vm.$data.$emit = function(name) {
-			// 	self.$vm.$emit.call(self.$vm, name);
-			// };
+			// 向父节点dispatch事件
+			var parent = self.$vm.$parent;
+			this.$vm.$data.$emit = function (name) {
+				parent.$emit.call(parent, name);
+			};
 			vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
 		}
 	}

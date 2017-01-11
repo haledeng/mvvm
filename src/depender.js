@@ -7,7 +7,7 @@ class Dep {
 	}
 	notify() {
 		this.subs.forEach(function(sub) {
-			sub.update();
+			sub.update.call(sub);
 		});
 	}
 }
