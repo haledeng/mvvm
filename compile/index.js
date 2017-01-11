@@ -13,11 +13,11 @@ var _compiler = require('./compiler/compiler');
 
 var _compiler2 = _interopRequireDefault(_compiler);
 
-var _observer = require('./observer');
+var _observer = require('./observer/observer');
 
 var _observer2 = _interopRequireDefault(_observer);
 
-var _watcher = require('./watcher');
+var _watcher = require('./observer/watcher');
 
 var _watcher2 = _interopRequireDefault(_watcher);
 

@@ -1,5 +1,5 @@
 import Dep from './depender';
-import * as _ from './util';
+import * as _ from '../util';
 class Observer {
 	constructor(data) {
 		this.$data = data;

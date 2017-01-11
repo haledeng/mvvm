@@ -3,7 +3,7 @@ import Dep from './depender';
 import {
 	parseExpression,
 	calculateExpression
-} from './directive/expression';
+} from '../directive/expression';
 
 
 class Watcher {

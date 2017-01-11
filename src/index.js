@@ -3,8 +3,8 @@
  */
 
 import Compiler from './compiler/compiler';
-import Observer from './observer';
-import Watcher from './watcher';
+import Observer from './observer/observer';
+import Watcher from './observer/watcher';
 import Directive from './directive';
 import eventMixin from './events';
 class MVVM {

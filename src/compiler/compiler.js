@@ -1,5 +1,5 @@
 import * as _ from '../util';
-import Watcher from '../watcher';
+import Watcher from '../observer/watcher';
 import {
 	vModel,
 	vText,

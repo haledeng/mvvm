@@ -10,7 +10,7 @@ var _util = require('../util');
 
 var _ = _interopRequireWildcard(_util);
 
-var _watcher = require('../watcher');
+var _watcher = require('../observer/watcher');
 
 var _watcher2 = _interopRequireDefault(_watcher);
 
