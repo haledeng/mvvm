@@ -60,10 +60,8 @@ class Observer {
 			configurable: false,
 			enumerable: true,
 			set: function(newVal) {
-				// debugger;
 				if (newVal !== val) {
 					val = newVal;
-					// console.log('set', self.$data);
 					self.observe(newVal);
 					dep.notify();
 				}

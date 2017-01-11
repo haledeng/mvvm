@@ -15,11 +15,11 @@ exports.default = function (Compiler) {
 		comVm.methods = instance.methods;
 		comVm.$data = instance.data;
 		comVm.$parent = vm;
+		comVm._events = instance._events;
+		(vm.$children || (vm.$children = [])).push(comVm);
 
 		//  TODO: 组件和原来VM的关系
 		//  每个Componet的instance是沙箱模式
-		// vm.copyData2Vm.call(comVm);
-		// frag.uid = ++cid;
 		new Compiler({
 			el: instance.frag,
 			vm: comVm

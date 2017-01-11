@@ -95,9 +95,9 @@ var Compiler = function () {
 			}
 
 			// remove all directives
-			// dirs.forEach(function(dir) {
-			// 	node.removeAttribute(dir);
-			// });
+			dirs.forEach(function (dir) {
+				node.removeAttribute(dir);
+			});
 		}
 	}, {
 		key: 'bindWatch',
@@ -119,6 +119,7 @@ var Compiler = function () {
 			var watcherMaps = {};
 
 			html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
+				console.log(name);
 				if (keys.indexOf(name) === -1) {
 					keys.push(name);
 				}
@@ -127,6 +128,7 @@ var Compiler = function () {
 			// TODO: filters
 			var _replace = function _replace(scope) {
 				var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
+					console.log(watcherMaps[name].value);
 					return watcherMaps[name].value;
 				});
 				node.textContent = newHtml;

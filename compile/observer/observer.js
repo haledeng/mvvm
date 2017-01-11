@@ -88,10 +88,8 @@ var Observer = function () {
 				configurable: false,
 				enumerable: true,
 				set: function set(newVal) {
-					// debugger;
 					if (newVal !== val) {
 						val = newVal;
-						// console.log('set', self.$data);
 						self.observe(newVal);
 						dep.notify();
 					}

@@ -71,9 +71,13 @@ exports.default = {
 			}
 		} else {
 			// 向父节点dispatch事件
-			var parent = self.$vm.$parent;
+			var parent = self.$vm.$parent || self.$vm;
 			this.$vm.$data.$emit = function (name) {
 				parent.$emit.call(parent, name);
+			};
+
+			this.$vm.$data.$broadcast = function () {
+				self.$vm.$broadcast.apply(self.$vm, arguments);
 			};
 			vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
 		}

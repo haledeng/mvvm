@@ -1,5 +1,5 @@
 // import Compiler from './complier/complier';
-import Observer from './observer';
+import Observer from './observer/observer';
 var id = 0;
 class Component {
 	constructor(name, descriptor) {
@@ -8,6 +8,7 @@ class Component {
 		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
 		this.data.uid = ++id;
 		this.methods = descriptor.methods;
+		this._events = descriptor.events;
 		this.init();
 	}
 	init() {

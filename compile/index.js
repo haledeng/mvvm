@@ -42,7 +42,6 @@ var MVVM = function () {
 		this.methods = options.methods;
 		this.filters = options.filters || {};
 		this.computed = options.computed || {};
-		// this._directives = [];
 		this.copyData2Vm();
 		new _observer2.default(this.$data);
 		new _compiler2.default({
@@ -77,12 +76,9 @@ var MVVM = function () {
 	}, {
 		key: 'bindDir',
 		value: function bindDir(descriptor, node) {
-			if (!this._directives) {
-				this._directives = [];
-			}
 			// 切换上下文
 			var self = descriptor.context || this;
-			this._directives.push(new _directive2.default(descriptor, self, node));
+			(this._directives || (this._directives = [])).push(new _directive2.default(descriptor, self, node));
 		}
 	}]);
 
@@ -123,8 +119,6 @@ MVVM.component = function (name, options) {
 	}
 	this._globalCom[name] = options;
 	options.name = name;
-	// options.data = typeof options.data === 'function' ? options.data() : options.data;
-	// new Observer(options.data);
 };
 
 (0, _events2.default)(MVVM);

@@ -49,17 +49,21 @@
     </head>
     <body>
         <div id="counter-event-example">
-            <p>{{total}}</p>
+            <!-- <p>{{total}}</p> -->
+            <!-- <button-counter v-on:increment="incrementTotal"></button-counter> -->
             <button-counter v-on:increment="incrementTotal"></button-counter>
-            <button-counter v-on:increment="incrementTotal"></button-counter>
+
+            <!-- <button v-on:click="trigger" v-on:notice="increment">notice</button> -->
+            <button v-on:click="broad">broadcast</button>
         </div>
         <script src="../dist/mvvm.js"></script>
         <script>
         MVVM.component('button-counter', {
-            template: '<button v-on:click="increment">{{counter}}</button>',
+            template: '<p>{{parentname}}</p><button v-on:click="increment">{{counter}}</button>',
             data: function () {
                 return {
-                    counter: 0
+                    counter: 0,
+                    parentname: 'hell'
                 }
             },
             methods: {
@@ -68,17 +72,36 @@
                     this.$emit('increment');
                 }
             },
+            events: {
+                parentName: function(name) {
+                    this.parentname = name;
+                }
+            }
         });
+
         new MVVM({
             el: '#counter-event-example',
             data: {
-                total: 0
+                total: 0,
+                name: 'hello'
             },
             methods: {
                 incrementTotal: function () {
                     console.log('incrementTotal');
                     this.total += 1
+                },
+                increment: function() {
+                    this.total += 2;
+                },
+                trigger: function() {
+                    this.total += 5;
+                    this.$emit('notice');
+                },
+                broad: function() {
+                    // this.name = 'helondeng';
+                    this.$broadcast('parentName', 'helondeng');
                 }
+
             }
         });
         </script>
