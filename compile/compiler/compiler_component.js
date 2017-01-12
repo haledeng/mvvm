@@ -15,7 +15,7 @@ exports.default = function (Compiler) {
 		comVm.methods = instance.methods;
 		comVm.$data = instance.data;
 		comVm.$parent = vm;
-		comVm._events = instance._events;
+		comVm._events = instance.events;
 		(vm.$children || (vm.$children = [])).push(comVm);
 
 		//  TODO: 组件和原来VM的关系

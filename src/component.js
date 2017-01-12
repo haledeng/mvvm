@@ -3,12 +3,12 @@ import Observer from './observer/observer';
 var id = 0;
 class Component {
 	constructor(name, descriptor) {
+		this.uid = ++id;
 		this.name = name;
 		this.template = descriptor.template;
 		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
-		this.data.uid = ++id;
 		this.methods = descriptor.methods;
-		this._events = descriptor.events;
+		this.events = descriptor.events;
 		this.init();
 	}
 	init() {

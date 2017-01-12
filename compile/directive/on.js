@@ -55,6 +55,8 @@ var allowEvents = ['click', 'submit', 'touch', 'mousedown'];
 
 exports.default = {
 	bind: function bind() {
+		var _this = this;
+
 		var self = this;
 		if (!this.$vm._listenedFn) {
 			this.$vm._listenedFn = [];
@@ -70,16 +72,29 @@ exports.default = {
 				});
 			}
 		} else {
-			// 向父节点dispatch事件
-			var parent = self.$vm.$parent || self.$vm;
-			this.$vm.$data.$emit = function (name) {
-				parent.$emit.call(parent, name);
-			};
+			(function () {
+				// 向父节点dispatch事件
+				// var parent = self.$vm.$parent || self.$vm;
+				// this.$vm.$data.$emit = function(name) {
+				// 	// parent.$emit.call(parent, name);
+				// 	self.$vm.$emit.apply(self.$vm, arguments);
+				// };
 
-			this.$vm.$data.$broadcast = function () {
-				self.$vm.$broadcast.apply(self.$vm, arguments);
-			};
-			vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
+				var _extend = function _extend(name) {
+					self.$vm.$data[name] = function () {
+						self.$vm[name].apply(self.$vm, arguments);
+					};
+				};
+
+				// extend function in this.
+
+
+				['$emit', '$broadcast', '$dispatch'].forEach(function (name) {
+					_extend(name);
+				});
+
+				vOn.call(_this.$vm.$data, _this.$el, _this.$vm.methods, _this.expression, _this.extraName);
+			})();
 		}
 	}
 };

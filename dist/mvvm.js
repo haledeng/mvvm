@@ -315,7 +315,6 @@ return /******/ (function(modules) { // webpackBootstrap
 				// TODO: filters
 				var _replace = function _replace(scope) {
 					var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
-						console.log(watcherMaps[name].value);
 						return watcherMaps[name].value;
 					});
 					node.textContent = newHtml;
@@ -1026,6 +1025,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.default = {
 		bind: function bind() {
+			var _this = this;
+
 			var self = this;
 			if (!this.$vm._listenedFn) {
 				this.$vm._listenedFn = [];
@@ -1041,16 +1042,29 @@ return /******/ (function(modules) { // webpackBootstrap
 					});
 				}
 			} else {
-				// 向父节点dispatch事件
-				var parent = self.$vm.$parent || self.$vm;
-				this.$vm.$data.$emit = function (name) {
-					parent.$emit.call(parent, name);
-				};
+				(function () {
+					// 向父节点dispatch事件
+					// var parent = self.$vm.$parent || self.$vm;
+					// this.$vm.$data.$emit = function(name) {
+					// 	// parent.$emit.call(parent, name);
+					// 	self.$vm.$emit.apply(self.$vm, arguments);
+					// };
 
-				this.$vm.$data.$broadcast = function () {
-					self.$vm.$broadcast.apply(self.$vm, arguments);
-				};
-				vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
+					var _extend = function _extend(name) {
+						self.$vm.$data[name] = function () {
+							self.$vm[name].apply(self.$vm, arguments);
+						};
+					};
+
+					// extend function in this.
+
+
+					['$emit', '$broadcast', '$dispatch'].forEach(function (name) {
+						_extend(name);
+					});
+
+					vOn.call(_this.$vm.$data, _this.$el, _this.$vm.methods, _this.expression, _this.extraName);
+				})();
 			}
 		}
 	};
@@ -1422,7 +1436,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			comVm.methods = instance.methods;
 			comVm.$data = instance.data;
 			comVm.$parent = vm;
-			comVm._events = instance._events;
+			comVm._events = instance.events;
 			(vm.$children || (vm.$children = [])).push(comVm);
 
 			//  TODO: 组件和原来VM的关系
@@ -1468,12 +1482,12 @@ return /******/ (function(modules) { // webpackBootstrap
 		function Component(name, descriptor) {
 			_classCallCheck(this, Component);
 
+			this.uid = ++id;
 			this.name = name;
 			this.template = descriptor.template;
 			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
-			this.data.uid = ++id;
 			this.methods = descriptor.methods;
-			this._events = descriptor.events;
+			this.events = descriptor.events;
 			this.init();
 		}
 
@@ -1848,16 +1862,28 @@ return /******/ (function(modules) { // webpackBootstrap
 			}
 		};
 
+		// 向所有子组件广播事件
 		Lib.prototype.$broadcast = function () {
 			var children = this.$children;
 			var shouldPropagate = false;
 			var args = arguments;
 			children.forEach(function (child) {
 				shouldPropagate = child.$emit.apply(child, args);
-				// if (shouldPropagate) {
-				// 	child.$broadcast.apply(child, arguments);
-				// }
+				// 是否继续向下传播
+				if (shouldPropagate) {
+					child.$broadcast.apply(child, args);
+				}
 			});
+		};
+
+		// 父节点冒泡事件
+		Lib.prototype.$dispatch = function () {
+			var parent = this.$parent;
+			var shouldPropagate = false;
+			while (parent) {
+				shouldPropagate = parent.$emit.apply(parent, arguments);
+				parent = shouldPropagate ? parent.$parent : null;
+			}
 		};
 	};
 

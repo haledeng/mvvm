@@ -22,15 +22,27 @@ export default function(Lib) {
 
 	};
 
+	// 向所有子组件广播事件
 	Lib.prototype.$broadcast = function() {
 		var children = this.$children;
 		var shouldPropagate = false;
 		var args = arguments;
 		children.forEach(function(child) {
 			shouldPropagate = child.$emit.apply(child, args);
-			// if (shouldPropagate) {
-			// 	child.$broadcast.apply(child, arguments);
-			// }
+			// 是否继续向下传播
+			if (shouldPropagate) {
+				child.$broadcast.apply(child, args);
+			}
 		});
+	};
+
+	// 父节点冒泡事件
+	Lib.prototype.$dispatch = function() {
+		var parent = this.$parent;
+		var shouldPropagate = false;
+		while (parent) {
+			shouldPropagate = parent.$emit.apply(parent, arguments);
+			parent = shouldPropagate ? parent.$parent : null;
+		}
 	}
 }

@@ -21,12 +21,12 @@ var Component = function () {
 	function Component(name, descriptor) {
 		_classCallCheck(this, Component);
 
+		this.uid = ++id;
 		this.name = name;
 		this.template = descriptor.template;
 		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
-		this.data.uid = ++id;
 		this.methods = descriptor.methods;
-		this._events = descriptor.events;
+		this.events = descriptor.events;
 		this.init();
 	}
 

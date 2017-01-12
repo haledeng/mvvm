@@ -103,7 +103,6 @@ class Compiler {
 		// TODO: filters
 		const _replace = (scope) => {
 			var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
-				console.log(watcherMaps[name].value);
 				return watcherMaps[name].value;
 			});
 			node.textContent = newHtml;

@@ -65,14 +65,23 @@ export default {
 			}
 		} else {
 			// 向父节点dispatch事件
-			var parent = self.$vm.$parent || self.$vm;
-			this.$vm.$data.$emit = function(name) {
-				parent.$emit.call(parent, name);
-			};
+			// var parent = self.$vm.$parent || self.$vm;
+			// this.$vm.$data.$emit = function(name) {
+			// 	// parent.$emit.call(parent, name);
+			// 	self.$vm.$emit.apply(self.$vm, arguments);
+			// };
 
-			this.$vm.$data.$broadcast = function() {
-				self.$vm.$broadcast.apply(self.$vm, arguments);
+			function _extend(name) {
+				self.$vm.$data[name] = function() {
+					self.$vm[name].apply(self.$vm, arguments);
+				};
 			}
+
+			// extend function in this.
+			['$emit', '$broadcast', '$dispatch'].forEach(function(name) {
+				_extend(name);
+			});
+
 			vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
 		}
 	}
