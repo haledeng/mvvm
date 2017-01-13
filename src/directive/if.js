@@ -8,7 +8,6 @@ import patch from '../dom-diff/patch';
 
 function vIf(node, vm, value) {
 	var hasElseNext = this._hasElseNext;
-	var diff = null;
 	if (value) {
 		// 这种2次操作的方式，实际和未dom-diff差别不到
 		if (this.$el.__anchor__) {
@@ -42,7 +41,7 @@ function removeNode(node) {
 // function vIf(node, vm, value) {
 // 	var parent = node.parentNode || node.__parent__;
 // 	// difference between nextSibling and nextElementSibling
-// 	// get from node.childNode and node.children 
+// 	// get from node.childNode and node.children
 // 	var nextSibling = node.__nextSibling__ || node.nextElementSibling;
 
 // 	var hasElseNext = this._hasElseNext;
