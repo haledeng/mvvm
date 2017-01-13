@@ -10,7 +10,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * 2.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
 
-var _watcher = require('./watcher');
+var _watcher = require('./observer/watcher');
 
 var _watcher2 = _interopRequireDefault(_watcher);
 

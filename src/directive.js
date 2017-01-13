@@ -5,7 +5,7 @@
  */
 
 
-import Watcher from './watcher';
+import Watcher from './observer/watcher';
 
 function noop() {};
 

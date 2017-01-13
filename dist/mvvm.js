@@ -69,7 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler2 = _interopRequireDefault(_compiler);
 
-	var _observer = __webpack_require__(22);
+	var _observer = __webpack_require__(33);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -77,11 +77,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _watcher2 = _interopRequireDefault(_watcher);
 
-	var _directive = __webpack_require__(23);
+	var _directive = __webpack_require__(34);
 
 	var _directive2 = _interopRequireDefault(_directive);
 
-	var _events = __webpack_require__(26);
+	var _events = __webpack_require__(35);
 
 	var _events2 = _interopRequireDefault(_events);
 
@@ -205,11 +205,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _filter = __webpack_require__(6);
 
-	var _compiler_props = __webpack_require__(19);
+	var _compiler_props = __webpack_require__(30);
 
 	var _compiler_props2 = _interopRequireDefault(_compiler_props);
 
-	var _compiler_component = __webpack_require__(20);
+	var _compiler_component = __webpack_require__(31);
 
 	var _compiler_component2 = _interopRequireDefault(_compiler_component);
 
@@ -282,9 +282,9 @@ return /******/ (function(modules) { // webpackBootstrap
 				}
 
 				// remove all directives
-				dirs.forEach(function (dir) {
-					node.removeAttribute(dir);
-				});
+				// dirs.forEach(function(dir) {
+				// 	node.removeAttribute(dir);
+				// });
 			}
 		}, {
 			key: 'bindWatch',
@@ -306,7 +306,6 @@ return /******/ (function(modules) { // webpackBootstrap
 				var watcherMaps = {};
 
 				html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
-					console.log(name);
 					if (keys.indexOf(name) === -1) {
 						keys.push(name);
 					}
@@ -857,15 +856,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _for2 = _interopRequireDefault(_for);
 
-	var _bind = __webpack_require__(16);
+	var _bind = __webpack_require__(27);
 
 	var _bind2 = _interopRequireDefault(_bind);
 
-	var _html = __webpack_require__(17);
+	var _html = __webpack_require__(28);
 
 	var _html2 = _interopRequireDefault(_html);
 
-	var _if = __webpack_require__(18);
+	var _if = __webpack_require__(29);
 
 	var _if2 = _interopRequireDefault(_if);
 
@@ -1043,13 +1042,6 @@ return /******/ (function(modules) { // webpackBootstrap
 				}
 			} else {
 				(function () {
-					// 向父节点dispatch事件
-					// var parent = self.$vm.$parent || self.$vm;
-					// this.$vm.$data.$emit = function(name) {
-					// 	// parent.$emit.call(parent, name);
-					// 	self.$vm.$emit.apply(self.$vm, arguments);
-					// };
-
 					var _extend = function _extend(name) {
 						self.$vm.$data[name] = function () {
 							self.$vm[name].apply(self.$vm, arguments);
@@ -1088,6 +1080,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _compiler = __webpack_require__(1);
 
 	var _compiler2 = _interopRequireDefault(_compiler);
+
+	var _diffDom = __webpack_require__(16);
+
+	var _diffDom2 = _interopRequireDefault(_diffDom);
+
+	var _patch = __webpack_require__(24);
+
+	var _patch2 = _interopRequireDefault(_patch);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1140,16 +1140,23 @@ return /******/ (function(modules) { // webpackBootstrap
 		!node.__parent__ && parent.removeChild(node);
 		// node.__template__ = template;
 		// TODO: remove before
-		node.__parent__ = replaceChild(parent, docFrag);
-		// parent.replaceChild(docFrag, parent.lastChild);
+		node.__parent__ = parent;
+		replaceChild(parent, docFrag);
+		// node.__parent__ = replaceChild(parent, docFrag);
 	}
 
 	function replaceChild(node, docFrag) {
 		var parent = node.parentNode;
 		var newNode = node.cloneNode(false);
 		newNode.appendChild(docFrag);
-		parent.replaceChild(newNode, node);
-		return newNode;
+		var diff = (0, _diffDom2.default)(node, newNode);
+		console.log(diff);
+		// parent.replaceChild(newNode, node);
+		// dom-diff
+		// setTimeout(function() {
+		(0, _patch2.default)(diff);
+		// }, 1e3);
+		// return newNode;
 	}
 
 	exports.default = {
@@ -1164,6 +1171,589 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	exports.default = function (one, two) {
+		var patch = {
+			left: one
+		};
+		diffDom(one, two, patch, 0);
+		return patch;
+	};
+
+	var _util = __webpack_require__(17);
+
+	var _ = _interopRequireWildcard(_util);
+
+	var _vPatch = __webpack_require__(18);
+
+	var _vPatch2 = _interopRequireDefault(_vPatch);
+
+	var _diffProps = __webpack_require__(19);
+
+	var _diffProps2 = _interopRequireDefault(_diffProps);
+
+	var _isTextNode = __webpack_require__(21);
+
+	var _isTextNode2 = _interopRequireDefault(_isTextNode);
+
+	var _attribute = __webpack_require__(22);
+
+	var attr = _interopRequireWildcard(_attribute);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function appendPatch(apply, patch) {
+		if (apply) {
+			if (_.isArray(apply)) {
+				return apply.push(patch);
+			} else {
+				return [apply, patch];
+			}
+		} else {
+			return patch;
+		}
+	}
+
+	// textNode diff
+	function diffTextNode(one, two) {
+		var isOneText = (0, _isTextNode2.default)(one);
+		var isTwoText = (0, _isTextNode2.default)(two);
+		if (isOneText) {
+			if (isTwoText) {
+				// both textNode
+				var oneText = one.childNodes[0].data;
+				var twoText = two.childNodes[0].data;
+				if (_.trim(oneText) !== _.trim(twoText)) {
+					return new _vPatch2.default(_vPatch2.default.TEXTNODE, one, twoText);
+				}
+				// } else {
+				// return new VPatch(VPatch.REPLACE, one, two);
+			}
+		} else {
+			if (isTwoText) {
+				return new _vPatch2.default(_vPatch2.default.TEXTNODE, one, _.trim(two.childNodes[0].data));
+			}
+		}
+	}
+
+	// remove/replace 节点，需要将对应的prop操作删掉
+	function deleteChangeProp(apply) {
+		if (!apply) return apply;
+		if (_.isObject(apply)) {
+			return apply.type === _vPatch2.default.PROPS ? null : apply;
+		}
+		if (_.isArray(apply)) {
+			var newApply = [];
+			apply.forEach(function (a) {
+				if (a.type !== _vPatch2.default.PROPS) {
+					newApply.push(a);
+				}
+			});
+			if (newApply.length === 1) {
+				return newApply[0];
+			}
+			return newApply;
+		}
+	}
+
+	// 对比dom差异
+	function diffDom(one, two, patch, index) {
+		var apply = patch[index];
+		if (two) {
+			if (one.tagName === two.tagName) {
+				var oneAttr = attr.getAttr(one);
+				var twoAttr = attr.getAttr(two);
+				var props = (0, _diffProps2.default)(oneAttr, twoAttr);
+				if (props) {
+					apply = appendPatch(apply, new _vPatch2.default(_vPatch2.default.PROPS, one, props));
+				}
+				// innerText
+				var textNode = diffTextNode(one, two);
+				if (textNode) {
+					apply = appendPatch(apply, textNode);
+					if (textNode.type === _vPatch2.default.REPLACE) {
+						apply = deleteChangeProp(apply);
+					}
+				}
+				if (one.children.length || two.children.length) {
+					apply = diffChildren(one, two, patch, apply, index);
+				}
+			} else {
+				apply = appendPatch(apply, new _vPatch2.default(_vPatch2.default.REPLACE, one, two));
+				apply = deleteChangeProp(apply);
+			}
+		} else {
+			apply = appendPatch(apply, new _vPatch2.default(_vPatch2.default.REMOVE, one, two));
+			apply = deleteChangeProp(apply);
+		}
+		if (apply) {
+			patch[index] = apply;
+		}
+	}
+
+	// 对比dom中childrend差异
+	function diffChildren(one, two, patch, apply, index) {
+		var aLen = one.children.length;
+		var bLen = two.children.length;
+		var len = Math.max(aLen, bLen);
+		for (var i = 0; i < len; i++) {
+			index++;
+			var leftNode = one.children[i];
+			var rightNode = two.children[i];
+			if (leftNode) {
+				diffDom(leftNode, rightNode, patch, index);
+				index += leftNode.children.length;
+			} else {
+				if (rightNode) {
+					apply = appendPatch(apply, new _vPatch2.default(_vPatch2.default.INSERT, null, rightNode));
+				}
+			}
+		}
+		return apply;
+	}
+
+	;
+
+/***/ },
+/* 17 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var toString = Object.prototype.toString;
+
+	var trim = function trim(str) {
+	  return str.replace(/(^\s*)|(\s*$)/, '');
+	};
+
+	/**
+	 * is Object
+	 * @param    {[type]}                 obj [description]
+	 * @return   {Boolean}                    [description]
+	 */
+	var isObject = function isObject(obj) {
+	  return '[object Object]' === toString.call(obj);
+	};
+
+	/**
+	 * is object an array
+	 * @param    {object}                 obj [description]
+	 * @return   {Boolean}                    [description]
+	 */
+	var isArray = function isArray(obj) {
+	  return '[object Array]' === toString.call(obj);
+	};
+
+	/**
+	 * is empty string
+	 * @param    {string}                 obj [description]
+	 * @return   {Boolean}                    [description]
+	 */
+	var isEmptyStr = function isEmptyStr(obj) {
+	  return obj === '';
+	};
+
+	var isFunction = function isFunction(fn) {
+	  return fn && typeof fn === 'function';
+	};
+
+	exports.trim = trim;
+	exports.isObject = isObject;
+	exports.isArray = isArray;
+	exports.isEmptyStr = isEmptyStr;
+	exports.isFunction = isFunction;
+
+/***/ },
+/* 18 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	function VPatch(type, node, right) {
+		this.type = type;
+		this.left = node;
+		this.right = right;
+	}
+
+	// 删除节点
+	VPatch.REMOVE = 0;
+	// 插入节点
+	VPatch.INSERT = 1;
+	VPatch.REPLACE = 2;
+	VPatch.PROPS = 3;
+	VPatch.TEXTNODE = 4;
+
+	exports.default = VPatch;
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _attr2prop = __webpack_require__(20);
+
+	var _attr2prop2 = _interopRequireDefault(_attr2prop);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function parseStyle(one, two, key) {
+		if (key === 'style') {
+			var oneStyles = (0, _attr2prop2.default)(one[key]);
+			var twoStyles = (0, _attr2prop2.default)(two[key]);
+			return diffProps(oneStyles, twoStyles);
+		} else {
+			return two[key];
+		}
+	}
+
+	function diffProps(one, two) {
+		var diff;
+		for (var k in one) {
+			if (!(k in two)) {
+				diff = diff || {};
+				diff[k] = undefined;
+			}
+
+			if (one[k] !== two[k]) {
+				diff = diff || {};
+				// style增量更新
+				diff[k] = parseStyle(one, two, k);
+			}
+		}
+
+		for (var key in two) {
+			if (!(key in one)) {
+				diff = diff || {};
+				diff[key] = parseStyle(one, two, key);
+			}
+		}
+
+		return diff;
+	};
+
+	exports.default = diffProps;
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	exports.default = function (attr) {
+		var attrReg = /([a-zA-Z\-]*)\s*?\:\s*?([a-zA-Z0-9%\-\s\#]*);?/g;
+		var attrs = {};
+		attr && attr.replace(attrReg, function (all, key, value) {
+			// key = camelize.camel(key);
+			attrs[key] = _.trim(value);
+		});
+		return attrs;
+	};
+
+	var _util = __webpack_require__(17);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+/***/ },
+/* 21 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	exports.default = function (node) {
+		return node.children.length === 0 && node.childNodes.length !== 0;
+	};
+
+	;
+
+/***/ },
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.getAttr = exports.patchObject = exports.removeAttribute = exports.applyAttributes = undefined;
+
+	var _util = __webpack_require__(17);
+
+	var _ = _interopRequireWildcard(_util);
+
+	var _camelize = __webpack_require__(23);
+
+	var camelize = _interopRequireWildcard(_camelize);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	var applyAttributes = function applyAttributes(node, props) {
+		for (var propName in props) {
+			var propValue = props[propName];
+			if (typeof propValue === 'undefined') {
+				this.removeAttribute(node, propName);
+			} else {
+				if (_.isObject(propValue)) {
+					this.patchObject(node, propName, propValue);
+				} else {
+					node.setAttribute(propName, propValue);
+				}
+			}
+		}
+	};
+	var removeAttribute = function removeAttribute(node, propName) {
+		node.removeAttribute(propName);
+	};
+	var patchObject = function patchObject(node, propName, propValue) {
+		for (var k in propValue) {
+			if (propValue[k] === undefined && propName === 'style') {
+				node[propName].removeProperty(camelize.unCamel(k));
+			} else {
+				node[propName][k] = propValue[k];
+			}
+		}
+	};
+	var getAttr = function getAttr(node) {
+		var attrs = node.attributes;
+		var ret = {};
+		for (var i = 0; i < attrs.length; i++) {
+			var attr = attrs[i];
+			if (!_.isEmptyStr(attr.value)) {
+				ret[attr.name] = attr.value;
+			}
+		}
+		return ret;
+	};
+	exports.applyAttributes = applyAttributes;
+	exports.removeAttribute = removeAttribute;
+	exports.patchObject = patchObject;
+	exports.getAttr = getAttr;
+
+/***/ },
+/* 23 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var camel = function camel(styleName) {
+	  var reg = /\-([a-z])/g;
+	  return styleName.replace(reg, function (all, key) {
+	    return key.toUpperCase();
+	  });
+	};
+	var unCamel = function unCamel(styleName) {
+	  var reg = /[A-Z]/g;
+	  return styleName.replace(reg, function (all) {
+	    return '-' + all.toLowerCase();
+	  });
+	};
+
+	exports.camel = camel;
+	exports.unCamel = unCamel;
+
+/***/ },
+/* 24 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	exports.default = function (patch) {
+		var node = patch.left;
+		patchDom(node, patch, 0);
+	};
+
+	var _vPatch = __webpack_require__(18);
+
+	var _vPatch2 = _interopRequireDefault(_vPatch);
+
+	var _util = __webpack_require__(17);
+
+	var _ = _interopRequireWildcard(_util);
+
+	var _traversal = __webpack_require__(25);
+
+	var _traversal2 = _interopRequireDefault(_traversal);
+
+	var _curd = __webpack_require__(26);
+
+	var curd = _interopRequireWildcard(_curd);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var findPatchNode = function findPatchNode(node, patch) {
+		var children = {};
+		for (var index in patch) {
+			if (index !== 'left') {
+				var child = (0, _traversal2.default)(node, index);
+				children[index] = child;
+			}
+		}
+		return children;
+	};
+
+	// 每个type对应的操作函数
+	var typeOpMaps = {};
+	typeOpMaps[_vPatch2.default.REMOVE] = curd.removeChild;
+	typeOpMaps[_vPatch2.default.INSERT] = curd.insertChild;
+	typeOpMaps[_vPatch2.default.REPLACE] = curd.replaceChild;
+	typeOpMaps[_vPatch2.default.PROPS] = curd.applyAttributes;
+	typeOpMaps[_vPatch2.default.TEXTNODE] = curd.replaceContent;
+
+	// 增量渲染
+	// 边查找边操作有bug
+	var patchDom = function patchDom(node, patch, index) {
+		// 先把dom和index关系查找完毕，在进行dom操作
+		var domIndex = findPatchNode(node, patch);
+		for (var index in patch) {
+			if (index !== 'left') {
+				var child = domIndex[index];
+				var applies = patch[index];
+				if (!_.isArray(applies)) {
+					applies = [applies];
+				}
+				applies.forEach(function (apply) {
+					if (_.isFunction(typeOpMaps[apply.type])) {
+						typeOpMaps[apply.type](child, apply);
+					}
+				});
+			}
+		}
+	};
+
+	;
+
+/***/ },
+/* 25 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	exports.default = function (node, index) {
+		var count = 0;
+		var lastChild = null;
+		var _find = function _find(node, index) {
+			if (index == count) return node;
+			for (var i = 0; i < node.children.length; i++) {
+				lastChild = node.children[i];
+				count++;
+				if (index == count) return lastChild;
+				if (lastChild.children.length) {
+					lastChild = _find(lastChild, index);
+					if (lastChild) return lastChild;
+				}
+			}
+		};
+		var findNode = _find(node, index);
+		if (!findNode && index >= count) {
+			return lastChild;
+		} else {
+			return findNode;
+		}
+	};
+
+	; /**
+	   * 根据序号，查找dom数，深度优先遍历
+	   */
+
+/***/ },
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.applyAttributes = exports.replaceChild = exports.replaceContent = exports.removeChild = exports.insertChild = undefined;
+
+	var _attribute = __webpack_require__(22);
+
+	var applyAttr = _interopRequireWildcard(_attribute);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function insertChild(node, apply) {
+		if (!apply.left && apply.right) {
+			node.appendChild(apply.right);
+		}
+	}
+
+	// 替换节点
+	/**
+	 * dom增、删、改
+	 */
+	function replaceChild(node, apply) {
+		var parent = node.parentNode;
+		var newNode = apply.right.cloneNode(true);
+		parent.replaceChild(newNode, node);
+	}
+
+	// 删除节点
+	function removeChild(node, apply) {
+		apply.left.parentNode.removeChild(apply.left);
+	}
+
+	// textNode节点，替换内容
+	function replaceContent(node, apply) {
+		if (apply && typeof apply.right === 'string') {
+			node.innerHTML = apply.right;
+		}
+	}
+
+	function applyAttributes(node, apply) {
+		applyAttr.applyAttributes(node, apply.right);
+	}
+
+	exports.insertChild = insertChild;
+	exports.removeChild = removeChild;
+	exports.replaceContent = replaceContent;
+	exports.replaceChild = replaceChild;
+	exports.applyAttributes = applyAttributes;
+
+/***/ },
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1234,7 +1824,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 17 */
+/* 28 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1259,7 +1849,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 18 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1343,7 +1933,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// export default vIf;
 
 /***/ },
-/* 19 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1384,6 +1974,7 @@ return /******/ (function(modules) { // webpackBootstrap
 						break;
 					case 'for':
 						var info = (0, _for.parseForExpression)(attr.value);
+						console.log(info);
 						self.$vm.bindDir(Object.assign({
 							expression: attr.value,
 							watchExp: info.val,
@@ -1391,6 +1982,7 @@ return /******/ (function(modules) { // webpackBootstrap
 						}, Dir['v' + _.upperFirst(property)]), node);
 						break;
 					default:
+						// custom directives
 						if (~customNames.indexOf(property)) {
 							self.$vm.bindDir(Object.assign({
 								expression: attr.value,
@@ -1416,7 +2008,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 /***/ },
-/* 20 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1429,17 +2021,18 @@ return /******/ (function(modules) { // webpackBootstrap
 		Compiler.prototype._parseComponent = function (node) {
 			var allCom = this.$vm.constructor._globalCom;
 			var descriptor = allCom[node.tagName.toLowerCase()];
+			// component是全局VM的一个child
 			var instance = new _component2.default(descriptor.name, descriptor);
 			var vm = this.$vm;
 
 			var comVm = Object.create(vm.__proto__);
 			comVm.methods = instance.methods;
 			comVm.$data = instance.data;
+			// 记录全局VM
 			comVm.$parent = vm;
 			comVm._events = instance.events;
 			(vm.$children || (vm.$children = [])).push(comVm);
 
-			//  TODO: 组件和原来VM的关系
 			//  每个Componet的instance是沙箱模式
 			new Compiler({
 				el: instance.frag,
@@ -1449,14 +2042,14 @@ return /******/ (function(modules) { // webpackBootstrap
 		};
 	};
 
-	var _component = __webpack_require__(21);
+	var _component = __webpack_require__(32);
 
 	var _component2 = _interopRequireDefault(_component);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ },
-/* 21 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1468,7 +2061,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Compiler from './complier/complier';
 
 
-	var _observer = __webpack_require__(22);
+	var _observer = __webpack_require__(33);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -1523,7 +2116,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Component;
 
 /***/ },
-/* 22 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1562,7 +2155,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				var oldProto = Array.prototype;
 				var overrideProto = Object.create(Array.prototype);
 				var result;
-				['push', 'pop'].forEach(function (name) {
+				['push', 'pop', 'reverse', 'sort', 'slice', 'shift', 'unshift'].forEach(function (name) {
 					var oldMethod = oldProto[name];
 					Object.defineProperty(overrideProto, name, {
 						enumerable: false,
@@ -1572,7 +2165,8 @@ return /******/ (function(modules) { // webpackBootstrap
 							var oldArr = this.slice(0);
 							var arg = [].slice.call(arguments);
 							result = oldMethod.apply(this, arg);
-							if (result.length !== oldArr.length) {
+							// 后面有dom diff的算法，这里可以不需要
+							if (result.length !== oldArr.length || name === 'reverse' || name === 'sort') {
 								callback(result);
 							}
 							return result;
@@ -1636,7 +2230,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Observer;
 
 /***/ },
-/* 23 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1651,7 +2245,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 2.
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
 
-	var _watcher = __webpack_require__(24);
+	var _watcher = __webpack_require__(3);
 
 	var _watcher2 = _interopRequireDefault(_watcher);
 
@@ -1714,125 +2308,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Directive;
 
 /***/ },
-/* 24 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _depender = __webpack_require__(25);
-
-	var _depender2 = _interopRequireDefault(_depender);
-
-	var _expression = __webpack_require__(5);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var uid = 0;
-
-	var Watcher = function () {
-		function Watcher(opts) {
-			_classCallCheck(this, Watcher);
-
-			this.id = ++uid;
-			this.vm = opts.vm;
-			this.$el = opts.$el;
-			this.exp = opts.exp;
-			this.directive = opts.directive || '';
-			this.callback = opts.callback;
-			this.value = this.init();
-		}
-
-		_createClass(Watcher, [{
-			key: 'update',
-			value: function update() {
-				var newVal = this.get();
-				var oldVal = this.value;
-				// @TODO: [], {}引用类型，指向了同一个值
-				// if (oldVal != newVal) {
-				this.value = newVal;
-				this.callback(this.vm, newVal, oldVal);
-				// }
-			}
-		}, {
-			key: 'beforeGet',
-			value: function beforeGet() {
-				_depender2.default.target = this;
-			}
-		}, {
-			key: 'afterGet',
-			value: function afterGet() {
-				_depender2.default.target = null;
-			}
-		}, {
-			key: 'init',
-			value: function init() {
-				this.beforeGet();
-				var value = this.get();
-				this.afterGet();
-				return value;
-			}
-		}, {
-			key: 'get',
-			value: function get() {
-				return (0, _expression.parseExpression)(this.vm, this.exp, this.directive, this.$el);
-			}
-		}]);
-
-		return Watcher;
-	}();
-
-	exports.default = Watcher;
-
-/***/ },
-/* 25 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var Dep = function () {
-		function Dep() {
-			_classCallCheck(this, Dep);
-
-			this.subs = [];
-		}
-
-		_createClass(Dep, [{
-			key: "addSub",
-			value: function addSub(sub) {
-				this.subs.push(sub);
-			}
-		}, {
-			key: "notify",
-			value: function notify() {
-				this.subs.forEach(function (sub) {
-					sub.update.call(sub);
-				});
-			}
-		}]);
-
-		return Dep;
-	}();
-
-	exports.default = Dep;
-
-/***/ },
-/* 26 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

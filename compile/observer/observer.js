@@ -34,7 +34,7 @@ var Observer = function () {
 			var oldProto = Array.prototype;
 			var overrideProto = Object.create(Array.prototype);
 			var result;
-			['push', 'pop'].forEach(function (name) {
+			['push', 'pop', 'reverse', 'sort', 'slice', 'shift', 'unshift'].forEach(function (name) {
 				var oldMethod = oldProto[name];
 				Object.defineProperty(overrideProto, name, {
 					enumerable: false,
@@ -44,7 +44,8 @@ var Observer = function () {
 						var oldArr = this.slice(0);
 						var arg = [].slice.call(arguments);
 						result = oldMethod.apply(this, arg);
-						if (result.length !== oldArr.length) {
+						// 后面有dom diff的算法，这里可以不需要
+						if (result.length !== oldArr.length || name === 'reverse' || name === 'sort') {
 							callback(result);
 						}
 						return result;

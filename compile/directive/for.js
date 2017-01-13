@@ -14,6 +14,14 @@ var _compiler = require('../compiler/compiler');
 
 var _compiler2 = _interopRequireDefault(_compiler);
 
+var _diffDom = require('../dom-diff/diffDom');
+
+var _diffDom2 = _interopRequireDefault(_diffDom);
+
+var _patch = require('../dom-diff/patch');
+
+var _patch2 = _interopRequireDefault(_patch);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -65,16 +73,23 @@ function vFor(node, vm, expression) {
 	!node.__parent__ && parent.removeChild(node);
 	// node.__template__ = template;
 	// TODO: remove before
-	node.__parent__ = replaceChild(parent, docFrag);
-	// parent.replaceChild(docFrag, parent.lastChild);
+	node.__parent__ = parent;
+	replaceChild(parent, docFrag);
+	// node.__parent__ = replaceChild(parent, docFrag);
 }
 
 function replaceChild(node, docFrag) {
 	var parent = node.parentNode;
 	var newNode = node.cloneNode(false);
 	newNode.appendChild(docFrag);
-	parent.replaceChild(newNode, node);
-	return newNode;
+	var diff = (0, _diffDom2.default)(node, newNode);
+	console.log(diff);
+	// parent.replaceChild(newNode, node);
+	// dom-diff
+	// setTimeout(function() {
+	(0, _patch2.default)(diff);
+	// }, 1e3);
+	// return newNode;
 }
 
 exports.default = {

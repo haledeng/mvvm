@@ -70,16 +70,17 @@
         });
         </pre>
     <div id="app">
-        <p>v-for demo: item in companies</p>
+<!--         <p>v-for demo: item in companies</p>
         <ul>
             <li v-for="item in companies">{{ item.name }} : {{ item.location }} -> {{ message }}</li>
         </ul>
-
+ -->
         <p>v-for (item, index) in companies demo:</p>
         <ul>
             <li v-for="(item, index) in companies">{{ item.name }}  -> {{ index * 2 }}</li>
         </ul>
-        <button v-on:click="changeList">changeList</button>
+        <button v-on:click="addList">addList</button>
+        <button v-on:click="reverseList">reverseList</button>
     </div>
 
 
@@ -99,7 +100,7 @@
                 message: 'hello MVVM',
             },
             methods: {
-                changeList: function() {
+                addList: function() {
                     // this.companies = ['baidu'];
                     var randomStr = function(times) {
                         var ret = []
@@ -109,6 +110,9 @@
                         return ret.join('');
                     }
                     this.companies.push({name:randomStr(8), location: 'US'});
+                },
+                reverseList: function() {
+                    this.companies.reverse();
                 }
             }
         });

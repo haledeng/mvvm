@@ -73,9 +73,9 @@ class Compiler {
 		}
 
 		// remove all directives
-		dirs.forEach(function(dir) {
-			node.removeAttribute(dir);
-		});
+		// dirs.forEach(function(dir) {
+		// 	node.removeAttribute(dir);
+		// });
 
 	}
 	bindWatch(vm, exp, callback, directive) {
@@ -94,7 +94,6 @@ class Compiler {
 		var watcherMaps = {};
 
 		html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
-			console.log(name);
 			if (keys.indexOf(name) === -1) {
 				keys.push(name);
 			}

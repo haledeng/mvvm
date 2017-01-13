@@ -15,7 +15,6 @@ class Watcher {
 		this.directive = opts.directive || '';
 		this.callback = opts.callback;
 		this.value = this.init();
-
 	}
 	update() {
 		var newVal = this.get();
@@ -30,7 +29,7 @@ class Watcher {
 		Dep.target = this;
 	}
 	afterGet() {
-		Dep.target = null
+		Dep.target = null;
 	}
 	init() {
 		this.beforeGet();

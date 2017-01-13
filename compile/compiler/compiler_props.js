@@ -36,6 +36,7 @@ exports.default = function (Compiler) {
 					break;
 				case 'for':
 					var info = (0, _for.parseForExpression)(attr.value);
+					console.log(info);
 					self.$vm.bindDir(Object.assign({
 						expression: attr.value,
 						watchExp: info.val,
@@ -43,6 +44,7 @@ exports.default = function (Compiler) {
 					}, Dir['v' + _.upperFirst(property)]), node);
 					break;
 				default:
+					// custom directives
 					if (~customNames.indexOf(property)) {
 						self.$vm.bindDir(Object.assign({
 							expression: attr.value,

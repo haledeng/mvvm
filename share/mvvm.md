@@ -85,3 +85,31 @@ Object.defineProperty(obj, key, {
 ----
 * Props Down
 * Events Up
+
+[slide]
+## Dom Diff
+```html
+<div id="container">
+	<p class="message">hello world</p>
+	<h1 class="title">title</h1>
+</div>
+```
+
+```javascript
+new VNode({
+	tagName: 'div',
+	attributes: {id: 'container'},
+	children: [
+		new VNode({
+			tagName: 'p',
+			attributes: {class: 'message'},
+			children: ['hello world']
+		}),
+		new Vnode({
+			tagName: 'h1',
+			attributes: {class: 'title'},
+			children: ['title']
+		})
+	]
+});
+```

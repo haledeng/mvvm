@@ -1,10 +1,3 @@
-// import vModel from './directive/model';
-// import vText from './directive/text';
-// import vOn from './directive/on';
-// import vBind from './directive/bind';
-// import vHtml from './directive/html';
-// import vFor from './directive/for';
-// import vIf from './directive/if';
 import {
 	parseForExpression
 } from '../parser/for';
@@ -50,6 +43,7 @@ export default function(Compiler) {
 					break;
 				case 'for':
 					var info = parseForExpression(attr.value);
+					console.log(info);
 					self.$vm.bindDir(Object.assign({
 						expression: attr.value,
 						watchExp: info.val,
@@ -57,6 +51,7 @@ export default function(Compiler) {
 					}, Dir['v' + _.upperFirst(property)]), node);
 					break;
 				default:
+					// custom directives
 					if (~customNames.indexOf(property)) {
 						self.$vm.bindDir(Object.assign({
 							expression: attr.value,
