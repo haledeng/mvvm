@@ -13,7 +13,8 @@ function insertChild(node, apply) {
 // 替换节点
 function replaceChild(node, apply) {
 	var parent = node.parentNode;
-	var newNode = apply.right.cloneNode(true);
+	// var newNode = apply.right.cloneNode(true);
+	var newNode = apply.right;
 	parent.replaceChild(newNode, node);
 }
 

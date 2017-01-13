@@ -29,7 +29,7 @@ var patchObject = function(node, propName, propValue) {
 	}
 };
 var getAttr = function(node) {
-	var attrs = node.attributes;
+	var attrs = node.attributes || [];
 	var ret = {};
 	for (var i = 0; i < attrs.length; i++) {
 		var attr = attrs[i];
