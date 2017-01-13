@@ -64,12 +64,6 @@ export default {
 				});
 			}
 		} else {
-			// 向父节点dispatch事件
-			// var parent = self.$vm.$parent || self.$vm;
-			// this.$vm.$data.$emit = function(name) {
-			// 	// parent.$emit.call(parent, name);
-			// 	self.$vm.$emit.apply(self.$vm, arguments);
-			// };
 
 			function _extend(name) {
 				self.$vm.$data[name] = function() {

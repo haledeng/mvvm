@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8"/>
+	<title>Document</title>
+</head>
+<body>
+	<p id="text"></p>
+	<button id="btn">change</button>
+	<script>
+
+		var obj = {
+			a: 1,
+			b: 2
+		};
+		function Watcher(opts) {
+			this.expression = opts.expression;
+			this.callback = opts.callback;
+			this.value = this.get();
+		}
+
+		Watcher.prototype.update = function() {
+			this.value = obj[this.expression];
+			this.callback(this.value);
+		};
+
+		Watcher.prototype.get = function() {
+			Dep.target = this;
+			var value = obj[this.expression];
+			Dep.target = null;
+			return value;
+		};
+
+
+		function Dep() {
+			this.subs = [];
+		}
+
+		Dep.prototype.addSub = function(sub) {
+			this.subs.push(sub);
+		};
+
+		Dep.prototype.notify = function() {
+			this.subs.forEach(function(sub) {
+				sub.update();
+			});
+		};
+
+		function defReactive(data, key, val) {
+			var dep = new Dep();
+			Object.defineProperty(data, key,  {
+				configurable: false,
+				enumerable: true,
+				set: function(value) {
+					console.log(key + ' set new value:' + value);
+					if (value != val) {
+						val = value;
+						dep.notify();
+					}
+				},
+				get: function() {
+					console.log('get value of ' + key);
+					Dep.target && dep.addSub(Dep.target);
+					return val;
+				}
+			});
+		}
+
+
+		function observer(obj) {
+			Object.keys(obj).forEach(function(key) {
+				defReactive(obj, key, obj[key]);
+			});
+		}
+
+
+		observer(obj);
+		new Watcher({
+			expression: 'a',
+			callback: function(value) {
+				document.querySelector('#text').innerHTML = value;
+			}
+		});
+		document.querySelector('#btn').addEventListener('click', function(){
+			obj.a += 2;
+		}, false);
+	</script>
+</body>
+</html>
