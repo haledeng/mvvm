@@ -383,7 +383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		exp = trim(exp);
 		// x.y
 		// Math.random()  全局函数调用
-		var globalObject = ['Math', 'window', 'Date', 'navigator'];
+		var globalObject = ['Math', 'window', 'Date', 'navigator', 'document'];
 		exp = exp.replace(/[\w\[\]]+(?=\.)/g, function (match, index, all) {
 			if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
 			return [prefix, match].join('.');
@@ -1098,18 +1098,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	// 会二次执行，监听的元素变化时，会重新调用vfor
 	function vFor(node, vm, expression) {
 		var parent = node.parentNode || node.__parent__;
-		// var expInfo = parseForExpression(expression);
 		var expInfo = this._expInfo;
 		var scope = vm.$data;
 		var val = (0, _expression.calculateExpression)(scope, expInfo.val);
-		if (!_.isType(val, 'array') || !val.length) return;
+		if (!_.isType(val, 'array') && !_.isType(val, 'object')) return;
 		var docFrag = document.createDocumentFragment();
-		val.forEach(function (item, index) {
+		forEach(val, function (item, index) {
 			// 子节点如何编译，Compiler中可以，但是需要修改scope
 			var li = node.cloneNode(true);
-			// maxnum call
-			// TODO：v-for里面bind,on等作用域控制
-			// 这里就替换节点里面的所有item？
 			li.removeAttribute('v-for');
 			var nodeScope = li.__scope__ = {
 				val: expInfo.val
@@ -1138,11 +1134,19 @@ return /******/ (function(modules) { // webpackBootstrap
 			});
 		});
 		!node.__parent__ && parent.removeChild(node);
-		// node.__template__ = template;
-		// TODO: remove before
 		node.__parent__ = parent;
 		replaceChild(parent, docFrag);
 		// node.__parent__ = replaceChild(parent, docFrag);
+	}
+
+	function forEach(val, fn) {
+		if (_.isType(val, 'array')) {
+			val.forEach(fn);
+		} else if (_.isType(val, 'object')) {
+			Object.keys(val).forEach(function (key) {
+				fn(val[key], key);
+			});
+		}
 	}
 
 	function replaceChild(node, docFrag) {
@@ -1879,7 +1883,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function vIf(node, vm, value) {
 		var hasElseNext = this._hasElseNext;
-		var diff = null;
 		if (value) {
 			// 这种2次操作的方式，实际和未dom-diff差别不到
 			if (this.$el.__anchor__) {
@@ -1911,7 +1914,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// function vIf(node, vm, value) {
 	// 	var parent = node.parentNode || node.__parent__;
 	// 	// difference between nextSibling and nextElementSibling
-	// 	// get from node.childNode and node.children 
+	// 	// get from node.childNode and node.children
 	// 	var nextSibling = node.__nextSibling__ || node.nextElementSibling;
 
 	// 	var hasElseNext = this._hasElseNext;
@@ -2211,13 +2214,13 @@ return /******/ (function(modules) { // webpackBootstrap
 						configurable: true,
 						writable: true,
 						value: function value() {
-							var oldArr = this.slice(0);
+							var oldArr = this /*.slice(0)*/;
 							var arg = [].slice.call(arguments);
 							result = oldMethod.apply(this, arg);
 							// 后面有dom diff的算法，这里可以不需要
-							if (result.length !== oldArr.length || name === 'reverse' || name === 'sort') {
-								callback(result);
-							}
+							if (result.length !== oldArr.length /* || name === 'reverse' || name === 'sort'*/) {
+									callback(result);
+								}
 							return result;
 						}
 					});

@@ -41,13 +41,13 @@ var Observer = function () {
 					configurable: true,
 					writable: true,
 					value: function value() {
-						var oldArr = this.slice(0);
+						var oldArr = this /*.slice(0)*/;
 						var arg = [].slice.call(arguments);
 						result = oldMethod.apply(this, arg);
 						// 后面有dom diff的算法，这里可以不需要
-						if (result.length !== oldArr.length || name === 'reverse' || name === 'sort') {
-							callback(result);
-						}
+						if (result.length !== oldArr.length /* || name === 'reverse' || name === 'sort'*/) {
+								callback(result);
+							}
 						return result;
 					}
 				});
