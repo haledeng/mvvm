@@ -25,7 +25,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function vIf(node, vm, value) {
 	// var hasElseNext = this._hasElseNext;
 	if (value) {
-		// 这种2次操作的方式，实际和未dom-diff差别不到
+		// 这种2次操作的方式，实际和未dom-diff差别不大
 		if (this.$el.__anchor__) {
 			(0, _patch2.default)((0, _diffDom2.default)(this.$el.__anchor__, this.$el));
 		}

@@ -34,11 +34,11 @@ var Directive = function () {
 		_.mixin(this, this.descriptor);
 		this.bind = descriptor.bind || noop;
 		this.update = descriptor.update || noop;
-		this.expression = descriptor.expression;
+		// this.expression = descriptor.expression;
 		this.watchExp = descriptor.watchExp || descriptor.expression;
 		this.$el = node;
 		this.$vm = vm;
-		this.name = descriptor.name;
+		// this.name = descriptor.name;
 		// bind, on等后面跟的事件名或属性名
 		this.extraName = descriptor.extraName || descriptor.name;
 		this._bind();

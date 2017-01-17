@@ -9,7 +9,7 @@ import patch from '../dom-diff/patch';
 function vIf(node, vm, value) {
 	// var hasElseNext = this._hasElseNext;
 	if (value) {
-		// 这种2次操作的方式，实际和未dom-diff差别不到
+		// 这种2次操作的方式，实际和未dom-diff差别不大
 		if (this.$el.__anchor__) {
 			patch(diffDom(this.$el.__anchor__, this.$el));
 		}

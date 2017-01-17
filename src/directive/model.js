@@ -11,20 +11,24 @@
 
 // export default vModel;
 // 
+import checkbox from './model/checkbox';
+import input from './model/input';
+
+var handlers = {
+	checkbox,
+	input
+};
+
 export default {
 	bind: function() {
 		var tagName = this.$el.tagName.toLowerCase();
-		this._attr = tagName === 'input' ? 'value' : 'textContent';
-		this.descriptor.addListener.call(this);
-	},
-	addListener: function() {
-		var self = this;
-		var key = this.$el.getAttribute('v-' + this.name);
-		this.$el.addEventListener('input', function() {
-			self.set(key, this.value);
-		}, false);
-	},
-	update: function(value) {
-		this.$el[this._attr] = value;
+		var handler = null
+		if (tagName === 'input') {
+			handler = handlers[this.$el.type] || handlers['input'];
+		} else if (tagName === 'textarea') {
+			handler = handlers['input'];
+		}
+		handler.bind.call(this);
+		this.update = handler.update;
 	}
 }
