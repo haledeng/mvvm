@@ -39,7 +39,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function appendPatch(apply, patch) {
 	if (apply) {
 		if (_.isArray(apply)) {
-			return apply.push(patch);
+			apply.push(patch);
+			return apply;
 		} else {
 			return [apply, patch];
 		}

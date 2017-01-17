@@ -26,8 +26,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-// TODO: for循环作用域控制
-
 // 会二次执行，监听的元素变化时，会重新调用vfor
 function vFor(node, vm, expression) {
 	var parent = node.parentNode || node.__parent__;
@@ -68,6 +66,7 @@ function vFor(node, vm, expression) {
 	});
 	!node.__parent__ && parent.removeChild(node);
 	node.__parent__ = parent;
+	// console.log(docFrag.children);
 	replaceChild(parent, docFrag);
 	// node.__parent__ = replaceChild(parent, docFrag);
 }
@@ -86,14 +85,12 @@ function replaceChild(node, docFrag) {
 	var parent = node.parentNode;
 	var newNode = node.cloneNode(false);
 	newNode.appendChild(docFrag);
+	// parent.replaceChild(newNode, node);
+	// return newNode;
+	// dom-diff
 	var diff = (0, _diffDom2.default)(node, newNode);
 	console.log(diff);
-	// parent.replaceChild(newNode, node);
-	// dom-diff
-	// setTimeout(function() {
 	(0, _patch2.default)(diff);
-	// }, 1e3);
-	// return newNode;
 }
 
 exports.default = {

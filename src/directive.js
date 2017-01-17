@@ -6,12 +6,14 @@
 
 
 import Watcher from './observer/watcher';
+import * as _ from './util';
 
 function noop() {};
 
 class Directive {
 	constructor(descriptor, vm, node) {
 		this.descriptor = descriptor;
+		_.mixin(this, this.descriptor);
 		this.bind = descriptor.bind || noop;
 		this.update = descriptor.update || noop;
 		this.expression = descriptor.expression;

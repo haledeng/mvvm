@@ -9,7 +9,6 @@ const calculateExpression = (scope, exp) => {
     var prefix = 'scope';
     exp = _.addScope(exp);
     var fn = new Function(prefix, 'return ' + exp);
-    // console.log(exp, scope);
     return fn(scope);
     // Plan B
     // with(scope) {

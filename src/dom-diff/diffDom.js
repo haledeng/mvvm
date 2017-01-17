@@ -8,7 +8,8 @@ import * as attr from './attribute';
 function appendPatch(apply, patch) {
 	if (apply) {
 		if (_.isArray(apply)) {
-			return apply.push(patch);
+			apply.push(patch);
+			return apply;
 		} else {
 			return [apply, patch];
 		}

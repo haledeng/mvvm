@@ -73,9 +73,9 @@ class Compiler {
 		}
 
 		// remove all directives
-		// dirs.forEach(function(dir) {
-		// 	node.removeAttribute(dir);
-		// });
+		dirs.forEach(function(dir) {
+			node.removeAttribute(dir);
+		});
 
 	}
 	bindWatch(vm, exp, callback, directive) {

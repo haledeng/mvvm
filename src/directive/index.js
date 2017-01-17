@@ -10,6 +10,7 @@ import vFor from './for';
 import vBind from './bind';
 import vHtml from './html';
 import vIf from './if';
+import vShow from './show';
 
 
 
@@ -39,5 +40,6 @@ export {
     parseExpression,
     vIf,
     vBind,
-    vHtml
+    vHtml,
+    vShow
 }

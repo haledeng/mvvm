@@ -24,18 +24,12 @@ function parseExpression(vm, exp, directive, node) {
     var data = vm.$data;
     var value = null;
     var vmComputed = vm.computed || {};
-    // in v-for
-    // if (node && node.__scope__) {
-    //     var scope = node.__scope__;
-    //     exp = exp.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
-    // }
     exp = parseItemScope(node, exp);
     switch (directive) {
         case 'bind':
             value = parseBind(vm, exp);
             break;
         default:
-
             if (hasFilter(exp)) {
                 var filterInfo = parseFilterExpression(exp);
                 value = filter.apply(null, [vm, filterInfo.method, calculateExpression(data, filterInfo.param)].concat(filterInfo.args));

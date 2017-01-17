@@ -69,7 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _compiler2 = _interopRequireDefault(_compiler);
 
-	var _observer = __webpack_require__(33);
+	var _observer = __webpack_require__(34);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -77,11 +77,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _watcher2 = _interopRequireDefault(_watcher);
 
-	var _directive = __webpack_require__(34);
+	var _directive = __webpack_require__(35);
 
 	var _directive2 = _interopRequireDefault(_directive);
 
-	var _events = __webpack_require__(35);
+	var _events = __webpack_require__(36);
 
 	var _events2 = _interopRequireDefault(_events);
 
@@ -205,11 +205,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _filter = __webpack_require__(6);
 
-	var _compiler_props = __webpack_require__(30);
+	var _compiler_props = __webpack_require__(31);
 
 	var _compiler_props2 = _interopRequireDefault(_compiler_props);
 
-	var _compiler_component = __webpack_require__(31);
+	var _compiler_component = __webpack_require__(32);
 
 	var _compiler_component2 = _interopRequireDefault(_compiler_component);
 
@@ -282,9 +282,9 @@ return /******/ (function(modules) { // webpackBootstrap
 				}
 
 				// remove all directives
-				// dirs.forEach(function(dir) {
-				// 	node.removeAttribute(dir);
-				// });
+				dirs.forEach(function (dir) {
+					node.removeAttribute(dir);
+				});
 			}
 		}, {
 			key: 'bindWatch',
@@ -570,18 +570,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var data = vm.$data;
 	    var value = null;
 	    var vmComputed = vm.computed || {};
-	    // in v-for
-	    // if (node && node.__scope__) {
-	    //     var scope = node.__scope__;
-	    //     exp = exp.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
-	    // }
 	    exp = (0, _for.parseItemScope)(node, exp);
 	    switch (directive) {
 	        case 'bind':
 	            value = (0, _bind2.default)(vm, exp);
 	            break;
 	        default:
-
 	            if (hasFilter(exp)) {
 	                var filterInfo = (0, _filter3.default)(exp);
 	                value = _filter.filter.apply(null, [vm, filterInfo.method, (0, _expression2.default)(data, filterInfo.param)].concat(filterInfo.args));
@@ -700,7 +694,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var prefix = 'scope';
 	    exp = _.addScope(exp);
 	    var fn = new Function(prefix, 'return ' + exp);
-	    // console.log(exp, scope);
 	    return fn(scope);
 	    // Plan B
 	    // with(scope) {
@@ -836,7 +829,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.vHtml = exports.vBind = exports.vIf = exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
+	exports.vShow = exports.vHtml = exports.vBind = exports.vIf = exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
 
 	var _model = __webpack_require__(12);
 
@@ -868,6 +861,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _if2 = _interopRequireDefault(_if);
 
+	var _show = __webpack_require__(30);
+
+	var _show2 = _interopRequireDefault(_show);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	// 设置属性值
@@ -895,6 +892,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.vIf = _if2.default;
 	exports.vBind = _bind2.default;
 	exports.vHtml = _html2.default;
+	exports.vShow = _show2.default;
 
 /***/ },
 /* 12 */
@@ -1093,8 +1091,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-	// TODO: for循环作用域控制
-
 	// 会二次执行，监听的元素变化时，会重新调用vfor
 	function vFor(node, vm, expression) {
 		var parent = node.parentNode || node.__parent__;
@@ -1135,6 +1131,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		});
 		!node.__parent__ && parent.removeChild(node);
 		node.__parent__ = parent;
+		// console.log(docFrag.children);
 		replaceChild(parent, docFrag);
 		// node.__parent__ = replaceChild(parent, docFrag);
 	}
@@ -1153,14 +1150,12 @@ return /******/ (function(modules) { // webpackBootstrap
 		var parent = node.parentNode;
 		var newNode = node.cloneNode(false);
 		newNode.appendChild(docFrag);
+		// parent.replaceChild(newNode, node);
+		// return newNode;
+		// dom-diff
 		var diff = (0, _diffDom2.default)(node, newNode);
 		console.log(diff);
-		// parent.replaceChild(newNode, node);
-		// dom-diff
-		// setTimeout(function() {
 		(0, _patch2.default)(diff);
-		// }, 1e3);
-		// return newNode;
 	}
 
 	exports.default = {
@@ -1218,7 +1213,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	function appendPatch(apply, patch) {
 		if (apply) {
 			if (_.isArray(apply)) {
-				return apply.push(patch);
+				apply.push(patch);
+				return apply;
 			} else {
 				return [apply, patch];
 			}
@@ -1882,15 +1878,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function vIf(node, vm, value) {
-		var hasElseNext = this._hasElseNext;
+		// var hasElseNext = this._hasElseNext;
 		if (value) {
 			// 这种2次操作的方式，实际和未dom-diff差别不到
 			if (this.$el.__anchor__) {
 				(0, _patch2.default)((0, _diffDom2.default)(this.$el.__anchor__, this.$el));
 			}
-			if (hasElseNext) {
-				this.nextSibling.__anchor__ = document.createTextNode('');
-				(0, _patch2.default)((0, _diffDom2.default)(this.nextSibling, this.nextSibling.__anchor__));
+			if (this.elseEl) {
+				this.elseEl.__anchor__ = document.createTextNode('');
+				(0, _patch2.default)((0, _diffDom2.default)(this.elseEl, this.elseEl.__anchor__));
 			}
 			// if (this.nextSibling.parentNode) {
 			// 	patch(diffDom(this.nextSibling, this.$el));
@@ -1898,8 +1894,8 @@ return /******/ (function(modules) { // webpackBootstrap
 		} else {
 			this.$el.__anchor__ = document.createTextNode('');
 			(0, _patch2.default)((0, _diffDom2.default)(this.$el, this.$el.__anchor__));
-			if (hasElseNext) {
-				(0, _patch2.default)((0, _diffDom2.default)(this.nextSibling.__anchor__, this.nextSibling));
+			if (this.elseEl) {
+				(0, _patch2.default)((0, _diffDom2.default)(this.elseEl.__anchor__, this.elseEl));
 			}
 			// this.nextSibling修改了
 			// patch(diffDom(this.$el, this.nextSibling));
@@ -1969,8 +1965,11 @@ return /******/ (function(modules) { // webpackBootstrap
 		bind: function bind() {
 			// 是否有v-else元素
 			var nextSibling = this.$el.nextElementSibling;
-			this.nextSibling = nextSibling;
-			this._hasElseNext = nextSibling && nextSibling.getAttribute('v-else') !== null;
+			if (nextSibling && nextSibling.getAttribute('v-else') !== null) {
+				this.elseEl = nextSibling;
+			}
+			// this.nextSibling = nextSibling;
+			// this._hasElseNext = ;
 			// if (this._hasElseNext) {
 			// 	this.nextSibling = nextSibling;
 			// 	nextSibling.parentNode.removeChild(nextSibling);
@@ -1986,6 +1985,34 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 30 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.default = {
+		bind: function bind() {
+			var next = this.$el.nextElementSibling;
+			if (next && next.getAttribute('v-else') !== null) {
+				this.elseEl = next;
+			}
+		},
+		toggle: function toggle(elem, value) {
+			elem.style.display = value ? '' : 'none';
+		},
+		update: function update(value) {
+			var toggle = this.toggle;
+			toggle.call(this, this.$el, value);
+			if (this.elseEl) {
+				toggle.call(this, this.elseEl, !value);
+			}
+		}
+	};
+
+/***/ },
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2018,6 +2045,7 @@ return /******/ (function(modules) { // webpackBootstrap
 					case 'model':
 					case 'text':
 					case 'html':
+					case 'show':
 					case 'if':
 						self.$vm.bindDir(Object.assign({
 							expression: attr.value,
@@ -2026,7 +2054,6 @@ return /******/ (function(modules) { // webpackBootstrap
 						break;
 					case 'for':
 						var info = (0, _for.parseForExpression)(attr.value);
-						console.log(info);
 						self.$vm.bindDir(Object.assign({
 							expression: attr.value,
 							watchExp: info.val,
@@ -2060,7 +2087,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2094,14 +2121,14 @@ return /******/ (function(modules) { // webpackBootstrap
 		};
 	};
 
-	var _component = __webpack_require__(32);
+	var _component = __webpack_require__(33);
 
 	var _component2 = _interopRequireDefault(_component);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2113,7 +2140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Compiler from './complier/complier';
 
 
-	var _observer = __webpack_require__(33);
+	var _observer = __webpack_require__(34);
 
 	var _observer2 = _interopRequireDefault(_observer);
 
@@ -2168,7 +2195,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Component;
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2282,7 +2309,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Observer;
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2301,6 +2328,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _watcher2 = _interopRequireDefault(_watcher);
 
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2312,6 +2345,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			_classCallCheck(this, Directive);
 
 			this.descriptor = descriptor;
+			_.mixin(this, this.descriptor);
 			this.bind = descriptor.bind || noop;
 			this.update = descriptor.update || noop;
 			this.expression = descriptor.expression;
@@ -2360,7 +2394,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Directive;
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

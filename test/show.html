@@ -43,55 +43,24 @@
 </head>
 <body>
     <div id="app">
-        <!-- <p>{{message | upper}}</p> -->
-        <!-- <p>{{ a | add 2}}</p> -->
-<!--         <p v-text="a | add '2'"></p>
-        <input type="text" v-model="a | add 2">
-        <p>{{ a | add '2' }}</p>
+        <p v-show="a">show</p>
+        <p v-else>else</p>
         <button v-on:click="change">click me</button>
- -->
-        <ul>
-            <li v-for="(item, index) in list" class="li-item">
-                <p>{{item | reverse}} -> {{index + 1}}</p>
-                <p v-text="item | upper"></p>
-            </li>
-        </ul>
-
-         <button v-on:click="changeList">click me</button>
     </div>
-
-
 
     <script src="../dist/mvvm.js"></script>
     <script>
         var mvvm = new MVVM({
             el: '#app',
             data: {
-                a: 1,
-                message: 'hello MVVM',
-                list: ['item1', 'item2', 'item3']
+                a: true
             },
             methods: {
                 change: function() {
-                    this.a = 3;
-                },
-                changeList: function() {
-                    this.list.push('item4');
-                }
-            },
-            filters: {
-                upper: function(value) {
-                    return value.replace(/^[a-z]/, value.charAt(0).toUpperCase());
-                },
-                reverse: function(value) {
-                    return value.split('').reverse().join('');
-                },
-                add: function(a, b) {
-                    return a + b;
+                    this.a = !this.a;
                 }
             }
         });
-
     </script>
 </body>
 </html>

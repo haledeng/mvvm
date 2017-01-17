@@ -8,8 +8,6 @@ import Compiler from '../compiler/compiler';
 import diffDom from '../dom-diff/diffDom';
 import patch from '../dom-diff/patch';
 
-// TODO: for循环作用域控制
-
 // 会二次执行，监听的元素变化时，会重新调用vfor
 function vFor(node, vm, expression) {
 	var parent = node.parentNode || node.__parent__;
@@ -50,6 +48,7 @@ function vFor(node, vm, expression) {
 	});
 	!node.__parent__ && parent.removeChild(node);
 	node.__parent__ = parent;
+	// console.log(docFrag.children);
 	replaceChild(parent, docFrag);
 	// node.__parent__ = replaceChild(parent, docFrag);
 }
@@ -70,14 +69,12 @@ function replaceChild(node, docFrag) {
 	var parent = node.parentNode;
 	var newNode = node.cloneNode(false);
 	newNode.appendChild(docFrag);
+	// parent.replaceChild(newNode, node);
+	// return newNode;
+	// dom-diff
 	var diff = diffDom(node, newNode);
 	console.log(diff);
-	// parent.replaceChild(newNode, node);
-	// dom-diff
-	// setTimeout(function() {
 	patch(diff);
-	// }, 1e3);
-	// return newNode;
 }
 
 export default {

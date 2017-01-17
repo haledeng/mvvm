@@ -23,15 +23,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function vIf(node, vm, value) {
-	var hasElseNext = this._hasElseNext;
+	// var hasElseNext = this._hasElseNext;
 	if (value) {
 		// 这种2次操作的方式，实际和未dom-diff差别不到
 		if (this.$el.__anchor__) {
 			(0, _patch2.default)((0, _diffDom2.default)(this.$el.__anchor__, this.$el));
 		}
-		if (hasElseNext) {
-			this.nextSibling.__anchor__ = document.createTextNode('');
-			(0, _patch2.default)((0, _diffDom2.default)(this.nextSibling, this.nextSibling.__anchor__));
+		if (this.elseEl) {
+			this.elseEl.__anchor__ = document.createTextNode('');
+			(0, _patch2.default)((0, _diffDom2.default)(this.elseEl, this.elseEl.__anchor__));
 		}
 		// if (this.nextSibling.parentNode) {
 		// 	patch(diffDom(this.nextSibling, this.$el));
@@ -39,8 +39,8 @@ function vIf(node, vm, value) {
 	} else {
 		this.$el.__anchor__ = document.createTextNode('');
 		(0, _patch2.default)((0, _diffDom2.default)(this.$el, this.$el.__anchor__));
-		if (hasElseNext) {
-			(0, _patch2.default)((0, _diffDom2.default)(this.nextSibling.__anchor__, this.nextSibling));
+		if (this.elseEl) {
+			(0, _patch2.default)((0, _diffDom2.default)(this.elseEl.__anchor__, this.elseEl));
 		}
 		// this.nextSibling修改了
 		// patch(diffDom(this.$el, this.nextSibling));
@@ -110,8 +110,11 @@ exports.default = {
 	bind: function bind() {
 		// 是否有v-else元素
 		var nextSibling = this.$el.nextElementSibling;
-		this.nextSibling = nextSibling;
-		this._hasElseNext = nextSibling && nextSibling.getAttribute('v-else') !== null;
+		if (nextSibling && nextSibling.getAttribute('v-else') !== null) {
+			this.elseEl = nextSibling;
+		}
+		// this.nextSibling = nextSibling;
+		// this._hasElseNext = ;
 		// if (this._hasElseNext) {
 		// 	this.nextSibling = nextSibling;
 		// 	nextSibling.parentNode.removeChild(nextSibling);

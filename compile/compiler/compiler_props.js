@@ -28,6 +28,7 @@ exports.default = function (Compiler) {
 				case 'model':
 				case 'text':
 				case 'html':
+				case 'show':
 				case 'if':
 					self.$vm.bindDir(Object.assign({
 						expression: attr.value,
@@ -36,7 +37,6 @@ exports.default = function (Compiler) {
 					break;
 				case 'for':
 					var info = (0, _for.parseForExpression)(attr.value);
-					console.log(info);
 					self.$vm.bindDir(Object.assign({
 						expression: attr.value,
 						watchExp: info.val,

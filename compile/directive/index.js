@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.vHtml = exports.vBind = exports.vIf = exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
+exports.vShow = exports.vHtml = exports.vBind = exports.vIf = exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
 
 var _model = require('./model');
 
@@ -35,6 +35,10 @@ var _if = require('./if');
 
 var _if2 = _interopRequireDefault(_if);
 
+var _show = require('./show');
+
+var _show2 = _interopRequireDefault(_show);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // 设置属性值
@@ -62,3 +66,4 @@ exports.parseExpression = _expression.parseExpression;
 exports.vIf = _if2.default;
 exports.vBind = _bind2.default;
 exports.vHtml = _html2.default;
+exports.vShow = _show2.default;

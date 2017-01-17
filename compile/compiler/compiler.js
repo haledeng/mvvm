@@ -95,9 +95,9 @@ var Compiler = function () {
 			}
 
 			// remove all directives
-			// dirs.forEach(function(dir) {
-			// 	node.removeAttribute(dir);
-			// });
+			dirs.forEach(function (dir) {
+				node.removeAttribute(dir);
+			});
 		}
 	}, {
 		key: 'bindWatch',
