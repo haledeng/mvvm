@@ -60,9 +60,17 @@ var addScope = function addScope(exp) {
 	return trim(exp);
 };
 
+var kebabCase = function kebabCase(str) {
+	if (typeof str !== 'string') return '';
+	return str.replace(/[A-Z]/, function (all) {
+		return '-' + all.toLowerCase();
+	});
+};
+
 exports.trim = trim;
 exports.isType = isType;
 exports.mixin = mixin;
 exports.upperFirst = upperFirst;
 exports.containOnlyTextNode = containOnlyTextNode;
 exports.addScope = addScope;
+exports.kebabCase = kebabCase;

@@ -24,7 +24,7 @@ function parseExpression(vm, exp, directive, node) {
     var data = vm.$data;
     var value = null;
     var vmComputed = vm.computed || {};
-    exp = parseItemScope(node, exp);
+    node && (exp = parseItemScope(node, exp));
     switch (directive) {
         case 'bind':
             value = parseBind(vm, exp);

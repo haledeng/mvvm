@@ -11,6 +11,12 @@ var _observer = require('./observer/observer');
 
 var _observer2 = _interopRequireDefault(_observer);
 
+var _util = require('./util');
+
+var _ = _interopRequireWildcard(_util);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -25,6 +31,9 @@ var Component = function () {
 		this.name = name;
 		this.template = descriptor.template;
 		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+		if (_.isType(descriptor._data, 'object')) {
+			this.data = _.mixin(descriptor._data, this.data);
+		}
 		this.methods = descriptor.methods;
 		this.events = descriptor.events;
 		this.init();

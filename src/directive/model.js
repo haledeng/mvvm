@@ -12,21 +12,25 @@
 // export default vModel;
 // 
 import checkbox from './model/checkbox';
-import input from './model/input';
+import text from './model/text';
+import select from './model/select'
 
 var handlers = {
 	checkbox,
-	input
+	text,
+	select
 };
 
 export default {
 	bind: function() {
 		var tagName = this.$el.tagName.toLowerCase();
-		var handler = null
+		var handler = null;
 		if (tagName === 'input') {
-			handler = handlers[this.$el.type] || handlers['input'];
+			handler = handlers[this.$el.type] || handlers['text'];
 		} else if (tagName === 'textarea') {
-			handler = handlers['input'];
+			handler = handlers['text'];
+		} else if (tagName === 'select') {
+			handler = handlers[tagName];
 		}
 		handler.bind.call(this);
 		this.update = handler.update;

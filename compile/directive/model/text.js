@@ -8,15 +8,15 @@ exports.default = {
 		this.listener = function () {
 			var self = this;
 			var key = this.$el.getAttribute('v-' + this.name);
-			this.$el.addEventListener('change', function (e) {
-				self.set(key, this.checked);
+			this.$el.addEventListener('input', function () {
+				self.set(key, this.value);
 			}, false);
 		};
+		var tagName = this.$el.tagName.toLowerCase();
+		this._attr = tagName === 'input' ? 'value' : 'textContent';
 		this.listener.call(this);
 	},
 	update: function update(value) {
-		var node = this.$el;
-		node.checked = !!value;
-	},
-	unbind: function unbind() {}
+		this.$el[this._attr] = value;
+	}
 };

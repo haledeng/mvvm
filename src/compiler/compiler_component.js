@@ -2,10 +2,27 @@
 // import Observer from '../observer';
 
 import Component from '../component';
+import {
+	parseExpression
+} from '../directive/expression';
+import * as _ from '../util';
+
+function parseProps(props, vm, node) {
+	var ret = {};
+	props.forEach(function(prop) {
+		ret[prop] = parseExpression(vm, node.getAttribute(_.kebabCase(prop)));
+	});
+	return ret;
+}
+
 export default function(Compiler) {
 	Compiler.prototype._parseComponent = function(node) {
+		var self = this;
 		var allCom = this.$vm.constructor._globalCom;
 		var descriptor = allCom[node.tagName.toLowerCase()];
+		var props = descriptor.props || [];
+		// props获取的数据
+		descriptor._data = parseProps(props, self.$vm, node);
 		// component是全局VM的一个child
 		var instance = new Component(descriptor.name, descriptor);
 		var vm = this.$vm;

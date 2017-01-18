@@ -51,11 +51,20 @@ const addScope = (exp, prefix = 'scope') => {
 	return trim(exp);
 }
 
+
+const kebabCase = (str) => {
+	if (typeof str !== 'string') return '';
+	return str.replace(/[A-Z]/, function(all) {
+		return '-' + all.toLowerCase();
+	});
+}
+
 export {
 	trim,
 	isType,
 	mixin,
 	upperFirst,
 	containOnlyTextNode,
-	addScope
+	addScope,
+	kebabCase
 }

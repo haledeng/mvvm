@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MVVM Framework</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        html, body, pre {
+            font-family: 'Consolas';
+        }
+
+        input {
+            display: block;
+            line-height: 30px;
+            font-size: 14px;
+            padding-left: 10px;
+        }
+        input, p {
+            margin: 5px;
+        }
+        pre {
+            border: 1px solid #eee;
+            height: 300px;
+            overflow-x: hidden;
+            overflow-y: scroll;
+        }
+        button {
+            display: inline-block;
+            width: 80px;
+            text-align: center;
+            height: 32px;
+            line-height: 32px;
+            border-radius: 4px;
+            background: #006dcc;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+        }
+        .title {
+            font-size: 16px;
+            font-weight: bolder;
+        }
+        .active {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <p v-text="level"></p>
+        <input type="text" v-model="level">
+        <select name="level" id="" v-model="level">
+            <option value="1">初级</option>
+            <option value="2">中级</option>
+            <option value="3">高级</option>
+        </select>
+    </div>
+
+
+
+    <script src="../dist/mvvm.js"></script>
+    <script>
+        var mvvm = new MVVM({
+            el: '#app',
+            data: {
+                level: 1
+            }
+        });
+    </script>
+</body>
+</html>

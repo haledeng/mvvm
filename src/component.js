@@ -1,5 +1,6 @@
 // import Compiler from './complier/complier';
 import Observer from './observer/observer';
+import * as _ from './util';
 var id = 0;
 class Component {
 	constructor(name, descriptor) {
@@ -7,6 +8,9 @@ class Component {
 		this.name = name;
 		this.template = descriptor.template;
 		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+		if (_.isType(descriptor._data, 'object')) {
+			this.data = _.mixin(descriptor._data, this.data);
+		}
 		this.methods = descriptor.methods;
 		this.events = descriptor.events;
 		this.init();
