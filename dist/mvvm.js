@@ -275,7 +275,9 @@ return /******/ (function(modules) { // webpackBootstrap
 				for (var i = 0; i < attrs.length; i++) {
 					var item = attrs[i];
 					// v-for已经解析了其他的指定了，防止重复解析
-					if (/^v\-([\w\:\']*)/.test(item.name) && node.parentNode) {
+					// /(v\-\w*)?(\:|\@)/
+					if ((/^v\-([\w\:\']*)/.test(item.name) || /^[\:\@]/.test(item.name)) && node.parentNode) {
+						// if (/(v\-\w*)?(\:|\@)?(\w*)/.test(item.name) && node.parentNode) {
 						this._parseAttr(node, item);
 						dirs.push(item.name);
 					}
@@ -1006,11 +1008,11 @@ return /******/ (function(modules) { // webpackBootstrap
 				}, false);
 			};
 			var tagName = this.$el.tagName.toLowerCase();
-			this._attr = tagName === 'input' ? 'value' : 'textContent';
+			this.__attr__ = tagName === 'input' ? 'value' : 'textContent';
 			this.listener.call(this);
 		},
 		update: function update(value) {
-			this.$el[this._attr] = value;
+			this.$el[this.__attr__] = value;
 		}
 	};
 
@@ -1034,10 +1036,18 @@ return /******/ (function(modules) { // webpackBootstrap
 				});
 			};
 			this.listener();
+
+			var options = node.getElementsByTagName('option');
+			this.__values__ = [];
+			for (var i = 0; i < options.length; i++) {
+				this.__values__.push(options[i].value);
+			}
 		},
 		update: function update(value) {
-			var node = this.$el;
-			node.value = value;
+			if (~this.__values__.indexOf(value)) {
+				this.$el.value = value;
+			}
+			// this.$el.value = value;
 		}
 	};
 
@@ -2130,23 +2140,38 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.default = function (Compiler) {
 
+		function parseBindOn(str) {
+			if (/^@/.test(str)) {
+				return 'on';
+			}
+			if (/^\:/.test(str)) {
+				return 'bind';
+			}
+			return str.replace(/\:$/, '');
+		}
+
 		// ES6 function写法会导致this解析问题
 		Compiler.prototype._parseAttr = function (node, attr) {
 			var customDirectives = this.$vm.constructor._cusDirectives || {};
 			var customNames = Object.keys(customDirectives);
 			var self = this;
-			var attrReg = /^v\-([\w\:\']*)/;
-			var matches = attr.name.match(attrReg);
-			var property = matches[1];
-			var bindOn = /(on|bind)\:(\w*)/;
-			if (bindOn.test(property)) {
+			// var bindOn = /(on|bind)\:(\w*)/;
+			var bindOn = /(v\-on\:|v\-bind\:|@|\:)(\w*)/;
+			// v-on:event   @event
+			// v-bind:property  :property
+			if (bindOn.test(attr.name)) {
+				var extraName = RegExp.$2;
+				var directiveName = parseBindOn(RegExp.$1);
 				self.$vm.bindDir(Object.assign({
 					expression: attr.value,
-					name: RegExp.$1,
-					extraName: RegExp.$2,
+					name: directiveName,
+					extraName: extraName,
 					context: self.$vm
-				}, Dir['v' + _.upperFirst(RegExp.$1)]), node);
+				}, Dir['v' + _.upperFirst(directiveName)]), node);
 			} else {
+				var attrReg = /^v\-([\w\:\']*)/;
+				var matches = attr.name.match(attrReg);
+				var property = matches[1];
 				switch (property) {
 					// v-model
 					case 'model':
@@ -2257,9 +2282,79 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 36 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Compiler from './complier/complier';
+
+
+	var _observer = __webpack_require__(37);
+
+	var _observer2 = _interopRequireDefault(_observer);
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var id = 0;
+
+	var Component = function () {
+		function Component(name, descriptor) {
+			_classCallCheck(this, Component);
+
+			this.uid = ++id;
+			this.name = name;
+			this.template = descriptor.template;
+			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+			if (_.isType(descriptor._data, 'object')) {
+				this.data = _.mixin(descriptor._data, this.data);
+			}
+			this.methods = descriptor.methods;
+			this.events = descriptor.events;
+			this.init();
+		}
+
+		_createClass(Component, [{
+			key: 'init',
+			value: function init() {
+				new _observer2.default(this.data);
+				this.render();
+			}
+		}, {
+			key: 'render',
+			value: function render() {
+				var frag = document.createDocumentFragment();
+				var template = this.template;
+				if (/^#/.test(template)) {
+					var tempDom = document.querySelector(template);
+					template = tempDom.innerHTML;
+					tempDom.parentNode.removeChild(tempDom);
+				}
+				var div = document.createElement('div');
+				div.innerHTML = template;
+				[].slice.call(div.children).forEach(function (child) {
+					frag.appendChild(child);
+				});
+				this.frag = frag;
+				frag.uid = id;
+			}
+		}]);
+
+		return Component;
+	}();
+
+	exports.default = Component;
 
 /***/ },
 /* 37 */

@@ -8,10 +8,10 @@ export default {
 			}, false);
 		};
 		var tagName = this.$el.tagName.toLowerCase();
-		this._attr = tagName === 'input' ? 'value' : 'textContent';
+		this.__attr__ = tagName === 'input' ? 'value' : 'textContent';
 		this.listener.call(this);
 	},
 	update: function(value) {
-		this.$el[this._attr] = value;
+		this.$el[this.__attr__] = value;
 	}
 }

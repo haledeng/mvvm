@@ -13,23 +13,38 @@ import * as _ from '../util';
  */
 export default function(Compiler) {
 
+	function parseBindOn(str) {
+		if (/^@/.test(str)) {
+			return 'on';
+		}
+		if (/^\:/.test(str)) {
+			return 'bind';
+		}
+		return str.replace(/\:$/, '');
+	}
+
 	// ES6 function写法会导致this解析问题
 	Compiler.prototype._parseAttr = function(node, attr) {
 		var customDirectives = this.$vm.constructor._cusDirectives || {};
 		var customNames = Object.keys(customDirectives);
 		var self = this;
-		var attrReg = /^v\-([\w\:\']*)/;
-		var matches = attr.name.match(attrReg);
-		var property = matches[1];
-		var bindOn = /(on|bind)\:(\w*)/
-		if (bindOn.test(property)) {
+		// var bindOn = /(on|bind)\:(\w*)/;
+		var bindOn = /(v\-on\:|v\-bind\:|@|\:)(\w*)/;
+		// v-on:event   @event
+		// v-bind:property  :property
+		if (bindOn.test(attr.name)) {
+			var extraName = RegExp.$2;
+			var directiveName = parseBindOn(RegExp.$1);
 			self.$vm.bindDir(Object.assign({
 				expression: attr.value,
-				name: RegExp.$1,
-				extraName: RegExp.$2,
+				name: directiveName,
+				extraName: extraName,
 				context: self.$vm
-			}, Dir['v' + _.upperFirst(RegExp.$1)]), node);
+			}, Dir['v' + _.upperFirst(directiveName)]), node);
 		} else {
+			var attrReg = /^v\-([\w\:\']*)/;
+			var matches = attr.name.match(attrReg);
+			var property = matches[1];
 			switch (property) {
 				// v-model
 				case 'model':

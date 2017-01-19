@@ -9,9 +9,17 @@ export default {
 			});
 		};
 		this.listener();
+
+		var options = node.getElementsByTagName('option');
+		this.__values__ = [];
+		for (var i = 0; i < options.length; i++) {
+			this.__values__.push(options[i].value);
+		}
 	},
 	update: function(value) {
-		var node = this.$el;
-		node.value = value;
+		if (~this.__values__.indexOf(value)) {
+			this.$el.value = value;
+		}
+		// this.$el.value = value;
 	}
 }

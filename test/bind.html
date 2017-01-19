@@ -50,11 +50,11 @@
 </head>
 <body>
     <div id="app">
-        <p v-bind:class="{active: isActive}">hello</p>
-        <button v-on:click="changeActive">click me</button>
+        <p :class="{active: isActive}">hello</p>
+        <button @click="changeActive">click me</button>
         <p>v-for (item, index) in companies demo:</p>
         <ul>
-            <li v-for="(item, index) in companies" v-bind:class="{active: item.highlight}" v-on:click="item.highlight=!item.highlight">
+            <li v-for="(item, index) in companies" :class="{active: item.highlight}" @click="item.highlight=!item.highlight">
                 <p>{{ item.name }}  -> {{ index * 2 }}</p>
             </li>
         </ul>

@@ -88,7 +88,9 @@ var Compiler = function () {
 			for (var i = 0; i < attrs.length; i++) {
 				var item = attrs[i];
 				// v-for已经解析了其他的指定了，防止重复解析
-				if (/^v\-([\w\:\']*)/.test(item.name) && node.parentNode) {
+				// /(v\-\w*)?(\:|\@)/
+				if ((/^v\-([\w\:\']*)/.test(item.name) || /^[\:\@]/.test(item.name)) && node.parentNode) {
+					// if (/(v\-\w*)?(\:|\@)?(\w*)/.test(item.name) && node.parentNode) {
 					this._parseAttr(node, item);
 					dirs.push(item.name);
 				}
