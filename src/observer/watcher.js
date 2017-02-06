@@ -1,5 +1,6 @@
 var uid = 0;
 import Dep from './depender';
+import * as _ from '../util';
 import {
 	parseExpression,
 	calculateExpression
@@ -17,13 +18,25 @@ class Watcher {
 		this.value = this.init();
 	}
 	update() {
+		var hasToUpdate = true;
+
 		var newVal = this.get();
 		var oldVal = this.value;
-		// @TODO: [], {}引用类型，指向了同一个值
-		// if (oldVal != newVal) {
 		this.value = newVal;
-		this.callback(this.vm, newVal, oldVal);
-		// }
+		var valType = _.getType(newVal);
+		// 是否需要触发更新回调
+		if (valType === 'object') {
+			if (_.isObjectEqual(newVal, oldVal)) {
+				hasToUpdate = false;
+			}
+		} else if (valType === 'array') {
+			if (_.isArrayEqual(newVal, oldVal)) {
+				hasToUpdate = false;
+			}
+		} else {
+			hasToUpdate = oldVal != newVal;
+		}
+		hasToUpdate && this.callback(this.vm, newVal, oldVal);
 	}
 	beforeGet() {
 		Dep.target = this;

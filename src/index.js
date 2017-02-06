@@ -31,7 +31,7 @@ class MVVM {
 		}
 	}
 	$watch(paramName, callback) {
-		var self = this
+		var self = this;
 		new Watcher({
 			vm: self,
 			exp: paramName,

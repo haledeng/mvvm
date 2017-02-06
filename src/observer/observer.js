@@ -22,7 +22,7 @@ class Observer {
 					var arg = [].slice.call(arguments);
 					result = oldMethod.apply(this, arg);
 					// 后面有dom diff的算法，这里可以不需要
-					if (result.length !== oldArr.length /* || name === 'reverse' || name === 'sort'*/ ) {
+					if (result.length !== oldArr.length || name === 'reverse' || name === 'sort') {
 						callback(result);
 					}
 					return result;
@@ -63,6 +63,7 @@ class Observer {
 			configurable: false,
 			enumerable: true,
 			set: function(newVal) {
+				// 引用类型
 				if (newVal !== val) {
 					val = newVal;
 					self.observe(newVal);

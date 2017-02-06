@@ -10,7 +10,13 @@ var _depender = require('./depender');
 
 var _depender2 = _interopRequireDefault(_depender);
 
+var _util = require('../util');
+
+var _ = _interopRequireWildcard(_util);
+
 var _expression = require('../directive/expression');
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -34,13 +40,25 @@ var Watcher = function () {
 	_createClass(Watcher, [{
 		key: 'update',
 		value: function update() {
+			var hasToUpdate = true;
+
 			var newVal = this.get();
 			var oldVal = this.value;
-			// @TODO: [], {}引用类型，指向了同一个值
-			// if (oldVal != newVal) {
 			this.value = newVal;
-			this.callback(this.vm, newVal, oldVal);
-			// }
+			var valType = _.getType(newVal);
+			// 是否需要触发更新回调
+			if (valType === 'object') {
+				if (_.isObjectEqual(newVal, oldVal)) {
+					hasToUpdate = false;
+				}
+			} else if (valType === 'array') {
+				if (_.isArrayEqual(newVal, oldVal)) {
+					hasToUpdate = false;
+				}
+			} else {
+				hasToUpdate = oldVal != newVal;
+			}
+			hasToUpdate && this.callback(this.vm, newVal, oldVal);
 		}
 	}, {
 		key: 'beforeGet',

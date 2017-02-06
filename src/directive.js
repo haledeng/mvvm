@@ -1,7 +1,6 @@
 /**
  * 抽象所有directive的行为
  * 1. directive的lifecycle： bind, update, unbind
- * 2.
  */
 
 

@@ -51,6 +51,7 @@
 <body>
     <div id="app">
         <p :class="{active: isActive}">hello</p>
+        <p :class="{active: current != 2}">current = 2</p>
         <button @click="changeActive">click me</button>
         <p>v-for (item, index) in companies demo:</p>
         <ul>
@@ -67,7 +68,9 @@
         var mvvm = new MVVM({
             el: '#app',
             data: {
+                current: 2,
                 currentIndex: false,
+
                 companies: [{
                     name: 'microsoft',
                     location: 'US',
@@ -77,10 +80,7 @@
                     location: 'China',
                     highlight: false
                 }],
-                isActive: 1,
-                dataObject: {
-                    active: true
-                }
+                isActive: 1
             },
             computed: {
                 comObject: function() {

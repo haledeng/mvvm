@@ -11,6 +11,10 @@ const isType = (obj, type) => {
 	return toString.call(obj) === '[object ' + type.replace(/^[a-z]/, type.charAt(0).toUpperCase()) + ']';
 }
 
+const getType = (obj) => {
+	return toString.call(obj).replace(/^\[object\s|\]$/g, '').toLowerCase();
+}
+
 const mixin = (dest, source, rewrite = false) => {
 	for (var prop in source) {
 		if (source.hasOwnProperty(prop)) {
@@ -52,6 +56,31 @@ const addScope = (exp, prefix = 'scope') => {
 }
 
 
+const isArrayEqual = (a, b) => {
+	if (isType(a, 'array') && isType(b, 'array')) {
+		if (a.length !== b.length) return false;
+		for (var i = 0; i < a.length; i++) {
+			if (a[i] != b[i]) return false;
+		}
+		return true;
+	}
+	return false;
+}
+
+
+const isObjectEqual = (a, b) => {
+	if (isType(a, 'object') && isType(b, 'object')) {
+		var aKeys = Object.keys[a];
+		if (aKeys.length !== Object.keys(b).length) return false;
+		for (var i = 0; i < aKeys.length; i++) {
+			// ===?
+			if (a[aKeys[i]] != b[aKeys[i]]) return false;
+		}
+		return true;
+	}
+	return false;
+}
+
 const kebabCase = (str) => {
 	if (typeof str !== 'string') return '';
 	return str.replace(/[A-Z]/, function(all) {
@@ -66,5 +95,8 @@ export {
 	upperFirst,
 	containOnlyTextNode,
 	addScope,
-	kebabCase
+	kebabCase,
+	getType,
+	isObjectEqual,
+	isArrayEqual
 }

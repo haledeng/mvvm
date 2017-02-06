@@ -358,6 +358,10 @@ return /******/ (function(modules) { // webpackBootstrap
 		return toString.call(obj) === '[object ' + type.replace(/^[a-z]/, type.charAt(0).toUpperCase()) + ']';
 	};
 
+	var getType = function getType(obj) {
+		return toString.call(obj).replace(/^\[object\s|\]$/g, '').toLowerCase();
+	};
+
 	var mixin = function mixin(dest, source) {
 		var rewrite = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
@@ -402,6 +406,29 @@ return /******/ (function(modules) { // webpackBootstrap
 		return trim(exp);
 	};
 
+	var isArrayEqual = function isArrayEqual(a, b) {
+		if (isType(a, 'array') && isType(b, 'array')) {
+			if (a.length !== b.length) return false;
+			for (var i = 0; i < a.length; i++) {
+				if (a[i] != b[i]) return false;
+			}
+			return true;
+		}
+		return false;
+	};
+
+	var isObjectEqual = function isObjectEqual(a, b) {
+		if (isType(a, 'object') && isType(b, 'object')) {
+			var aKeys = Object.keys[a];
+			if (aKeys.length !== Object.keys(b).length) return false;
+			for (var i = 0; i < aKeys.length; i++) {
+				if (a[aKeys[i]] != b[aKeys[i]]) return false;
+			}
+			return true;
+		}
+		return false;
+	};
+
 	var kebabCase = function kebabCase(str) {
 		if (typeof str !== 'string') return '';
 		return str.replace(/[A-Z]/, function (all) {
@@ -416,6 +443,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.containOnlyTextNode = containOnlyTextNode;
 	exports.addScope = addScope;
 	exports.kebabCase = kebabCase;
+	exports.getType = getType;
+	exports.isObjectEqual = isObjectEqual;
+	exports.isArrayEqual = isArrayEqual;
 
 /***/ },
 /* 3 */
@@ -433,7 +463,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _depender2 = _interopRequireDefault(_depender);
 
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
 	var _expression = __webpack_require__(5);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -457,13 +493,25 @@ return /******/ (function(modules) { // webpackBootstrap
 		_createClass(Watcher, [{
 			key: 'update',
 			value: function update() {
+				var hasToUpdate = true;
+
 				var newVal = this.get();
 				var oldVal = this.value;
-				// @TODO: [], {}引用类型，指向了同一个值
-				// if (oldVal != newVal) {
 				this.value = newVal;
-				this.callback(this.vm, newVal, oldVal);
-				// }
+				var valType = _.getType(newVal);
+				// 是否需要触发更新回调
+				if (valType === 'object') {
+					if (_.isObjectEqual(newVal, oldVal)) {
+						hasToUpdate = false;
+					}
+				} else if (valType === 'array') {
+					if (_.isArrayEqual(newVal, oldVal)) {
+						hasToUpdate = false;
+					}
+				} else {
+					hasToUpdate = oldVal != newVal;
+				}
+				hasToUpdate && this.callback(this.vm, newVal, oldVal);
 			}
 		}, {
 			key: 'beforeGet',
@@ -688,7 +736,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+		value: true
 	});
 
 	var _util = __webpack_require__(2);
@@ -701,15 +749,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	// strict mode can not use with
 	// new Function
 	var calculateExpression = function calculateExpression(scope, exp) {
-	    // Plan A
-	    var prefix = 'scope';
-	    exp = _.addScope(exp);
-	    var fn = new Function(prefix, 'return ' + exp);
-	    return fn(scope);
-	    // Plan B
-	    // with(scope) {
-	    //  return eval(exp);
-	    // }
+		// Plan A
+		var prefix = 'scope';
+		exp = _.addScope(exp);
+		var fn = new Function(prefix, 'return ' + exp);
+		return fn(scope);
+		// Plan B, can not be parsed.
+		// with(scope) {
+		//  return eval(exp);
+		// }
 	};
 
 	exports.default = calculateExpression;
@@ -2141,13 +2189,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = function (Compiler) {
 
 		function parseBindOn(str) {
+			// @event
 			if (/^@/.test(str)) {
 				return 'on';
 			}
+			// :bindProperty
 			if (/^\:/.test(str)) {
 				return 'bind';
 			}
-			return str.replace(/\:$/, '');
+			// v-on:  v-bind:
+			return str.replace(/^v\-|\:$/g, '');
 		}
 
 		// ES6 function写法会导致this解析问题
@@ -2157,6 +2208,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			var self = this;
 			// var bindOn = /(on|bind)\:(\w*)/;
 			var bindOn = /(v\-on\:|v\-bind\:|@|\:)(\w*)/;
+			// short name
 			// v-on:event   @event
 			// v-bind:property  :property
 			if (bindOn.test(attr.name)) {
@@ -2335,6 +2387,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'render',
 			value: function render() {
 				var frag = document.createDocumentFragment();
+				// template ID
 				var template = this.template;
 				if (/^#/.test(template)) {
 					var tempDom = document.querySelector(template);
@@ -2407,9 +2460,9 @@ return /******/ (function(modules) { // webpackBootstrap
 							var arg = [].slice.call(arguments);
 							result = oldMethod.apply(this, arg);
 							// 后面有dom diff的算法，这里可以不需要
-							if (result.length !== oldArr.length /* || name === 'reverse' || name === 'sort'*/) {
-									callback(result);
-								}
+							if (result.length !== oldArr.length || name === 'reverse' || name === 'sort') {
+								callback(result);
+							}
 							return result;
 						}
 					});
@@ -2451,6 +2504,7 @@ return /******/ (function(modules) { // webpackBootstrap
 					configurable: false,
 					enumerable: true,
 					set: function set(newVal) {
+						// 引用类型
 						if (newVal !== val) {
 							val = newVal;
 							self.observe(newVal);

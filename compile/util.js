@@ -16,6 +16,10 @@ var isType = function isType(obj, type) {
 	return toString.call(obj) === '[object ' + type.replace(/^[a-z]/, type.charAt(0).toUpperCase()) + ']';
 };
 
+var getType = function getType(obj) {
+	return toString.call(obj).replace(/^\[object\s|\]$/g, '').toLowerCase();
+};
+
 var mixin = function mixin(dest, source) {
 	var rewrite = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
@@ -60,6 +64,29 @@ var addScope = function addScope(exp) {
 	return trim(exp);
 };
 
+var isArrayEqual = function isArrayEqual(a, b) {
+	if (isType(a, 'array') && isType(b, 'array')) {
+		if (a.length !== b.length) return false;
+		for (var i = 0; i < a.length; i++) {
+			if (a[i] != b[i]) return false;
+		}
+		return true;
+	}
+	return false;
+};
+
+var isObjectEqual = function isObjectEqual(a, b) {
+	if (isType(a, 'object') && isType(b, 'object')) {
+		var aKeys = Object.keys[a];
+		if (aKeys.length !== Object.keys(b).length) return false;
+		for (var i = 0; i < aKeys.length; i++) {
+			if (a[aKeys[i]] != b[aKeys[i]]) return false;
+		}
+		return true;
+	}
+	return false;
+};
+
 var kebabCase = function kebabCase(str) {
 	if (typeof str !== 'string') return '';
 	return str.replace(/[A-Z]/, function (all) {
@@ -74,3 +101,6 @@ exports.upperFirst = upperFirst;
 exports.containOnlyTextNode = containOnlyTextNode;
 exports.addScope = addScope;
 exports.kebabCase = kebabCase;
+exports.getType = getType;
+exports.isObjectEqual = isObjectEqual;
+exports.isArrayEqual = isArrayEqual;

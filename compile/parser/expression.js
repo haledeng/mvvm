@@ -1,7 +1,7 @@
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+	value: true
 });
 
 var _util = require('../util');
@@ -14,15 +14,15 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 // strict mode can not use with
 // new Function
 var calculateExpression = function calculateExpression(scope, exp) {
-    // Plan A
-    var prefix = 'scope';
-    exp = _.addScope(exp);
-    var fn = new Function(prefix, 'return ' + exp);
-    return fn(scope);
-    // Plan B
-    // with(scope) {
-    //  return eval(exp);
-    // }
+	// Plan A
+	var prefix = 'scope';
+	exp = _.addScope(exp);
+	var fn = new Function(prefix, 'return ' + exp);
+	return fn(scope);
+	// Plan B, can not be parsed.
+	// with(scope) {
+	//  return eval(exp);
+	// }
 };
 
 exports.default = calculateExpression;

@@ -7,13 +7,16 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = function (Compiler) {
 
 	function parseBindOn(str) {
+		// @event
 		if (/^@/.test(str)) {
 			return 'on';
 		}
+		// :bindProperty
 		if (/^\:/.test(str)) {
 			return 'bind';
 		}
-		return str.replace(/\:$/, '');
+		// v-on:  v-bind:
+		return str.replace(/^v\-|\:$/g, '');
 	}
 
 	// ES6 function写法会导致this解析问题
@@ -23,6 +26,7 @@ exports.default = function (Compiler) {
 		var self = this;
 		// var bindOn = /(on|bind)\:(\w*)/;
 		var bindOn = /(v\-on\:|v\-bind\:|@|\:)(\w*)/;
+		// short name
 		// v-on:event   @event
 		// v-bind:property  :property
 		if (bindOn.test(attr.name)) {

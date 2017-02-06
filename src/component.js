@@ -21,6 +21,7 @@ class Component {
 	}
 	render() {
 		var frag = document.createDocumentFragment();
+		// template ID
 		var template = this.template;
 		if (/^#/.test(template)) {
 			var tempDom = document.querySelector(template);
