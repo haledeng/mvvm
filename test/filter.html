@@ -43,13 +43,10 @@
 </head>
 <body>
     <div id="app">
-        <!-- <p>{{message | upper}}</p> -->
-        <!-- <p>{{ a | add 2}}</p> -->
-<!--         <p v-text="a | add '2'"></p>
-        <input type="text" v-model="a | add 2">
-        <p>{{ a | add '2' }}</p>
-        <button v-on:click="change">click me</button>
- -->
+        <p>{{message}}</p>
+        <p>{{message | trim}}</p>
+        <p>{{message | capitalize}}</p>
+        <p>{{message | getType}}</p>
         <ul>
             <li v-for="(item, index) in list" class="li-item">
                 <p>{{item | reverse}} -> {{index + 1}}</p>
@@ -68,7 +65,7 @@
             el: '#app',
             data: {
                 a: 1,
-                message: 'hello MVVM',
+                message: 'hello MVVM    ',
                 list: ['item1', 'item2', 'item3']
             },
             methods: {
@@ -88,6 +85,9 @@
                 },
                 add: function(a, b) {
                     return a + b;
+                },
+                capitalize: function(val) {
+                    return val + 'custom-capitalize';
                 }
             }
         });

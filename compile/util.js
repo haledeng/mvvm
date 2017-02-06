@@ -80,6 +80,7 @@ var isObjectEqual = function isObjectEqual(a, b) {
 		var aKeys = Object.keys[a];
 		if (aKeys.length !== Object.keys(b).length) return false;
 		for (var i = 0; i < aKeys.length; i++) {
+			// ===?
 			if (a[aKeys[i]] != b[aKeys[i]]) return false;
 		}
 		return true;

@@ -7,13 +7,15 @@ import Observer from './observer/observer';
 import Watcher from './observer/watcher';
 import Directive from './directive';
 import eventMixin from './events';
+import defaultFilters from './filters/index';
+import * as _ from './util';
 
 class MVVM {
 	constructor(options) {
 		this.$data = options.data || {};
 		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
 		this.methods = options.methods;
-		this.filters = options.filters || {};
+		this.filters = _.mixin(defaultFilters, options.filters || {});
 		this.computed = options.computed || {};
 		this.copyData2Vm();
 		new Observer(this.$data);

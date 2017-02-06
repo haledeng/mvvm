@@ -29,6 +29,16 @@ var _events = require('./events');
 
 var _events2 = _interopRequireDefault(_events);
 
+var _index = require('./filters/index');
+
+var _index2 = _interopRequireDefault(_index);
+
+var _util = require('./util');
+
+var _ = _interopRequireWildcard(_util);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -40,7 +50,7 @@ var MVVM = function () {
 		this.$data = options.data || {};
 		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
 		this.methods = options.methods;
-		this.filters = options.filters || {};
+		this.filters = _.mixin(_index2.default, options.filters || {});
 		this.computed = options.computed || {};
 		this.copyData2Vm();
 		new _observer2.default(this.$data);

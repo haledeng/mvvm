@@ -85,6 +85,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _events2 = _interopRequireDefault(_events);
 
+	var _index = __webpack_require__(40);
+
+	var _index2 = _interopRequireDefault(_index);
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -96,7 +106,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.$data = options.data || {};
 			this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
 			this.methods = options.methods;
-			this.filters = options.filters || {};
+			this.filters = _.mixin(_index2.default, options.filters || {});
 			this.computed = options.computed || {};
 			this.copyData2Vm();
 			new _observer2.default(this.$data);
@@ -422,6 +432,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			var aKeys = Object.keys[a];
 			if (aKeys.length !== Object.keys(b).length) return false;
 			for (var i = 0; i < aKeys.length; i++) {
+				// ===?
 				if (a[aKeys[i]] != b[aKeys[i]]) return false;
 			}
 			return true;
@@ -2537,7 +2548,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 抽象所有directive的行为
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 1. directive的lifecycle： bind, update, unbind
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 2.
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
 
 	var _watcher = __webpack_require__(3);
@@ -2670,6 +2680,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _ = _interopRequireWildcard(_util);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	exports.default = {
+		capitalize: function capitalize(val) {
+			if (!val && val !== 0) return '';
+			val = val.toString();
+			return val.charAt(0).toUpperCase() + val.substr(1);
+		},
+		getType: _.getType,
+		trim: _.trim
+	};
 
 /***/ }
 /******/ ])
