@@ -24,6 +24,10 @@ files: /js/demo.js,/css/demo.css,/js/zoom.js
 * 框架对比
 
 [slide]
+### state = f(state, action)
+### view = f(state)
+
+[slide]
 ## Reactive
 ----
 * Dirty Check
@@ -49,6 +53,9 @@ Object.defineProperty(obj, key, {
 	}
 });
 ```
+
+[slide]
+## DEMO
 
 [slide]
 ## Issue

@@ -19,6 +19,7 @@ class MVVM {
 		this.computed = options.computed || {};
 		this.copyData2Vm();
 		new Observer(this.$data);
+		// observe(this.$data);
 		new Compiler({
 			el: this.$el,
 			vm: this
@@ -51,6 +52,7 @@ class MVVM {
 }
 
 
+// custom directive
 MVVM.directive = function(name, descriptor) {
 	if (!this._cusDirectives) {
 		this._cusDirectives = {};
@@ -79,7 +81,7 @@ MVVM.directive = function(name, descriptor) {
 	}
 };
 
-
+// custom component
 MVVM.component = function(name, options) {
 	if (!this._globalCom) {
 		this._globalCom = {};

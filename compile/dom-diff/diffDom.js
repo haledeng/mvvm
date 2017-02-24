@@ -137,7 +137,8 @@ function diffChildren(one, two, patch, apply, index) {
 		var rightNode = two.children[i];
 		if (leftNode) {
 			diffDom(leftNode, rightNode, patch, index);
-			index += leftNode.children.length;
+			// index += leftNode.children.length;
+			index += findDeep(leftNode);
 		} else {
 			if (rightNode) {
 				apply = appendPatch(apply, new _vPatch2.default(_vPatch2.default.INSERT, null, rightNode));
@@ -145,6 +146,17 @@ function diffChildren(one, two, patch, apply, index) {
 		}
 	}
 	return apply;
+}
+
+function findDeep(node) {
+	var deep = 0;
+	deep += node.children.length;
+	for (var i = 0; i < node.children.length; i++) {
+		if (node.children[i].children.length) {
+			deep += findDeep(node.children[i]);
+		}
+	}
+	return deep;
 }
 
 ;

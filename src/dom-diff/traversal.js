@@ -15,6 +15,7 @@ export default function(node, index) {
 				if (lastChild) return lastChild;
 			}
 		}
+		return null;
 	};
 	var findNode = _find(node, index);
 	if (!findNode && index >= count) {

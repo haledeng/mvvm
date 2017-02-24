@@ -23,20 +23,7 @@ class Watcher {
 		var newVal = this.get();
 		var oldVal = this.value;
 		this.value = newVal;
-		var valType = _.getType(newVal);
-		// 是否需要触发更新回调
-		if (valType === 'object') {
-			if (_.isObjectEqual(newVal, oldVal)) {
-				hasToUpdate = false;
-			}
-		} else if (valType === 'array') {
-			if (_.isArrayEqual(newVal, oldVal)) {
-				hasToUpdate = false;
-			}
-		} else {
-			hasToUpdate = oldVal != newVal;
-		}
-		hasToUpdate && this.callback(this.vm, newVal, oldVal);
+		this.callback(this.vm, newVal, oldVal);
 	}
 	beforeGet() {
 		Dep.target = this;

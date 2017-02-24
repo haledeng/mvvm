@@ -54,6 +54,7 @@ var MVVM = function () {
 		this.computed = options.computed || {};
 		this.copyData2Vm();
 		new _observer2.default(this.$data);
+		// observe(this.$data);
 		new _compiler2.default({
 			el: this.$el,
 			vm: this
@@ -95,6 +96,9 @@ var MVVM = function () {
 	return MVVM;
 }();
 
+// custom directive
+
+
 MVVM.directive = function (name, descriptor) {
 	if (!this._cusDirectives) {
 		this._cusDirectives = {};
@@ -123,6 +127,7 @@ MVVM.directive = function (name, descriptor) {
 	}
 };
 
+// custom component
 MVVM.component = function (name, options) {
 	if (!this._globalCom) {
 		this._globalCom = {};

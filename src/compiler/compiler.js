@@ -72,6 +72,11 @@ class Compiler {
 				this._parseAttr(node, item);
 				dirs.push(item.name);
 			}
+			// 属性值是模板表达式
+			if (/^\{\{/.test(item.value) && /\}\}$/.test(item.value)) {
+				var name = item.value.replace(/^\{\{/, '').replace(/\}\}$/, '');
+				node.setAttribute(item.name, calculateExpression(self.$vm.$data, name))
+			}
 		}
 
 		// remove all directives

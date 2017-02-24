@@ -110,6 +110,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.computed = options.computed || {};
 			this.copyData2Vm();
 			new _observer2.default(this.$data);
+			// observe(this.$data);
 			new _compiler2.default({
 				el: this.$el,
 				vm: this
@@ -151,6 +152,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		return MVVM;
 	}();
 
+	// custom directive
+
+
 	MVVM.directive = function (name, descriptor) {
 		if (!this._cusDirectives) {
 			this._cusDirectives = {};
@@ -179,6 +183,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 	};
 
+	// custom component
 	MVVM.component = function (name, options) {
 		if (!this._globalCom) {
 			this._globalCom = {};
@@ -290,6 +295,11 @@ return /******/ (function(modules) { // webpackBootstrap
 						// if (/(v\-\w*)?(\:|\@)?(\w*)/.test(item.name) && node.parentNode) {
 						this._parseAttr(node, item);
 						dirs.push(item.name);
+					}
+					// 属性值是模板表达式
+					if (/^\{\{/.test(item.value) && /\}\}$/.test(item.value)) {
+						var name = item.value.replace(/^\{\{/, '').replace(/\}\}$/, '');
+						node.setAttribute(item.name, (0, _index.calculateExpression)(self.$vm.$data, name));
 					}
 				}
 
@@ -509,20 +519,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				var newVal = this.get();
 				var oldVal = this.value;
 				this.value = newVal;
-				var valType = _.getType(newVal);
-				// 是否需要触发更新回调
-				if (valType === 'object') {
-					if (_.isObjectEqual(newVal, oldVal)) {
-						hasToUpdate = false;
-					}
-				} else if (valType === 'array') {
-					if (_.isArrayEqual(newVal, oldVal)) {
-						hasToUpdate = false;
-					}
-				} else {
-					hasToUpdate = oldVal != newVal;
-				}
-				hasToUpdate && this.callback(this.vm, newVal, oldVal);
+				this.callback(this.vm, newVal, oldVal);
 			}
 		}, {
 			key: 'beforeGet',
@@ -1487,7 +1484,8 @@ return /******/ (function(modules) { // webpackBootstrap
 			var rightNode = two.children[i];
 			if (leftNode) {
 				diffDom(leftNode, rightNode, patch, index);
-				index += leftNode.children.length;
+				// index += leftNode.children.length;
+				index += findDeep(leftNode);
 			} else {
 				if (rightNode) {
 					apply = appendPatch(apply, new _vPatch2.default(_vPatch2.default.INSERT, null, rightNode));
@@ -1495,6 +1493,17 @@ return /******/ (function(modules) { // webpackBootstrap
 			}
 		}
 		return apply;
+	}
+
+	function findDeep(node) {
+		var deep = 0;
+		deep += node.children.length;
+		for (var i = 0; i < node.children.length; i++) {
+			if (node.children[i].children.length) {
+				deep += findDeep(node.children[i]);
+			}
+		}
+		return deep;
 	}
 
 	;
@@ -1860,6 +1869,7 @@ return /******/ (function(modules) { // webpackBootstrap
 					if (lastChild) return lastChild;
 				}
 			}
+			return null;
 		};
 		var findNode = _find(node, index);
 		if (!findNode && index >= count) {
@@ -2392,6 +2402,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'init',
 			value: function init() {
 				new _observer2.default(this.data);
+				// observe(this.data);
 				this.render();
 			}
 		}, {
@@ -2460,16 +2471,19 @@ return /******/ (function(modules) { // webpackBootstrap
 				var oldProto = Array.prototype;
 				var overrideProto = Object.create(Array.prototype);
 				var result;
-				['push', 'pop', 'reverse', 'sort', 'slice', 'shift', 'unshift'].forEach(function (name) {
+				['push', 'pop', 'reverse', 'sort', 'slice', 'shift', 'unshift', 'splice'].forEach(function (name) {
 					var oldMethod = oldProto[name];
 					Object.defineProperty(overrideProto, name, {
 						enumerable: false,
 						configurable: true,
 						writable: true,
 						value: function value() {
-							var oldArr = this /*.slice(0)*/;
+							var oldArr = [].slice.call(this);
 							var arg = [].slice.call(arguments);
 							result = oldMethod.apply(this, arg);
+							if (_.isType(arg, 'object')) {
+								self.observe(arg);
+							}
 							// 后面有dom diff的算法，这里可以不需要
 							if (result.length !== oldArr.length || name === 'reverse' || name === 'sort') {
 								callback(result);
@@ -2483,17 +2497,11 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'observe',
 			value: function observe(data) {
-				// if (!data || !_.isType(data, 'object')) return;
 				if (!data) return;
 				var self = this;
-				if (_.isType(data, 'array')) {
-					// 重写array的push等方法
-					// self.defineArrayReactive(data);
-				} else if (_.isType(data, 'object')) {
-					Object.keys(data).forEach(function (key) {
-						self.defineReactive(data, key, data[key]);
-					});
-				}
+				Object.keys(data).forEach(function (key) {
+					self.defineReactive(data, key, data[key]);
+				});
 			}
 		}, {
 			key: 'defineReactive',
@@ -2534,6 +2542,114 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 
 	exports.default = Observer;
+
+	// function defineArrayReactive() {
+	// 	// will excute several times
+	// 	var oldProto = Array.prototype;
+	// 	var overrideProto = Object.create(Array.prototype);
+	// 	var result;
+
+	// 	['push', 'pop', 'reverse', 'sort', 'slice', 'shift',
+	// 		'unshift'
+	// 	].forEach(function(name) {
+	// 		var oldMethod = oldProto[name];
+	// 		Object.defineProperty(overrideProto, name, {
+	// 			enumerable: false,
+	// 			configurable: true,
+	// 			writable: true,
+	// 			value: function() {
+	// 				var oldArr = this /*.slice(0)*/ ;
+	// 				var i = arguments.length
+	// 				var arg = new Array(i)
+	// 				while (i--) {
+	// 					arg[i] = arguments[i]
+	// 				}
+	// 				// var arg = [].slice.call(arguments);
+	// 				result = oldMethod.apply(this, arg);
+	// 				var ob = this.__ob__;
+	// 				// 后面有dom diff的算法，这里可以不需要
+	// 				if (result.length !== oldArr.length || name === 'reverse' || name === 'sort') {
+	// 					ob.dep.notify();
+	// 				}
+	// 				// TODO: watcher中oldVal和newVal指向了同一引用
+	// 				return result;
+	// 			}
+	// 		})
+	// 	});
+	// 	return overrideProto;
+	// }
+
+
+	// var overrideProto = defineArrayReactive();
+
+	// class Observer {
+	// 	constructor(data) {
+	// 		this.$data = data;
+	// 		this.dep = new Dep();
+	// 		data.__ob__ = this;
+	// 		if (_.isType(data, 'array')) {
+	// 			this.observeArray(data);
+	// 		} else {
+	// 			this.walk(data);
+	// 		}
+	// 	}
+	// 	observeArray(data) {
+	// 		for (var i = 0; i < data.length; i++) {
+	// 			observe(data[i]);
+	// 		}
+	// 		data.__proto__ = overrideProto;
+	// 	}
+	// 	walk(data) {
+	// 		var self = this;
+	// 		var value;
+	// 		Object.keys(data).forEach(function(key) {
+	// 			value = data[key];
+	// 			if (key === '__ob__') return;
+	// 			if (_.isType(value, 'array') || _.isType(value, 'object')) {
+	// 				observe(value);
+	// 			}
+	// 			self.defineReactive(data, key, value);
+	// 		});
+	// 	}
+	// 	defineReactive(data, key, val) {
+	// 		console.log(val);
+	// 		var dep = data.__ob__.dep;
+	// 		Object.defineProperty(data, key, {
+	// 			configurable: false,
+	// 			enumerable: true,
+	// 			set: function(newVal) {
+	// 				// 引用类型
+	// 				if (newVal !== val) {
+	// 					val = newVal;
+	// 					observe(newVal);
+	// 					dep.notify();
+	// 				}
+	// 			},
+	// 			get: function() {
+	// 				var childOb = observe(val);
+	// 				if (Dep.target) {
+	// 					dep.addSub(Dep.target);
+	// 					childOb.dep.addSub(Dep.target);
+	// 				}
+	// 				debugger;
+	// 				return val;
+	// 			}
+	// 		});
+	// 	}
+	// }
+
+	// function observe(data) {
+	// 	if (!_.isType(data, 'object') && !_.isType(data, 'array')) return;
+	// 	var ob;
+	// 	if (data.__ob__) {
+	// 		ob = data.__ob__;
+	// 	} else {
+	// 		ob = new Observer(data);
+	// 	}
+	// 	return ob;
+	// }
+
+	// export default observe;
 
 /***/ },
 /* 38 */

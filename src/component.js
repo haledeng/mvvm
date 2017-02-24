@@ -1,6 +1,7 @@
 // import Compiler from './complier/complier';
 import Observer from './observer/observer';
 import * as _ from './util';
+
 var id = 0;
 class Component {
 	constructor(name, descriptor) {
@@ -17,6 +18,7 @@ class Component {
 	}
 	init() {
 		new Observer(this.data);
+		// observe(this.data);
 		this.render();
 	}
 	render() {

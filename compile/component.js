@@ -43,6 +43,7 @@ var Component = function () {
 		key: 'init',
 		value: function init() {
 			new _observer2.default(this.data);
+			// observe(this.data);
 			this.render();
 		}
 	}, {
