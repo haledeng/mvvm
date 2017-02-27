@@ -2326,13 +2326,35 @@ return /******/ (function(modules) { // webpackBootstrap
 				el: instance.frag,
 				vm: comVm
 			});
-			node.parentNode.replaceChild(instance.frag, node);
+			var commentNode = document.createComment(node.outerHTML);
+			node.parentNode.insertBefore(commentNode, node);
+			node.parentNode.insertBefore(instance.frag, node);
+			node.parentNode.removeChild(node);
+			// node.parentNode.replaceChild(instance.frag, node);
+
+			// listener
+			props.forEach(function (prop) {
+				// new Watcher({
+				// 	vm: vm,
+				// 	$el: node,
+				// 	exp: prop,
+				// 	callback: function(vm, value, oldValue) {
+				// 		// TODO: component的props的监听回调
+				// 		// 重复监听data
+				// 		console.log(value);
+				// 	}
+				// });
+			});
 		};
 	};
 
 	var _component = __webpack_require__(36);
 
 	var _component2 = _interopRequireDefault(_component);
+
+	var _watcher = __webpack_require__(3);
+
+	var _watcher2 = _interopRequireDefault(_watcher);
 
 	var _expression = __webpack_require__(5);
 
@@ -2344,14 +2366,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	// 解析自定义component
+	// import Observer from '../observer';
+
 	function parseProps(props, vm, node) {
 		var ret = {};
 		props.forEach(function (prop) {
 			ret[prop] = (0, _expression.parseExpression)(vm, node.getAttribute(_.kebabCase(prop)));
+			// new Watcher({
+			// 	vm: vm,
+			// 	$el: node,
+			// 	exp: prop,
+			// 	callback: function(vm, value, oldValue) {
+			// 		// TODO: component的props的监听回调
+			// 		console.log(value);
+			// 	}
+			// });
 		});
 		return ret;
-	} // 解析自定义component
-	// import Observer from '../observer';
+	}
 
 /***/ },
 /* 36 */
@@ -2389,9 +2422,10 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.uid = ++id;
 			this.name = name;
 			this.template = descriptor.template;
-			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+			// props生成的数据，不需要重复监听
+			this._desData = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
 			if (_.isType(descriptor._data, 'object')) {
-				this.data = _.mixin(descriptor._data, this.data);
+				this.data = _.mixin(descriptor._data, this._desData);
 			}
 			this.methods = descriptor.methods;
 			this.events = descriptor.events;
@@ -2401,7 +2435,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		_createClass(Component, [{
 			key: 'init',
 			value: function init() {
+				// 重复监听
 				new _observer2.default(this.data);
+				// new Observer(this._desData);
 				// observe(this.data);
 				this.render();
 			}
@@ -2506,6 +2542,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'defineReactive',
 			value: function defineReactive(data, key, val) {
+				// debugger;
 				var dep = new _depender2.default();
 				var self = this;
 				// 多层对象嵌套
@@ -2520,9 +2557,11 @@ return /******/ (function(modules) { // webpackBootstrap
 					self.observe(val);
 				}
 				Object.defineProperty(data, key, {
-					configurable: false,
-					enumerable: true,
+					configurable: true,
+					enumerable: false,
 					set: function set(newVal) {
+						debugger;
+						console.log(key);
 						// 引用类型
 						if (newVal !== val) {
 							val = newVal;

@@ -48,7 +48,7 @@
 			<tbody>
 				<tr v-for="(item, index) in users" :class="{success: index % 2 == 0}">
 					<td>{{index}}</td>
-					<td>{{item.name | upperFirst}}</td>
+					<td>{{item.name}}</td>
 					<td>{{item.password}}</td>
 				</tr>
 			</tbody>
@@ -61,6 +61,7 @@
 			props: ['users'],
 			template: '#temp'
 		});
+		// 重复 observe
 		var mvvm = new MVVM({
 			el: '#container',
 			data: {
@@ -88,6 +89,10 @@
 
 		var $btn = $('js-submit');
 		$btn.addEventListener('click', function(){
+			// mvvm.users = [{
+			// 		name: 'jack',
+			// 		password: 'root'
+			// 	}];
 			var $username = $('ipt-username');
 			var $password = $('ipt-password');
 
@@ -97,6 +102,7 @@
 			});
 			$username.value = '';
 			$password.value = '';
+			console.log(mvvm.users);
 		}, false);
 
 

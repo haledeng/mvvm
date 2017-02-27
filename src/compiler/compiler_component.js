@@ -2,6 +2,7 @@
 // import Observer from '../observer';
 
 import Component from '../component';
+import Watcher from '../observer/watcher';
 import {
 	parseExpression
 } from '../directive/expression';
@@ -11,9 +12,19 @@ function parseProps(props, vm, node) {
 	var ret = {};
 	props.forEach(function(prop) {
 		ret[prop] = parseExpression(vm, node.getAttribute(_.kebabCase(prop)));
+		// new Watcher({
+		// 	vm: vm,
+		// 	$el: node,
+		// 	exp: prop,
+		// 	callback: function(vm, value, oldValue) {
+		// 		// TODO: component的props的监听回调
+		// 		console.log(value);
+		// 	}
+		// });
 	});
 	return ret;
 }
+
 
 export default function(Compiler) {
 	Compiler.prototype._parseComponent = function(node) {
@@ -40,6 +51,24 @@ export default function(Compiler) {
 			el: instance.frag,
 			vm: comVm
 		});
-		node.parentNode.replaceChild(instance.frag, node);
+		var commentNode = document.createComment(node.outerHTML);
+		node.parentNode.insertBefore(commentNode, node);
+		node.parentNode.insertBefore(instance.frag, node);
+		node.parentNode.removeChild(node);
+		// node.parentNode.replaceChild(instance.frag, node);
+
+		// listener
+		props.forEach(function(prop) {
+			// new Watcher({
+			// 	vm: vm,
+			// 	$el: node,
+			// 	exp: prop,
+			// 	callback: function(vm, value, oldValue) {
+			// 		// TODO: component的props的监听回调
+			// 		// 重复监听data
+			// 		console.log(value);
+			// 	}
+			// });
+		});
 	};
 }

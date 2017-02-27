@@ -69,6 +69,7 @@ var Observer = function () {
 	}, {
 		key: 'defineReactive',
 		value: function defineReactive(data, key, val) {
+			// debugger;
 			var dep = new _depender2.default();
 			var self = this;
 			// 多层对象嵌套
@@ -83,9 +84,11 @@ var Observer = function () {
 				self.observe(val);
 			}
 			Object.defineProperty(data, key, {
-				configurable: false,
-				enumerable: true,
+				configurable: true,
+				enumerable: false,
 				set: function set(newVal) {
+					debugger;
+					console.log(key);
 					// 引用类型
 					if (newVal !== val) {
 						val = newVal;

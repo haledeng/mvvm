@@ -8,16 +8,19 @@ class Component {
 		this.uid = ++id;
 		this.name = name;
 		this.template = descriptor.template;
-		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+		// props生成的数据，不需要重复监听
+		this._desData = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
 		if (_.isType(descriptor._data, 'object')) {
-			this.data = _.mixin(descriptor._data, this.data);
+			this.data = _.mixin(descriptor._data, this._desData);
 		}
 		this.methods = descriptor.methods;
 		this.events = descriptor.events;
 		this.init();
 	}
 	init() {
+		// 重复监听
 		new Observer(this.data);
+		// new Observer(this._desData);
 		// observe(this.data);
 		this.render();
 	}
