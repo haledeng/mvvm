@@ -2326,35 +2326,13 @@ return /******/ (function(modules) { // webpackBootstrap
 				el: instance.frag,
 				vm: comVm
 			});
-			var commentNode = document.createComment(node.outerHTML);
-			node.parentNode.insertBefore(commentNode, node);
-			node.parentNode.insertBefore(instance.frag, node);
-			node.parentNode.removeChild(node);
-			// node.parentNode.replaceChild(instance.frag, node);
-
-			// listener
-			props.forEach(function (prop) {
-				// new Watcher({
-				// 	vm: vm,
-				// 	$el: node,
-				// 	exp: prop,
-				// 	callback: function(vm, value, oldValue) {
-				// 		// TODO: component的props的监听回调
-				// 		// 重复监听data
-				// 		console.log(value);
-				// 	}
-				// });
-			});
+			node.parentNode.replaceChild(instance.frag, node);
 		};
 	};
 
 	var _component = __webpack_require__(36);
 
 	var _component2 = _interopRequireDefault(_component);
-
-	var _watcher = __webpack_require__(3);
-
-	var _watcher2 = _interopRequireDefault(_watcher);
 
 	var _expression = __webpack_require__(5);
 
@@ -2366,106 +2344,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	// 解析自定义component
-	// import Observer from '../observer';
-
 	function parseProps(props, vm, node) {
 		var ret = {};
 		props.forEach(function (prop) {
 			ret[prop] = (0, _expression.parseExpression)(vm, node.getAttribute(_.kebabCase(prop)));
-			// new Watcher({
-			// 	vm: vm,
-			// 	$el: node,
-			// 	exp: prop,
-			// 	callback: function(vm, value, oldValue) {
-			// 		// TODO: component的props的监听回调
-			// 		console.log(value);
-			// 	}
-			// });
 		});
 		return ret;
-	}
+	} // 解析自定义component
+	// import Observer from '../observer';
 
 /***/ },
 /* 36 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Compiler from './complier/complier';
-
-
-	var _observer = __webpack_require__(37);
-
-	var _observer2 = _interopRequireDefault(_observer);
-
-	var _util = __webpack_require__(2);
-
-	var _ = _interopRequireWildcard(_util);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var id = 0;
-
-	var Component = function () {
-		function Component(name, descriptor) {
-			_classCallCheck(this, Component);
-
-			this.uid = ++id;
-			this.name = name;
-			this.template = descriptor.template;
-			// props生成的数据，不需要重复监听
-			this._desData = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
-			if (_.isType(descriptor._data, 'object')) {
-				this.data = _.mixin(descriptor._data, this._desData);
-			}
-			this.methods = descriptor.methods;
-			this.events = descriptor.events;
-			this.init();
-		}
-
-		_createClass(Component, [{
-			key: 'init',
-			value: function init() {
-				// 重复监听
-				new _observer2.default(this.data);
-				// new Observer(this._desData);
-				// observe(this.data);
-				this.render();
-			}
-		}, {
-			key: 'render',
-			value: function render() {
-				var frag = document.createDocumentFragment();
-				// template ID
-				var template = this.template;
-				if (/^#/.test(template)) {
-					var tempDom = document.querySelector(template);
-					template = tempDom.innerHTML;
-					tempDom.parentNode.removeChild(tempDom);
-				}
-				var div = document.createElement('div');
-				div.innerHTML = template;
-				[].slice.call(div.children).forEach(function (child) {
-					frag.appendChild(child);
-				});
-				this.frag = frag;
-				frag.uid = id;
-			}
-		}]);
-
-		return Component;
-	}();
-
-	exports.default = Component;
+	
 
 /***/ },
 /* 37 */

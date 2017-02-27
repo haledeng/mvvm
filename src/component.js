@@ -9,9 +9,9 @@ class Component {
 		this.name = name;
 		this.template = descriptor.template;
 		// props生成的数据，不需要重复监听
-		this._desData = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
 		if (_.isType(descriptor._data, 'object')) {
-			this.data = _.mixin(descriptor._data, this._desData);
+			this.data = _.mixin(descriptor._data, this.data);
 		}
 		this.methods = descriptor.methods;
 		this.events = descriptor.events;
@@ -20,8 +20,6 @@ class Component {
 	init() {
 		// 重复监听
 		new Observer(this.data);
-		// new Observer(this._desData);
-		// observe(this.data);
 		this.render();
 	}
 	render() {

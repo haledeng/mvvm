@@ -60,7 +60,7 @@ Object.defineProperty(obj, key, {
 [slide]
 ## Issue
 ----
-* 添加依赖
+* Add Dependency
 * `Array.prototype.push` etc.
 
 
