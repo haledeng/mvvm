@@ -40,7 +40,6 @@ var Watcher = function () {
 	_createClass(Watcher, [{
 		key: 'update',
 		value: function update() {
-			var hasToUpdate = true;
 
 			var newVal = this.get();
 			var oldVal = this.value;

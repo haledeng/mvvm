@@ -32,6 +32,8 @@ function vFor(node, vm, expression) {
 	var expInfo = this._expInfo;
 	var scope = vm.$data;
 	var val = (0, _expression.calculateExpression)(scope, expInfo.val);
+
+	val = typeof val !== 'undefined' ? val : (0, _expression.calculateExpression)(vm.$parent.$data, expInfo.val);
 	if (!_.isType(val, 'array') && !_.isType(val, 'object')) return;
 	var docFrag = document.createDocumentFragment();
 	forEach(val, function (item, index) {

@@ -514,7 +514,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		_createClass(Watcher, [{
 			key: 'update',
 			value: function update() {
-				var hasToUpdate = true;
 
 				var newVal = this.get();
 				var oldVal = this.value;
@@ -651,6 +650,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    value = vmComputed[exp].call(vm.$data);
 	                } else {
 	                    value = (0, _expression2.default)(data, exp);
+	                    // 向上查找
+	                    if (typeof value === 'undefined') {
+	                        value = value || (0, _expression2.default)(vm.$parent.$data, exp);
+	                    }
 	                }
 	            }
 	            break;
@@ -1270,6 +1273,8 @@ return /******/ (function(modules) { // webpackBootstrap
 		var expInfo = this._expInfo;
 		var scope = vm.$data;
 		var val = (0, _expression.calculateExpression)(scope, expInfo.val);
+
+		val = typeof val !== 'undefined' ? val : (0, _expression.calculateExpression)(vm.$parent.$data, expInfo.val);
 		if (!_.isType(val, 'array') && !_.isType(val, 'object')) return;
 		var docFrag = document.createDocumentFragment();
 		forEach(val, function (item, index) {
@@ -1485,6 +1490,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			if (leftNode) {
 				diffDom(leftNode, rightNode, patch, index);
 				// index += leftNode.children.length;
+				// 多层节点嵌套
 				index += findDeep(leftNode);
 			} else {
 				if (rightNode) {
@@ -1495,12 +1501,14 @@ return /******/ (function(modules) { // webpackBootstrap
 		return apply;
 	}
 
+	//  深度优先遍历
 	function findDeep(node) {
 		var deep = 0;
-		deep += node.children.length;
-		for (var i = 0; i < node.children.length; i++) {
-			if (node.children[i].children.length) {
-				deep += findDeep(node.children[i]);
+		var children = node.children;
+		deep += children.length;
+		for (var i = 0; i < children.length; i++) {
+			if (children[i].children.length) {
+				deep += findDeep(children[i]);
 			}
 		}
 		return deep;
@@ -1728,14 +1736,19 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 	};
 	var getAttr = function getAttr(node) {
-		var attrs = node.attributes || [];
+		var attrs = [].slice.call(node.attributes) || [];
 		var ret = {};
-		for (var i = 0; i < attrs.length; i++) {
-			var attr = attrs[i];
+		// for (var i = 0; i < attrs.length; i++) {
+		// 	var attr = attrs[i];
+		// 	if (!_.isEmptyStr(attr.value)) {
+		// 		ret[attr.name] = attr.value;
+		// 	}
+		// }
+		attrs.map(function (attr) {
 			if (!_.isEmptyStr(attr.value)) {
 				ret[attr.name] = attr.value;
 			}
-		}
+		});
 		return ret;
 	};
 	exports.applyAttributes = applyAttributes;
@@ -2045,8 +2058,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		value: true
 	});
 
-	var _expression = __webpack_require__(5);
-
 	var _util = __webpack_require__(2);
 
 	var _ = _interopRequireWildcard(_util);
@@ -2306,17 +2317,20 @@ return /******/ (function(modules) { // webpackBootstrap
 			var self = this;
 			var allCom = this.$vm.constructor._globalCom;
 			var descriptor = allCom[node.tagName.toLowerCase()];
-			var props = descriptor.props || [];
+			// var props = descriptor.props || [];
 			// props获取的数据
 			// props中的数据会被重复监听（component一次，MVVM初始化一次）
-			descriptor._data = parseProps(props, self.$vm, node);
+			// descriptor._data = parseProps(props, self.$vm, node);
 			// component是全局VM的一个child
 			var instance = new _component2.default(descriptor.name, descriptor);
 			var vm = this.$vm;
 
 			var comVm = Object.create(vm.__proto__);
 			comVm.methods = instance.methods;
-			comVm.$data = instance.data;
+			// 此处有问题，componet的data会覆盖vm中的数据
+			// parse表达式时，向上查找
+			// comVm.$data = Object.assign(vm.$data, instance.data);
+			comVm.$data = instance.data || {};
 			// 记录全局VM
 			comVm.$parent = vm;
 			comVm._events = instance.events;
@@ -2345,6 +2359,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	// 计算prop对应的value
 	function parseProps(props, vm, node) {
 		var ret = {};
 		props.forEach(function (prop) {
@@ -2392,9 +2407,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.template = descriptor.template;
 			// props生成的数据，不需要重复监听
 			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
-			if (_.isType(descriptor._data, 'object')) {
-				this.data = _.mixin(descriptor._data, this.data);
-			}
+			// props中引用vm的数据，不监听
 			this.methods = descriptor.methods;
 			this.events = descriptor.events;
 			this.init();
@@ -2403,13 +2416,13 @@ return /******/ (function(modules) { // webpackBootstrap
 		_createClass(Component, [{
 			key: 'init',
 			value: function init() {
-				// 重复监听
 				new _observer2.default(this.data);
 				this.render();
 			}
 		}, {
 			key: 'render',
 			value: function render() {
+
 				// component template.
 				var frag = document.createDocumentFragment();
 				// template ID
@@ -2417,7 +2430,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				if (/^#/.test(template)) {
 					var tempDom = document.querySelector(template);
 					template = tempDom.innerHTML;
-					tempDom.parentNode.removeChild(tempDom);
+					// tempDom.parentNode.removeChild(tempDom);
 				}
 				var div = document.createElement('div');
 				div.innerHTML = template;
@@ -2509,7 +2522,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'defineReactive',
 			value: function defineReactive(data, key, val) {
-				// debugger;
 				var dep = new _depender2.default();
 				var self = this;
 				// 多层对象嵌套
@@ -2518,18 +2530,17 @@ return /******/ (function(modules) { // webpackBootstrap
 						dep.notify();
 					});
 					val.forEach(function (item) {
-						self.observe(item);
+						if (_.isType(item, 'object') || _.isType(item, 'array')) {
+							self.observe(item);
+						}
 					});
 				} else if (_.isType(val, 'object')) {
 					self.observe(val);
 				}
 				Object.defineProperty(data, key, {
-					configurable: true,
+					configurable: false,
 					enumerable: false,
 					set: function set(newVal) {
-						debugger;
-						console.log(key);
-						// 引用类型
 						if (newVal !== val) {
 							val = newVal;
 							self.observe(newVal);

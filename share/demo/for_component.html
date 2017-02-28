@@ -11,6 +11,14 @@
 			<com-tab users="users"></com-tab>
 		</div>
 		<div class="row">
+			<com-tab users="users"></com-tab>
+		</div>
+		<div class="row">
+			<ul>
+				<li v-for="item in users">{{item.name}}</li>
+			</ul>
+		</div>
+		<div class="row">
 			<div class="col-md-3"></div>
 			<div class="col-md-6">
 				<div class="form-horizontal">
@@ -46,7 +54,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="(item, index) in users" :class="{success: index % 2 == 0}">
+				<tr v-for="(item, index) in users">
 					<td>{{index}}</td>
 					<td>{{item.name}}</td>
 					<td>{{item.password}}</td>

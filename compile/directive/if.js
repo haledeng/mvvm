@@ -4,8 +4,6 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _expression = require('./expression');
-
 var _util = require('../util');
 
 var _ = _interopRequireWildcard(_util);

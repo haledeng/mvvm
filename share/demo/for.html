@@ -30,6 +30,28 @@
 			</table>
 		</div>
 		<div class="row">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>name</th>
+						<th>password</th>
+						<th>operation</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(item, index) in users" :class="{success: index % 2 == 0}">
+						<td>{{index}}</td>
+						<td>{{item.name | upperFirst}}</td>
+						<td>{{item.password}}</td>
+						<td>
+							<button class="btn btn-default" data-id="{{index}}">Delete</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="row">
 			<div class="col-md-3"></div>
 			<div class="col-md-6">
 				<div class="form-horizontal">

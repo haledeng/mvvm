@@ -138,6 +138,7 @@ function diffChildren(one, two, patch, apply, index) {
 		if (leftNode) {
 			diffDom(leftNode, rightNode, patch, index);
 			// index += leftNode.children.length;
+			// 多层节点嵌套
 			index += findDeep(leftNode);
 		} else {
 			if (rightNode) {
@@ -148,12 +149,14 @@ function diffChildren(one, two, patch, apply, index) {
 	return apply;
 }
 
+//  深度优先遍历
 function findDeep(node) {
 	var deep = 0;
-	deep += node.children.length;
-	for (var i = 0; i < node.children.length; i++) {
-		if (node.children[i].children.length) {
-			deep += findDeep(node.children[i]);
+	var children = node.children;
+	deep += children.length;
+	for (var i = 0; i < children.length; i++) {
+		if (children[i].children.length) {
+			deep += findDeep(children[i]);
 		}
 	}
 	return deep;

@@ -10,19 +10,17 @@ class Component {
 		this.template = descriptor.template;
 		// props生成的数据，不需要重复监听
 		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
-		if (_.isType(descriptor._data, 'object')) {
-			this.data = _.mixin(descriptor._data, this.data);
-		}
+		// props中引用vm的数据，不监听
 		this.methods = descriptor.methods;
 		this.events = descriptor.events;
 		this.init();
 	}
 	init() {
-		// 重复监听
 		new Observer(this.data);
 		this.render();
 	}
 	render() {
+
 		// component template.
 		var frag = document.createDocumentFragment();
 		// template ID
@@ -30,7 +28,7 @@ class Component {
 		if (/^#/.test(template)) {
 			var tempDom = document.querySelector(template);
 			template = tempDom.innerHTML;
-			tempDom.parentNode.removeChild(tempDom);
+			// tempDom.parentNode.removeChild(tempDom);
 		}
 		var div = document.createElement('div');
 		div.innerHTML = template;

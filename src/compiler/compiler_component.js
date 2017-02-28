@@ -16,23 +16,25 @@ function parseProps(props, vm, node) {
 	return ret;
 }
 
-
 export default function(Compiler) {
 	Compiler.prototype._parseComponent = function(node) {
 		var self = this;
 		var allCom = this.$vm.constructor._globalCom;
 		var descriptor = allCom[node.tagName.toLowerCase()];
-		var props = descriptor.props || [];
+		// var props = descriptor.props || [];
 		// props获取的数据
 		// props中的数据会被重复监听（component一次，MVVM初始化一次）
-		descriptor._data = parseProps(props, self.$vm, node);
+		// descriptor._data = parseProps(props, self.$vm, node);
 		// component是全局VM的一个child
 		var instance = new Component(descriptor.name, descriptor);
 		var vm = this.$vm;
 
 		var comVm = Object.create(vm.__proto__);
 		comVm.methods = instance.methods;
-		comVm.$data = instance.data;
+		// 此处有问题，componet的data会覆盖vm中的数据
+		// parse表达式时，向上查找
+		// comVm.$data = Object.assign(vm.$data, instance.data);
+		comVm.$data = instance.data || {};
 		// 记录全局VM
 		comVm.$parent = vm;
 		comVm._events = instance.events;

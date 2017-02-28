@@ -54,6 +54,10 @@ function parseExpression(vm, exp, directive, node) {
                     value = vmComputed[exp].call(vm.$data);
                 } else {
                     value = (0, _expression2.default)(data, exp);
+                    // 向上查找
+                    if (typeof value === 'undefined') {
+                        value = value || (0, _expression2.default)(vm.$parent.$data, exp);
+                    }
                 }
             }
             break;

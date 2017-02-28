@@ -69,7 +69,6 @@ var Observer = function () {
 	}, {
 		key: 'defineReactive',
 		value: function defineReactive(data, key, val) {
-			// debugger;
 			var dep = new _depender2.default();
 			var self = this;
 			// 多层对象嵌套
@@ -78,18 +77,17 @@ var Observer = function () {
 					dep.notify();
 				});
 				val.forEach(function (item) {
-					self.observe(item);
+					if (_.isType(item, 'object') || _.isType(item, 'array')) {
+						self.observe(item);
+					}
 				});
 			} else if (_.isType(val, 'object')) {
 				self.observe(val);
 			}
 			Object.defineProperty(data, key, {
-				configurable: true,
+				configurable: false,
 				enumerable: false,
 				set: function set(newVal) {
-					debugger;
-					console.log(key);
-					// 引用类型
 					if (newVal !== val) {
 						val = newVal;
 						self.observe(newVal);

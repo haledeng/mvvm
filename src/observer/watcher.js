@@ -2,8 +2,7 @@ var uid = 0;
 import Dep from './depender';
 import * as _ from '../util';
 import {
-	parseExpression,
-	calculateExpression
+	parseExpression
 } from '../directive/expression';
 
 
@@ -18,7 +17,6 @@ class Watcher {
 		this.value = this.init();
 	}
 	update() {
-		var hasToUpdate = true;
 
 		var newVal = this.get();
 		var oldVal = this.value;

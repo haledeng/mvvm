@@ -1,7 +1,3 @@
-import {
-	calculateExpression,
-	parseForExpression
-} from './expression';
 import * as _ from '../util';
 import diffDom from '../dom-diff/diffDom';
 import patch from '../dom-diff/patch';
