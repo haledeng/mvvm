@@ -11,6 +11,7 @@ exports.default = function (Compiler) {
 		var descriptor = allCom[node.tagName.toLowerCase()];
 		var props = descriptor.props || [];
 		// props获取的数据
+		// props中的数据会被重复监听（component一次，MVVM初始化一次）
 		descriptor._data = parseProps(props, self.$vm, node);
 		// component是全局VM的一个child
 		var instance = new _component2.default(descriptor.name, descriptor);

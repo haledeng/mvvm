@@ -50,6 +50,7 @@ var Component = function () {
 	}, {
 		key: 'render',
 		value: function render() {
+			// component template.
 			var frag = document.createDocumentFragment();
 			// template ID
 			var template = this.template;

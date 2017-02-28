@@ -81,6 +81,7 @@
 				}
 			}
 		});
+		
 		var $ = function(id) {
 			return document.getElementById(id);
 		}
@@ -89,10 +90,6 @@
 
 		var $btn = $('js-submit');
 		$btn.addEventListener('click', function(){
-			// mvvm.users = [{
-			// 		name: 'jack',
-			// 		password: 'root'
-			// 	}];
 			var $username = $('ipt-username');
 			var $password = $('ipt-password');
 

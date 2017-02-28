@@ -31,12 +31,17 @@ var patchObject = function(node, propName, propValue) {
 var getAttr = function(node) {
 	var attrs = node.attributes || [];
 	var ret = {};
-	for (var i = 0; i < attrs.length; i++) {
-		var attr = attrs[i];
+	// for (var i = 0; i < attrs.length; i++) {
+	// 	var attr = attrs[i];
+	// 	if (!_.isEmptyStr(attr.value)) {
+	// 		ret[attr.name] = attr.value;
+	// 	}
+	// }
+	attrs.map(function(attr) {
 		if (!_.isEmptyStr(attr.value)) {
 			ret[attr.name] = attr.value;
 		}
-	}
+	});
 	return ret;
 }
 export {

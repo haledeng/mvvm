@@ -13,8 +13,8 @@ files: /js/demo.js,/css/demo.css,/js/zoom.js
 ----
 * Reactive {:&.rollIn}
 * Directive
-* Template
 * Component
+* dom-diff
 
 [slide]
 ## Excluded
@@ -27,15 +27,8 @@ files: /js/demo.js,/css/demo.css,/js/zoom.js
 ### state = f(state, action)
 ### view = f(state)
 
-[slide]
-## Reactive
-----
-* Dirty Check
-* Setter
-* `Object.defineProperty`
-
 [slide style="background-image:url('/img/bg1.png')"]
-## 监听property赋值，diff触发回调
+## Reactive
 
 [slide]
 ## Object.defineProperty
@@ -71,52 +64,34 @@ Object.defineProperty(obj, key, {
 * Compute Expression
 
 [slide]
-## Compiler custom property (**`directive`**) and element (**`component`**)
-
-[slide]
-## Compute Expression
-----
-* Scope
-* Filter && Bind
-
-
-[slide]
-## Dom Operation
-----
-* v-for
-* v-if/else
+## DEMO
 
 
 [slide]
 ## Component
 ----
-* Props Down
-* Events Up
+* template + data + style
+
 
 [slide]
-## Dom Diff
-```html
-<div id="container">
-	<p class="message">hello world</p>
-	<h1 class="title">title</h1>
+## Dom Operation
+----
+* react
+```
+<div id="main" class="container">
+	<p>hello world</p>
 </div>
 ```
 
-```javascript
-new VNode({
-	tagName: 'div',
-	attributes: {id: 'container'},
-	children: [
-		new VNode({
-			tagName: 'p',
-			attributes: {class: 'message'},
-			children: ['hello world']
-		}),
-		new Vnode({
-			tagName: 'h1',
-			attributes: {class: 'title'},
-			children: ['title']
-		})
-	]
-});
 ```
+{
+	tagName: 'div',
+	attrs: {className: 'container', id: 'main'},
+	children: [{
+		tagName: 'p',
+		attrs: {},
+		children: ['hello world']
+	}]
+}
+```
+* dom-diff

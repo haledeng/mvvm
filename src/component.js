@@ -23,6 +23,7 @@ class Component {
 		this.render();
 	}
 	render() {
+		// component template.
 		var frag = document.createDocumentFragment();
 		// template ID
 		var template = this.template;
