@@ -407,21 +407,29 @@ return /******/ (function(modules) { // webpackBootstrap
 		var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
 
 		exp = trim(exp);
-		// x.y
+		// x.y => scope.x.y
+		// x.y.z = > scope.x.y.z
 		// Math.random()  全局函数调用
 		var globalObject = ['Math', 'window', 'Date', 'navigator', 'document'];
 		exp = exp.replace(/[\w\[\]]+(?=\.)/g, function (match, index, all) {
-			if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
-			return [prefix, match].join('.');
+			if (~globalObject.indexOf(match) || /^\d*$/.test(match)) return match;
+			if (all.indexOf('.' + match) === -1) {
+				return [prefix, match].join('.');
+			}
+			return match;
 		});
 		exp = ' ' + exp + ' ';
 		// x
-		exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
+		exp = exp.replace(/[\+\-\*\/\s\>\<\=\(]\w+(?![\'\.])[\+\-\*\/\s\>\<\=\)]/g, function (match, index, all) {
 			match = trim(match);
-			if (/^[0-9]*$/.test(match)) {
+			if (/^\d*$/.test(match)) {
 				return match;
 			}
-			return [prefix, match].join('.');
+			match = match.replace(/([\+\-\*\/\s\>\<\=\(]?)(\w+)([\+\-\*\/\s\>\<\=\)]?)/, function (all, before, cur, after) {
+				return before + [prefix, cur].join('.') + after;
+			});
+			return match;
+			// return [prefix, match].join('.');
 		});
 		return trim(exp);
 	};
@@ -627,8 +635,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// whether expression has filter
 	function hasFilter(exp) {
-	    if (!exp || exp.indexOf('|') === -1) return false;
-	    return true;
+	    // if (!exp || exp.indexOf('|') === -1) return false;
+	    return exp && /\s\|\s/.test(exp);
+	    // return true;
 	}
 
 	function parseExpression(vm, exp, directive, node) {
@@ -651,8 +660,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                } else {
 	                    value = (0, _expression2.default)(data, exp);
 	                    // 向上查找
-	                    if (typeof value === 'undefined') {
-	                        value = value || (0, _expression2.default)(vm.$parent.$data, exp);
+	                    if (vm.props && vm.props[exp]) {
+	                        value = value || (0, _expression2.default)(vm.$parent.$data, vm.props[exp]);
 	                    }
 	                }
 	            }
@@ -757,18 +766,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	// 计算表达式
-	// strict mode can not use with
 	// new Function
 	var calculateExpression = function calculateExpression(scope, exp) {
-		// Plan A
 		var prefix = 'scope';
 		exp = _.addScope(exp);
 		var fn = new Function(prefix, 'return ' + exp);
 		return fn(scope);
-		// Plan B, can not be parsed.
-		// with(scope) {
-		//  return eval(exp);
-		// }
+		// with. //strict mode.
 	};
 
 	exports.default = calculateExpression;
@@ -1273,8 +1277,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		var expInfo = this._expInfo;
 		var scope = vm.$data;
 		var val = (0, _expression.calculateExpression)(scope, expInfo.val);
-
-		val = typeof val !== 'undefined' ? val : (0, _expression.calculateExpression)(vm.$parent.$data, expInfo.val);
+		if (vm.props && vm.props[expInfo.val]) {
+			val = (0, _expression.calculateExpression)(vm.$parent.$data, vm.props[expInfo.val]);
+		}
 		if (!_.isType(val, 'array') && !_.isType(val, 'object')) return;
 		var docFrag = document.createDocumentFragment();
 		forEach(val, function (item, index) {
@@ -2075,6 +2080,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function vIf(node, vm, value) {
+		debugger;
 		// var hasElseNext = this._hasElseNext;
 		if (value) {
 			// 这种2次操作的方式，实际和未dom-diff差别不大
@@ -2329,8 +2335,10 @@ return /******/ (function(modules) { // webpackBootstrap
 			comVm.methods = instance.methods;
 			// 此处有问题，componet的data会覆盖vm中的数据
 			// parse表达式时，向上查找
-			// comVm.$data = Object.assign(vm.$data, instance.data);
 			comVm.$data = instance.data || {};
+			// 遇到props，向上查找parent
+			// comVm.props = descriptor.props || [];
+			comVm.props = getComProps(node);
 			// 记录全局VM
 			comVm.$parent = vm;
 			comVm._events = instance.events;
@@ -2369,83 +2377,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	} // 解析自定义component
 	// import Observer from '../observer';
 
+	function getComProps(node) {
+		var attrs = [].slice.call(node.attributes) || [];
+		var ret = {};
+		attrs.map(function (attr) {
+			ret[attr.name] = attr.value;
+		});
+		return ret;
+	}
+
 /***/ },
 /* 36 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Compiler from './complier/complier';
-
-
-	var _observer = __webpack_require__(37);
-
-	var _observer2 = _interopRequireDefault(_observer);
-
-	var _util = __webpack_require__(2);
-
-	var _ = _interopRequireWildcard(_util);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var id = 0;
-
-	var Component = function () {
-		function Component(name, descriptor) {
-			_classCallCheck(this, Component);
-
-			this.uid = ++id;
-			this.name = name;
-			this.template = descriptor.template;
-			// props生成的数据，不需要重复监听
-			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
-			// props中引用vm的数据，不监听
-			this.methods = descriptor.methods;
-			this.events = descriptor.events;
-			this.init();
-		}
-
-		_createClass(Component, [{
-			key: 'init',
-			value: function init() {
-				new _observer2.default(this.data);
-				this.render();
-			}
-		}, {
-			key: 'render',
-			value: function render() {
-
-				// component template.
-				var frag = document.createDocumentFragment();
-				// template ID
-				var template = this.template;
-				if (/^#/.test(template)) {
-					var tempDom = document.querySelector(template);
-					template = tempDom.innerHTML;
-					// tempDom.parentNode.removeChild(tempDom);
-				}
-				var div = document.createElement('div');
-				div.innerHTML = template;
-				[].slice.call(div.children).forEach(function (child) {
-					frag.appendChild(child);
-				});
-				this.frag = frag;
-				frag.uid = id;
-			}
-		}]);
-
-		return Component;
-	}();
-
-	exports.default = Component;
+	
 
 /***/ },
 /* 37 */
@@ -2539,7 +2484,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				}
 				Object.defineProperty(data, key, {
 					configurable: false,
-					enumerable: false,
+					enumerable: true,
 					set: function set(newVal) {
 						if (newVal !== val) {
 							val = newVal;

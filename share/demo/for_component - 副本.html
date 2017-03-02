@@ -8,14 +8,14 @@
 <body>
 	<div id="container" class="container">
 		<div class="row">
-			<com-tab list="users"></com-tab>
+			<com-tab users="users"></com-tab>
 		</div>
 		<div class="row">
-			<com-tab list="users"></com-tab>
+			<com-tab users="users"></com-tab>
 		</div>
 		<div class="row">
 			<ul>
-				<li v-for="item in users">{{item.name}}</li>
+				<li v-for="item in users">{{item}}</li>
 			</ul>
 		</div>
 		<div class="row">
@@ -50,18 +50,12 @@
 				<tr>
 					<th>#</th>
 					<th>name</th>
-					<th>password</th>
-					<th>operation</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="(item, index) in list" :class="{success: index % 2 == 0}">
+				<tr v-for="(item, index) in users">
 					<td>{{index}}</td>
-					<td>{{item.name}}</td>
-					<td>{{item.password}}</td>					
-					<td>
-						<button class="js-btn-delete btn btn-default" data-id="{{index}}">Delete</button>
-					</td>
+					<td>{{item}}</td>
 				</tr>
 			</tbody>
 		</table>
@@ -77,13 +71,7 @@
 		var mvvm = new MVVM({
 			el: '#container',
 			data: {
-				users: [{
-					name: 'jack',
-					password: 'root'
-				}, {
-					name: 'tom',
-					password: '1234'
-				}]
+				users: ['jack','tom']
 			},
 			filters: {
 				upperFirst: function(str) {
@@ -105,26 +93,13 @@
 			var $username = $('ipt-username');
 			var $password = $('ipt-password');
 
-			mvvm.users.push({
-				name: $username.value,
-				password: $password.value
-			});
+			mvvm.users.push($username.value);
 			$username.value = '';
 			$password.value = '';
 			console.log(mvvm.users);
 		}, false);
 
 
-
-		var $container = document.querySelector('#container');
-		$container.addEventListener('click', function(e){
-			var element = e.target;
-			if (element.tagName.toLowerCase() === 'button' && ~element.className.indexOf('js-btn-delete')) {
-				var index = element.getAttribute('data-id');
-				mvvm.users.splice(index, 1);
-				console.log(mvvm.users);
-			}
-		}, false);
 
 	</script>
 </body>

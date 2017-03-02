@@ -7,28 +7,16 @@
 </head>
 <body>
 	<div id="container" class="container">
-		<div class="row">
-			<table class="table">
-				<thead>
-					<tr>
-						<th>#</th>
-						<th>name</th>
-						<th>password</th>
-						<th>operation</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="(item, index) in users" :class="{success: index % 2 == 0}">
-						<td>{{index}}</td>
-						<td>{{item.name | upperFirst}}</td>
-						<td>{{item.password}}</td>
-						<td>
-							<button class="btn btn-default" data-id="{{index}}">Delete</button>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+<!-- 		<div class="row">
+			<div class="form-inline">
+			  <div class="form-group">
+			    <div class="input-group">
+			      <input type="text" class="form-control" id="js-ipt-search" placeholder="name">
+			    </div>
+			  </div>
+			  <button id="js-search-btn" class="btn btn-primary">Search</button>
+			</div>
+		</div> -->
 		<div class="row">
 			<table class="table">
 				<thead>
@@ -79,9 +67,20 @@
 	</div>
 	<script src="../../dist/mvvm.js"></script>
 	<script>
+		MVVM.directive('up', {
+			bind: function(node, binding){
+
+			},
+			update: function(node, binding) {
+				node.textContent = binding.value.replace(/^([a-z])/, function($0, $1) {
+						return $1.toUpperCase();
+					});
+			}
+		})
 		var mvvm = new MVVM({
 			el: '#container',
 			data: {
+				keyword: '',
 				users: [{
 					name: 'jack',
 					password: 'root'
@@ -132,6 +131,10 @@
 				mvvm.users.splice(index, 1);
 				console.log(mvvm.users);
 			}
+		}, false);
+
+		document.querySelector('#js-search-btn').addEventListener('click', function(){
+			mvvm.keyword = document.querySelector('#js-ipt-search').value;
 		}, false);
 	</script>
 </body>

@@ -16,6 +16,15 @@ function parseProps(props, vm, node) {
 	return ret;
 }
 
+function getComProps(node) {
+	var attrs = [].slice.call(node.attributes) || [];
+	var ret = {};
+	attrs.map(function(attr) {
+		ret[attr.name] = attr.value;
+	})
+	return ret;
+}
+
 export default function(Compiler) {
 	Compiler.prototype._parseComponent = function(node) {
 		var self = this;
@@ -33,8 +42,10 @@ export default function(Compiler) {
 		comVm.methods = instance.methods;
 		// 此处有问题，componet的data会覆盖vm中的数据
 		// parse表达式时，向上查找
-		// comVm.$data = Object.assign(vm.$data, instance.data);
 		comVm.$data = instance.data || {};
+		// 遇到props，向上查找parent
+		// comVm.props = descriptor.props || [];
+		comVm.props = getComProps(node);
 		// 记录全局VM
 		comVm.$parent = vm;
 		comVm._events = instance.events;

@@ -60,7 +60,7 @@ class Observer {
 		}
 		Object.defineProperty(data, key, {
 			configurable: false,
-			enumerable: false,
+			enumerable: true,
 			set: function(newVal) {
 				if (newVal !== val) {
 					val = newVal;

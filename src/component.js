@@ -1,12 +1,12 @@
 // import Compiler from './complier/complier';
 import Observer from './observer/observer';
-import * as _ from './util';
 
 var id = 0;
 class Component {
 	constructor(name, descriptor) {
 		this.uid = ++id;
 		this.name = name;
+		this.descriptor = descriptor;
 		this.template = descriptor.template;
 		// props生成的数据，不需要重复监听
 		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
@@ -20,7 +20,6 @@ class Component {
 		this.render();
 	}
 	render() {
-
 		// component template.
 		var frag = document.createDocumentFragment();
 		// template ID
@@ -28,7 +27,10 @@ class Component {
 		if (/^#/.test(template)) {
 			var tempDom = document.querySelector(template);
 			template = tempDom.innerHTML;
-			// tempDom.parentNode.removeChild(tempDom);
+			// remove template DOM from Document.
+			tempDom.parentNode.removeChild(tempDom);
+			// record finally component template
+			this.descriptor.template = template;
 		}
 		var div = document.createElement('div');
 		div.innerHTML = template;
@@ -36,7 +38,6 @@ class Component {
 			frag.appendChild(child);
 		});
 		this.frag = frag;
-		frag.uid = id;
 	}
 }
 

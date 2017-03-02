@@ -14,8 +14,9 @@ import calculateExpression from '../parser/expression';
 
 // whether expression has filter
 function hasFilter(exp) {
-    if (!exp || exp.indexOf('|') === -1) return false;
-    return true;
+    // if (!exp || exp.indexOf('|') === -1) return false;
+    return exp && /\s\|\s/.test(exp);
+    // return true;
 }
 
 
@@ -40,8 +41,8 @@ function parseExpression(vm, exp, directive, node) {
                 } else {
                     value = calculateExpression(data, exp);
                     // 向上查找
-                    if (typeof value === 'undefined') {
-                        value = value || calculateExpression(vm.$parent.$data, exp);
+                    if (vm.props && vm.props[exp]) {
+                        value = value || calculateExpression(vm.$parent.$data, vm.props[exp]);
                     }
                 }
             }

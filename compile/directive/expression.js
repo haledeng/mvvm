@@ -31,8 +31,9 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 // whether expression has filter
 function hasFilter(exp) {
-    if (!exp || exp.indexOf('|') === -1) return false;
-    return true;
+    // if (!exp || exp.indexOf('|') === -1) return false;
+    return exp && /\s\|\s/.test(exp);
+    // return true;
 }
 
 function parseExpression(vm, exp, directive, node) {
@@ -55,8 +56,8 @@ function parseExpression(vm, exp, directive, node) {
                 } else {
                     value = (0, _expression2.default)(data, exp);
                     // 向上查找
-                    if (typeof value === 'undefined') {
-                        value = value || (0, _expression2.default)(vm.$parent.$data, exp);
+                    if (vm.props && vm.props[exp]) {
+                        value = value || (0, _expression2.default)(vm.$parent.$data, vm.props[exp]);
                     }
                 }
             }

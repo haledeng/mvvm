@@ -3,6 +3,7 @@ import diffDom from '../dom-diff/diffDom';
 import patch from '../dom-diff/patch';
 
 function vIf(node, vm, value) {
+	debugger;
 	// var hasElseNext = this._hasElseNext;
 	if (value) {
 		// 这种2次操作的方式，实际和未dom-diff差别不大

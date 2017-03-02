@@ -45,21 +45,29 @@ var addScope = function addScope(exp) {
 	var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
 
 	exp = trim(exp);
-	// x.y
+	// x.y => scope.x.y
+	// x.y.z = > scope.x.y.z
 	// Math.random()  全局函数调用
 	var globalObject = ['Math', 'window', 'Date', 'navigator', 'document'];
 	exp = exp.replace(/[\w\[\]]+(?=\.)/g, function (match, index, all) {
-		if (~globalObject.indexOf(match) || /^\d$/.test(match)) return match;
-		return [prefix, match].join('.');
+		if (~globalObject.indexOf(match) || /^\d*$/.test(match)) return match;
+		if (all.indexOf('.' + match) === -1) {
+			return [prefix, match].join('.');
+		}
+		return match;
 	});
 	exp = ' ' + exp + ' ';
 	// x
-	exp = exp.replace(/[\+\-\*\/\s\>\<\=]\w+(?![\'\.])[\+\-\*\/\s\>\<\=]/g, function (match, index, all) {
+	exp = exp.replace(/[\+\-\*\/\s\>\<\=\(]\w+(?![\'\.])[\+\-\*\/\s\>\<\=\)]/g, function (match, index, all) {
 		match = trim(match);
-		if (/^[0-9]*$/.test(match)) {
+		if (/^\d*$/.test(match)) {
 			return match;
 		}
-		return [prefix, match].join('.');
+		match = match.replace(/([\+\-\*\/\s\>\<\=\(]?)(\w+)([\+\-\*\/\s\>\<\=\)]?)/, function (all, before, cur, after) {
+			return before + [prefix, cur].join('.') + after;
+		});
+		return match;
+		// return [prefix, match].join('.');
 	});
 	return trim(exp);
 };

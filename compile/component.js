@@ -11,12 +11,6 @@ var _observer = require('./observer/observer');
 
 var _observer2 = _interopRequireDefault(_observer);
 
-var _util = require('./util');
-
-var _ = _interopRequireWildcard(_util);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -29,6 +23,7 @@ var Component = function () {
 
 		this.uid = ++id;
 		this.name = name;
+		this.descriptor = descriptor;
 		this.template = descriptor.template;
 		// props生成的数据，不需要重复监听
 		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
@@ -47,7 +42,6 @@ var Component = function () {
 	}, {
 		key: 'render',
 		value: function render() {
-
 			// component template.
 			var frag = document.createDocumentFragment();
 			// template ID
@@ -55,7 +49,10 @@ var Component = function () {
 			if (/^#/.test(template)) {
 				var tempDom = document.querySelector(template);
 				template = tempDom.innerHTML;
-				// tempDom.parentNode.removeChild(tempDom);
+				// remove template DOM from Document.
+				tempDom.parentNode.removeChild(tempDom);
+				// record finally component template
+				this.descriptor.template = template;
 			}
 			var div = document.createElement('div');
 			div.innerHTML = template;
@@ -63,7 +60,6 @@ var Component = function () {
 				frag.appendChild(child);
 			});
 			this.frag = frag;
-			frag.uid = id;
 		}
 	}]);
 
