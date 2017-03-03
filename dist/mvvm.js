@@ -403,35 +403,50 @@ return /******/ (function(modules) { // webpackBootstrap
 		return str.charAt(0).toUpperCase() + str.substring(1);
 	};
 
+	// const addScope = (exp, prefix = 'scope') => {
+	// 	exp = trim(exp);
+	// 	// x.y => scope.x.y
+	// 	// x.y.z = > scope.x.y.z
+	// 	// Math.random()  全局函数调用
+	// 	var globalObject = ['Math', 'window', 'Date', 'navigator', 'document'];
+	// 	exp = exp.replace(/[\w\[\]]+(?=\.)/g, function(match, index, all) {
+	// 		if (~globalObject.indexOf(match) || /^\d*$/.test(match)) return match;
+	// 		if (all.indexOf('.' + match) === -1) {
+	// 			return [prefix, match].join('.');
+	// 		}
+	// 		return match;
+	// 	});
+	// 	exp = ' ' + exp + ' ';
+	// 	// x
+	// 	exp = exp.replace(/[\+\-\*\/\s\>\<\=\(]\w+(?![\'\.])[\+\-\*\/\s\>\<\=\)]/g, function(match, index, all) {
+	// 		match = trim(match);
+	// 		if (/^\d*$/.test(match)) {
+	// 			return match;
+	// 		}
+	// 		match = match.replace(/([\+\-\*\/\s\>\<\=\(]?)(\w+)([\+\-\*\/\s\>\<\=\)]?)/, function(all, before, cur, after) {
+	// 			return before + [prefix, cur].join('.') + after;
+	// 		});
+	// 		return match;
+	// 		// return [prefix, match].join('.');
+	// 	});
+	// 	return trim(exp);
+	// }
+
+	// add context to expression
 	var addScope = function addScope(exp) {
 		var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
 
-		exp = trim(exp);
-		// x.y => scope.x.y
-		// x.y.z = > scope.x.y.z
-		// Math.random()  全局函数调用
-		var globalObject = ['Math', 'window', 'Date', 'navigator', 'document'];
-		exp = exp.replace(/[\w\[\]]+(?=\.)/g, function (match, index, all) {
-			if (~globalObject.indexOf(match) || /^\d*$/.test(match)) return match;
-			if (all.indexOf('.' + match) === -1) {
-				return [prefix, match].join('.');
-			}
-			return match;
+		// begin with variables
+		return exp.replace(/^[\w\[\]\-]+/, function (all) {
+			return [prefix, all].join('.');
+		}).replace(/\s([\w\[\]\-]+)/g, function (match, val, index, all) {
+			if (/^\d*$/.test(val)) return match;
+			return ' ' + [prefix, val].join('.');
+		}).replace(/\(([\w\[\]\-]+)\)/g, function (match, val, index, all) {
+			if (/^\d*$/.test(val)) return match;
+			if (/^[\'\"]/.test(val)) return match;
+			return '(' + [prefix, val].join('.') + ')';
 		});
-		exp = ' ' + exp + ' ';
-		// x
-		exp = exp.replace(/[\+\-\*\/\s\>\<\=\(]\w+(?![\'\.])[\+\-\*\/\s\>\<\=\)]/g, function (match, index, all) {
-			match = trim(match);
-			if (/^\d*$/.test(match)) {
-				return match;
-			}
-			match = match.replace(/([\+\-\*\/\s\>\<\=\(]?)(\w+)([\+\-\*\/\s\>\<\=\)]?)/, function (all, before, cur, after) {
-				return before + [prefix, cur].join('.') + after;
-			});
-			return match;
-			// return [prefix, match].join('.');
-		});
-		return trim(exp);
 	};
 
 	var isArrayEqual = function isArrayEqual(a, b) {
@@ -2080,7 +2095,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function vIf(node, vm, value) {
-		debugger;
 		// var hasElseNext = this._hasElseNext;
 		if (value) {
 			// 这种2次操作的方式，实际和未dom-diff差别不大
@@ -2388,9 +2402,77 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 36 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Compiler from './complier/complier';
+
+
+	var _observer = __webpack_require__(37);
+
+	var _observer2 = _interopRequireDefault(_observer);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var id = 0;
+
+	var Component = function () {
+		function Component(name, descriptor) {
+			_classCallCheck(this, Component);
+
+			this.uid = ++id;
+			this.name = name;
+			this.descriptor = descriptor;
+			this.template = descriptor.template;
+			// props生成的数据，不需要重复监听
+			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+			// props中引用vm的数据，不监听
+			this.methods = descriptor.methods;
+			this.events = descriptor.events;
+			this.init();
+		}
+
+		_createClass(Component, [{
+			key: 'init',
+			value: function init() {
+				new _observer2.default(this.data);
+				this.render();
+			}
+		}, {
+			key: 'render',
+			value: function render() {
+				// component template.
+				var frag = document.createDocumentFragment();
+				// template ID
+				var template = this.template;
+				if (/^#/.test(template)) {
+					var tempDom = document.querySelector(template);
+					template = tempDom.innerHTML;
+					// remove template DOM from Document.
+					tempDom.parentNode.removeChild(tempDom);
+					// record finally component template
+					this.descriptor.template = template;
+				}
+				var div = document.createElement('div');
+				div.innerHTML = template;
+				[].slice.call(div.children).forEach(function (child) {
+					frag.appendChild(child);
+				});
+				this.frag = frag;
+			}
+		}]);
+
+		return Component;
+	}();
+
+	exports.default = Component;
 
 /***/ },
 /* 37 */
@@ -2458,7 +2540,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'observe',
 			value: function observe(data) {
-				if (!data) return;
+				if (!data || !_.isType(data, 'object')) return;
 				var self = this;
 				Object.keys(data).forEach(function (key) {
 					self.defineReactive(data, key, data[key]);

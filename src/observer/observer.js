@@ -35,7 +35,7 @@ class Observer {
 		arr.__proto__ = overrideProto;
 	}
 	observe(data) {
-		if (!data) return;
+		if (!data || !_.isType(data, 'object')) return;
 		var self = this;
 		Object.keys(data).forEach(function(key) {
 			self.defineReactive(data, key, data[key]);

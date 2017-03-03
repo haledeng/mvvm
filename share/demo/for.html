@@ -7,16 +7,19 @@
 </head>
 <body>
 	<div id="container" class="container">
-<!-- 		<div class="row">
+		<div class="row">
 			<div class="form-inline">
 			  <div class="form-group">
 			    <div class="input-group">
-			      <input type="text" class="form-control" id="js-ipt-search" placeholder="name">
+			      <input type="text" class="form-control" id="js-ipt-search" placeholder="name" v-model="keyword">
 			    </div>
 			  </div>
 			  <button id="js-search-btn" class="btn btn-primary">Search</button>
 			</div>
-		</div> -->
+		</div>
+		<div class="row">
+			<!-- <p>{{keyword}}</p> -->
+		</div>
 		<div class="row">
 			<table class="table">
 				<thead>
@@ -28,7 +31,8 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr v-for="(item, index) in users" :class="{success: index % 2 == 0}">
+					<tr v-for="(item, index) in users" v-if="keyword == '' || item.name.indexOf(keyword) == 0">
+<!-- 					<tr v-for="(item, index) in users" :class="{success: index % 2 == 0}" v-if="keyword == '' || item.name.indexOf(keyword) == 0"> -->
 						<td>{{index}}</td>
 						<td>{{item.name | upperFirst}}</td>
 						<td>{{item.password}}</td>
@@ -80,7 +84,7 @@
 		var mvvm = new MVVM({
 			el: '#container',
 			data: {
-				keyword: '',
+				keyword: 'he',
 				users: [{
 					name: 'jack',
 					password: 'root'
@@ -93,7 +97,10 @@
 				}, {
 					name: 'bill',
 					password: '1234'
-				}]
+				}, {
+					name: 'helondeng',
+					password: 'root'
+				},]
 			},
 			filters: {
 				upperFirst: function(str) {
@@ -133,9 +140,9 @@
 			}
 		}, false);
 
-		document.querySelector('#js-search-btn').addEventListener('click', function(){
-			mvvm.keyword = document.querySelector('#js-ipt-search').value;
-		}, false);
+		// document.querySelector('#js-search-btn').addEventListener('click', function(){
+		// 	mvvm.keyword = document.querySelector('#js-ipt-search').value;
+		// }, false);
 	</script>
 </body>
 </html>
