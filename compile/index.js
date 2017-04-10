@@ -33,6 +33,10 @@ var _index = require('./filters/index');
 
 var _index2 = _interopRequireDefault(_index);
 
+var _depender = require('./observer/depender');
+
+var _depender2 = _interopRequireDefault(_depender);
+
 var _util = require('./util');
 
 var _ = _interopRequireWildcard(_util);
@@ -43,25 +47,40 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var defineProperty = Object.defineProperty;
+var noop = function noop() {};
+
 var MVVM = function () {
 	function MVVM(options) {
 		_classCallCheck(this, MVVM);
 
-		this.$data = options.data || {};
-		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
-		this.methods = options.methods;
-		this.filters = _.mixin(_index2.default, options.filters || {});
-		this.computed = options.computed || {};
-		this.copyData2Vm();
-		new _observer2.default(this.$data);
-		// observe(this.$data);
-		new _compiler2.default({
-			el: this.$el,
-			vm: this
-		});
+		this.init(options);
 	}
 
 	_createClass(MVVM, [{
+		key: 'init',
+		value: function init(options) {
+			var self = this;
+			this.$options = options;
+			this.$data = options.data || {};
+			this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
+			this.methods = options.methods;
+			this.filters = _.mixin(_index2.default, options.filters || {});
+			this.computed = options.computed || {};
+			var init = options.init || [];
+
+			init.forEach(function (hook) {
+				hook.call(self);
+			});
+			new _observer2.default(this.$data);
+			this.copyData2Vm();
+			this.initComputed();
+			new _compiler2.default({
+				el: this.$el,
+				vm: this
+			});
+		}
+	}, {
 		key: 'copyData2Vm',
 		value: function copyData2Vm() {
 			// 将data属性copy到vm下
@@ -70,6 +89,38 @@ var MVVM = function () {
 					this[prop] = this.$data[prop];
 				}
 			}
+		}
+	}, {
+		key: 'initComputed',
+		value: function initComputed() {
+			var self = this;
+			for (var key in this.computed) {
+				// if (key in self) {
+				// 	console.log('property in computed will overwrite', key);
+				// }
+				var method = this.computed[key];
+				// this.$data[key] = this.defineComputeGetter(method);
+				defineProperty(this.$data, key, {
+					get: self.defineComputeGetter(method),
+					set: noop
+				});
+			}
+		}
+	}, {
+		key: 'defineComputeGetter',
+		value: function defineComputeGetter(method) {
+			var self = this;
+			var watcher = new _watcher2.default({
+				vm: self,
+				exp: method,
+				callback: function callback() {}
+			});
+			return function () {
+				if (_depender2.default.target) {
+					watcher.update();
+				}
+				return watcher.value;
+			};
 		}
 	}, {
 		key: '$watch',

@@ -51,15 +51,16 @@ function parseExpression(vm, exp, directive, node) {
                 value = _filter.filter.apply(null, [vm, filterInfo.method, (0, _expression2.default)(data, filterInfo.param)].concat(filterInfo.args));
             } else {
                 // computed property.
-                if (vmComputed[exp]) {
-                    value = vmComputed[exp].call(vm.$data);
-                } else {
-                    value = (0, _expression2.default)(data, exp);
-                    // 向上查找
-                    if (vm.props && vm.props[exp]) {
-                        value = value || (0, _expression2.default)(vm.$parent.$data, vm.props[exp]);
-                    }
+                // if (value === null && vmComputed[exp]) {
+                //     // value = vmComputed[exp].call(vm.$data);
+                //     value = vmComputed[exp].call(vm);
+                // } else {
+                value = (0, _expression2.default)(data, exp);
+                // 向上查找
+                if (vm.props && vm.props[exp]) {
+                    value = value || (0, _expression2.default)(vm.$parent.$data, vm.props[exp]);
                 }
+                // }
             }
             break;
 

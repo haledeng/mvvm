@@ -54,3 +54,8 @@ A MVVM test library for study. **Do not use in project**
 + 生成对应的DOM结构
 + dom-diff比对差异，patch增量
 + for和if的处理比较复杂，for中定义了临时变量，涉及作用域的问题
+
+
+### todo-list
++ methods and computed中 this 指向了 vm.$data, 需要切换到vm；
++ store 目前挂在vm.$data上

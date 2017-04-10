@@ -1,6 +1,7 @@
 import {
 	calculateExpression,
-	parseForExpression
+	parseForExpression,
+	parseExpression
 } from './expression';
 import * as _ from '../util';
 import Compiler from '../compiler/compiler';
@@ -13,7 +14,9 @@ function vFor(node, vm, expression) {
 	var parent = node.parentNode || node.__parent__;
 	var expInfo = this._expInfo;
 	var scope = vm.$data;
-	var val = calculateExpression(scope, expInfo.val);
+	// var val = calculateExpression(scope, expInfo.val);
+	// parseExpression
+	var val = parseExpression(vm, expInfo.val, 'for', node);
 	if (vm.props && vm.props[expInfo.val]) {
 		val = calculateExpression(vm.$parent.$data, vm.props[expInfo.val]);
 	}

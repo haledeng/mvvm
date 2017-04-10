@@ -16,7 +16,7 @@ var babel = require('gulp-babel');
 
 
 gulp.task('es6', function() {
-	return gulp.src(['./src/**/**.js'])
+	return gulp.src(['./src/**/**.js', './mvvmx/**.js'])
 		.pipe(babel({
 			presets: ['es2015']
 		}))
@@ -27,13 +27,24 @@ gulp.task('es6', function() {
 });
 
 
+
 gulp.task('webpack', ['es6'], function() {
-	return gulp.src(['./compile/index.js'])
+	gulp.src(['./compile/index.js'])
 		.pipe(webpack({
 			output: {
 				libraryTarget: 'umd',
 				umdNamedDefine: true,
 				filename: 'mvvm.js'
+			}
+		}))
+		.pipe(gulp.dest('./dist/'));
+
+	gulp.src(['./compile/mvvmx.js'])
+		.pipe(webpack({
+			output: {
+				libraryTarget: 'umd',
+				umdNamedDefine: true,
+				filename: 'mvvmx.js'
 			}
 		}))
 		.pipe(gulp.dest('./dist/'));

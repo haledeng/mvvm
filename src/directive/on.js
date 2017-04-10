@@ -61,6 +61,7 @@ export default {
 				// custom event;
 				this.$vm.$on(this.extraName, function() {
 					self.$vm.methods[self.expression].call(self.$vm.$data);
+					// self.$vm.methods[self.expression].call(self);
 				});
 			}
 		} else {
@@ -76,7 +77,8 @@ export default {
 				_extend(name);
 			});
 
-			vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
+			// vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
+			vOn.call(this.$vm, this.$el, this.$vm.methods, this.expression, this.extraName);
 		}
 	}
 }

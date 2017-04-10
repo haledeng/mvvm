@@ -89,6 +89,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index2 = _interopRequireDefault(_index);
 
+	var _depender = __webpack_require__(4);
+
+	var _depender2 = _interopRequireDefault(_depender);
+
 	var _util = __webpack_require__(2);
 
 	var _ = _interopRequireWildcard(_util);
@@ -99,25 +103,40 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	var defineProperty = Object.defineProperty;
+	var noop = function noop() {};
+
 	var MVVM = function () {
 		function MVVM(options) {
 			_classCallCheck(this, MVVM);
 
-			this.$data = options.data || {};
-			this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
-			this.methods = options.methods;
-			this.filters = _.mixin(_index2.default, options.filters || {});
-			this.computed = options.computed || {};
-			this.copyData2Vm();
-			new _observer2.default(this.$data);
-			// observe(this.$data);
-			new _compiler2.default({
-				el: this.$el,
-				vm: this
-			});
+			this.init(options);
 		}
 
 		_createClass(MVVM, [{
+			key: 'init',
+			value: function init(options) {
+				var self = this;
+				this.$options = options;
+				this.$data = options.data || {};
+				this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
+				this.methods = options.methods;
+				this.filters = _.mixin(_index2.default, options.filters || {});
+				this.computed = options.computed || {};
+				var init = options.init || [];
+
+				init.forEach(function (hook) {
+					hook.call(self);
+				});
+				new _observer2.default(this.$data);
+				this.copyData2Vm();
+				this.initComputed();
+				new _compiler2.default({
+					el: this.$el,
+					vm: this
+				});
+			}
+		}, {
 			key: 'copyData2Vm',
 			value: function copyData2Vm() {
 				// 将data属性copy到vm下
@@ -126,6 +145,38 @@ return /******/ (function(modules) { // webpackBootstrap
 						this[prop] = this.$data[prop];
 					}
 				}
+			}
+		}, {
+			key: 'initComputed',
+			value: function initComputed() {
+				var self = this;
+				for (var key in this.computed) {
+					// if (key in self) {
+					// 	console.log('property in computed will overwrite', key);
+					// }
+					var method = this.computed[key];
+					// this.$data[key] = this.defineComputeGetter(method);
+					defineProperty(this.$data, key, {
+						get: self.defineComputeGetter(method),
+						set: noop
+					});
+				}
+			}
+		}, {
+			key: 'defineComputeGetter',
+			value: function defineComputeGetter(method) {
+				var self = this;
+				var watcher = new _watcher2.default({
+					vm: self,
+					exp: method,
+					callback: function callback() {}
+				});
+				return function () {
+					if (_depender2.default.target) {
+						watcher.update();
+					}
+					return watcher.value;
+				};
 			}
 		}, {
 			key: '$watch',
@@ -564,6 +615,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'get',
 			value: function get() {
+				if (typeof this.exp === 'function') {
+					return this.exp.call(this.vm.$data);
+				}
 				return (0, _expression.parseExpression)(this.vm, this.exp, this.directive, this.$el);
 			}
 		}]);
@@ -670,15 +724,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                value = _filter.filter.apply(null, [vm, filterInfo.method, (0, _expression2.default)(data, filterInfo.param)].concat(filterInfo.args));
 	            } else {
 	                // computed property.
-	                if (vmComputed[exp]) {
-	                    value = vmComputed[exp].call(vm.$data);
-	                } else {
-	                    value = (0, _expression2.default)(data, exp);
-	                    // 向上查找
-	                    if (vm.props && vm.props[exp]) {
-	                        value = value || (0, _expression2.default)(vm.$parent.$data, vm.props[exp]);
-	                    }
+	                // if (value === null && vmComputed[exp]) {
+	                //     // value = vmComputed[exp].call(vm.$data);
+	                //     value = vmComputed[exp].call(vm);
+	                // } else {
+	                value = (0, _expression2.default)(data, exp);
+	                // 向上查找
+	                if (vm.props && vm.props[exp]) {
+	                    value = value || (0, _expression2.default)(vm.$parent.$data, vm.props[exp]);
 	                }
+	                // }
 	            }
 	            break;
 
@@ -1231,6 +1286,7 @@ return /******/ (function(modules) { // webpackBootstrap
 					// custom event;
 					this.$vm.$on(this.extraName, function () {
 						self.$vm.methods[self.expression].call(self.$vm.$data);
+						// self.$vm.methods[self.expression].call(self);
 					});
 				}
 			} else {
@@ -1248,7 +1304,8 @@ return /******/ (function(modules) { // webpackBootstrap
 						_extend(name);
 					});
 
-					vOn.call(_this.$vm.$data, _this.$el, _this.$vm.methods, _this.expression, _this.extraName);
+					// vOn.call(this.$vm.$data, this.$el, this.$vm.methods, this.expression, this.extraName);
+					vOn.call(_this.$vm, _this.$el, _this.$vm.methods, _this.expression, _this.extraName);
 				})();
 			}
 		}
@@ -1291,7 +1348,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		var parent = node.parentNode || node.__parent__;
 		var expInfo = this._expInfo;
 		var scope = vm.$data;
-		var val = (0, _expression.calculateExpression)(scope, expInfo.val);
+		// var val = calculateExpression(scope, expInfo.val);
+		// parseExpression
+		var val = (0, _expression.parseExpression)(vm, expInfo.val, 'for', node);
 		if (vm.props && vm.props[expInfo.val]) {
 			val = (0, _expression.calculateExpression)(vm.$parent.$data, vm.props[expInfo.val]);
 		}

@@ -44,37 +44,55 @@
 <body>
     <div id="app">
         <ul>
-            <li v-for="item in todos">
-                {{item}}
+            <li v-for="(item, index) in todos">
+                {{item}} -> {{index}}
             </li>
         </ul>
-        <button @click="add">add</button>
+        <button v-on:click="add">add</button>
     </div>
 
 
 
     <script src="../dist/mvvm.js"></script>
+    <script src="../dist/mvvmx.js"></script>
     <script>
-        
+        var state = {
+            todos: ['test', '12354']
+        };
 
+        var store = new MVVMX.Store({
+            state: state,
+            mutations: {
+                add: function(state, data) {
+                    state.todos.push(data);
+                }
+            },
+            plugins: [
+                function(store) {
+                    store.subscribe(function(mutation, state) {
+                    });
+                }
+            ]
+        })
+        
         var mvvm = new MVVM({
             el: '#app',
-            data: {
-                s_todos: [1, 2, 3]
-            },
+            store: store,
             methods: {
                 add: function() {
-                    this.s_todos.push(this.s_todos.length + 1);
+
+                    // this.message = 'hello world';
+                    this.$store.commit('add', 'hello' + Math.round(5 * Math.random()));
+                    // console.log(this.$data.todos);
                 }
             },
             computed: {
                 todos: function() {
-                    return this.s_todos.filter(function(item) {
-                        return item % 2 == 1;
-                    });
+                    return this.$store.state.todos;
                 }
             }
         });
+        console.log(mvvm.$store);
     </script>
 </body>
 </html>

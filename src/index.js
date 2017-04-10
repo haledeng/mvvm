@@ -8,18 +8,32 @@ import Watcher from './observer/watcher';
 import Directive from './directive';
 import eventMixin from './events';
 import defaultFilters from './filters/index';
+import Dep from './observer/depender';
 import * as _ from './util';
+
+const defineProperty = Object.defineProperty;
+const noop = function() {};
 
 class MVVM {
 	constructor(options) {
+		this.init(options);
+	}
+	init(options) {
+		var self = this;
+		this.$options = options;
 		this.$data = options.data || {};
 		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
 		this.methods = options.methods;
 		this.filters = _.mixin(defaultFilters, options.filters || {});
 		this.computed = options.computed || {};
-		this.copyData2Vm();
+		var init = options.init || [];
+
+		init.forEach(function(hook) {
+			hook.call(self);
+		});
 		new Observer(this.$data);
-		// observe(this.$data);
+		this.copyData2Vm();
+		this.initComputed();
 		new Compiler({
 			el: this.$el,
 			vm: this
@@ -31,6 +45,34 @@ class MVVM {
 			if (this.$data.hasOwnProperty(prop) && !this.hasOwnProperty(prop)) {
 				this[prop] = this.$data[prop];
 			}
+		}
+	}
+	initComputed() {
+		var self = this;
+		for (var key in this.computed) {
+			// if (key in self) {
+			// 	console.log('property in computed will overwrite', key);
+			// }
+			var method = this.computed[key];
+			// this.$data[key] = this.defineComputeGetter(method);
+			defineProperty(this.$data, key, {
+				get: self.defineComputeGetter(method),
+				set: noop
+			});
+		}
+	}
+	defineComputeGetter(method) {
+		var self = this;
+		var watcher = new Watcher({
+			vm: self,
+			exp: method,
+			callback: function() {}
+		});
+		return function() {
+			if (Dep.target) {
+				watcher.update();
+			}
+			return watcher.value;
 		}
 	}
 	$watch(paramName, callback) {
