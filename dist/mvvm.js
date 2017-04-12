@@ -106,6 +106,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	var defineProperty = Object.defineProperty;
 	var noop = function noop() {};
 
+	var proxy = function proxy(vm, key) {
+		Object.defineProperty(vm, key, {
+			configurable: true,
+			enumerable: true,
+			get: function get() {
+				return vm.$data[key];
+			},
+			set: function set(val) {
+				vm.$data[key] = val;
+			}
+		});
+	};
+
 	var MVVM = function () {
 		function MVVM(options) {
 			_classCallCheck(this, MVVM);
@@ -118,23 +131,37 @@ return /******/ (function(modules) { // webpackBootstrap
 			value: function init(options) {
 				var self = this;
 				this.$options = options;
+				// TODO: options.data is a function
 				this.$data = options.data || {};
-				this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
-				this.methods = options.methods;
+				this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el;
+				this.methods = options.methods || {};
 				this.filters = _.mixin(_index2.default, options.filters || {});
 				this.computed = options.computed || {};
 				var init = options.init || [];
-
+				// lifecycle hook.
 				init.forEach(function (hook) {
 					hook.call(self);
 				});
 				new _observer2.default(this.$data);
-				this.copyData2Vm();
+				this.initData();
+				// this.copyData2Vm();
 				this.initComputed();
-				new _compiler2.default({
-					el: this.$el,
-					vm: this
-				});
+				if (this.$el) {
+					new _compiler2.default({
+						el: this.$el,
+						vm: this
+					});
+				}
+			}
+		}, {
+			key: 'initData',
+			value: function initData() {
+				var keys = Object.keys(this.$data);
+				var i = keys.length;
+				while (i--) {
+					// proxy all property from data into instance.
+					proxy(this, keys[i]);
+				}
 			}
 		}, {
 			key: 'copyData2Vm',
@@ -151,11 +178,8 @@ return /******/ (function(modules) { // webpackBootstrap
 			value: function initComputed() {
 				var self = this;
 				for (var key in this.computed) {
-					// if (key in self) {
-					// 	console.log('property in computed will overwrite', key);
-					// }
 					var method = this.computed[key];
-					// this.$data[key] = this.defineComputeGetter(method);
+					// defineProperty(this.$data, key, {
 					defineProperty(this.$data, key, {
 						get: self.defineComputeGetter(method),
 						set: noop
@@ -616,7 +640,8 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'get',
 			value: function get() {
 				if (typeof this.exp === 'function') {
-					return this.exp.call(this.vm.$data);
+					// return this.exp.call(this.vm.$data);
+					return this.exp.call(this.vm);
 				}
 				return (0, _expression.parseExpression)(this.vm, this.exp, this.directive, this.$el);
 			}
@@ -2461,77 +2486,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 36 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Compiler from './complier/complier';
-
-
-	var _observer = __webpack_require__(37);
-
-	var _observer2 = _interopRequireDefault(_observer);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var id = 0;
-
-	var Component = function () {
-		function Component(name, descriptor) {
-			_classCallCheck(this, Component);
-
-			this.uid = ++id;
-			this.name = name;
-			this.descriptor = descriptor;
-			this.template = descriptor.template;
-			// props生成的数据，不需要重复监听
-			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
-			// props中引用vm的数据，不监听
-			this.methods = descriptor.methods;
-			this.events = descriptor.events;
-			this.init();
-		}
-
-		_createClass(Component, [{
-			key: 'init',
-			value: function init() {
-				new _observer2.default(this.data);
-				this.render();
-			}
-		}, {
-			key: 'render',
-			value: function render() {
-				// component template.
-				var frag = document.createDocumentFragment();
-				// template ID
-				var template = this.template;
-				if (/^#/.test(template)) {
-					var tempDom = document.querySelector(template);
-					template = tempDom.innerHTML;
-					// remove template DOM from Document.
-					tempDom.parentNode.removeChild(tempDom);
-					// record finally component template
-					this.descriptor.template = template;
-				}
-				var div = document.createElement('div');
-				div.innerHTML = template;
-				[].slice.call(div.children).forEach(function (child) {
-					frag.appendChild(child);
-				});
-				this.frag = frag;
-			}
-		}]);
-
-		return Component;
-	}();
-
-	exports.default = Component;
+	
 
 /***/ },
 /* 37 */

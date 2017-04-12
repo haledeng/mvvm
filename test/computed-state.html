@@ -80,10 +80,7 @@
             store: store,
             methods: {
                 add: function() {
-
-                    // this.message = 'hello world';
                     this.$store.commit('add', 'hello' + Math.round(5 * Math.random()));
-                    // console.log(this.$data.todos);
                 }
             },
             computed: {
@@ -92,7 +89,6 @@
                 }
             }
         });
-        console.log(mvvm.$store);
     </script>
 </body>
 </html>

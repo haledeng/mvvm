@@ -14,6 +14,20 @@ import * as _ from './util';
 const defineProperty = Object.defineProperty;
 const noop = function() {};
 
+
+const proxy = function(vm, key) {
+	Object.defineProperty(vm, key, {
+		configurable: true,
+		enumerable: true,
+		get: function() {
+			return vm.$data[key];
+		},
+		set: function(val) {
+			vm.$data[key] = val;
+		}
+	});
+}
+
 class MVVM {
 	constructor(options) {
 		this.init(options);
@@ -21,23 +35,35 @@ class MVVM {
 	init(options) {
 		var self = this;
 		this.$options = options;
+		// TODO: options.data is a function
 		this.$data = options.data || {};
-		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
-		this.methods = options.methods;
+		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el;
+		this.methods = options.methods || {};
 		this.filters = _.mixin(defaultFilters, options.filters || {});
 		this.computed = options.computed || {};
 		var init = options.init || [];
-
+		// lifecycle hook.
 		init.forEach(function(hook) {
 			hook.call(self);
 		});
 		new Observer(this.$data);
-		this.copyData2Vm();
+		this.initData();
+		// this.copyData2Vm();
 		this.initComputed();
-		new Compiler({
-			el: this.$el,
-			vm: this
-		});
+		if (this.$el) {
+			new Compiler({
+				el: this.$el,
+				vm: this
+			});
+		}
+	}
+	initData() {
+		var keys = Object.keys(this.$data);
+		var i = keys.length;
+		while (i--) {
+			// proxy all property from data into instance.
+			proxy(this, keys[i]);
+		}
 	}
 	copyData2Vm() {
 		// 将data属性copy到vm下
@@ -50,11 +76,8 @@ class MVVM {
 	initComputed() {
 		var self = this;
 		for (var key in this.computed) {
-			// if (key in self) {
-			// 	console.log('property in computed will overwrite', key);
-			// }
 			var method = this.computed[key];
-			// this.$data[key] = this.defineComputeGetter(method);
+			// defineProperty(this.$data, key, {
 			defineProperty(this.$data, key, {
 				get: self.defineComputeGetter(method),
 				set: noop

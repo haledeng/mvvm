@@ -9,7 +9,7 @@ var applyMixin = function() {
 function mvvmxInit() {
 	var options = this.$options;
 	if (options.store) {
-		this.$data.$store = options.store;
+		this.$store = options.store;
 	}
 }
 
@@ -26,6 +26,12 @@ function Store(options) {
 		return plugin(self);
 	});
 
+	// add observer.
+	this._vm = new MVVM({
+		data: {
+			$$state: options.state
+		}
+	});
 }
 
 var _proto_ = Store.prototype;
@@ -56,6 +62,18 @@ _proto_.commit = function(action, data) {
 		});
 	}
 };
+
+var accessor = {
+	state: {}
+};
+
+accessor.state.get = function() {
+	return this._vm.$data.$$state;
+};
+
+accessor.state.set = function() {};
+
+Object.defineProperties(_proto_, accessor);
 
 var MVVMX = {
 

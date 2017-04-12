@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function mvvmxInit() {
 		var options = this.$options;
 		if (options.store) {
-			this.$data.$store = options.store;
+			this.$store = options.store;
 		}
 	}
 
@@ -85,6 +85,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 		plugins.concat(devPlugins).forEach(function (plugin) {
 			return plugin(self);
+		});
+
+		// add observer.
+		this._vm = new MVVM({
+			data: {
+				$$state: options.state
+			}
 		});
 	}
 
@@ -116,6 +123,18 @@ return /******/ (function(modules) { // webpackBootstrap
 			});
 		}
 	};
+
+	var accessor = {
+		state: {}
+	};
+
+	accessor.state.get = function () {
+		return this._vm.$data.$$state;
+	};
+
+	accessor.state.set = function () {};
+
+	Object.defineProperties(_proto_, accessor);
 
 	var MVVMX = {
 

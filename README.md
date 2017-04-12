@@ -56,6 +56,14 @@ A MVVM test library for study. **Do not use in project**
 + for和if的处理比较复杂，for中定义了临时变量，涉及作用域的问题
 
 
-### todo-list
+### history
+##### fix state management
 + methods and computed中 this 指向了 vm.$data, 需要切换到vm；
+	+ proxy， proxy all property from vm.$data into instance
 + store 目前挂在vm.$data上
+	+ install store on VM, create a new instanca to watch state change. redefine state getter and setter.
+
+
+### TODO List
++ change all directive context from vm.$data to vm.
++ more complex functions in state manager.

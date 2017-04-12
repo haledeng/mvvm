@@ -37,7 +37,8 @@ class Watcher {
 	}
 	get() {
 		if (typeof this.exp === 'function') {
-			return this.exp.call(this.vm.$data);
+			// return this.exp.call(this.vm.$data);
+			return this.exp.call(this.vm);
 		}
 		return parseExpression(this.vm, this.exp, this.directive, this.$el);
 	}

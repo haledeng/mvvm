@@ -50,6 +50,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var defineProperty = Object.defineProperty;
 var noop = function noop() {};
 
+var proxy = function proxy(vm, key) {
+	Object.defineProperty(vm, key, {
+		configurable: true,
+		enumerable: true,
+		get: function get() {
+			return vm.$data[key];
+		},
+		set: function set(val) {
+			vm.$data[key] = val;
+		}
+	});
+};
+
 var MVVM = function () {
 	function MVVM(options) {
 		_classCallCheck(this, MVVM);
@@ -62,23 +75,37 @@ var MVVM = function () {
 		value: function init(options) {
 			var self = this;
 			this.$options = options;
+			// TODO: options.data is a function
 			this.$data = options.data || {};
-			this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el || document.body;
-			this.methods = options.methods;
+			this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el;
+			this.methods = options.methods || {};
 			this.filters = _.mixin(_index2.default, options.filters || {});
 			this.computed = options.computed || {};
 			var init = options.init || [];
-
+			// lifecycle hook.
 			init.forEach(function (hook) {
 				hook.call(self);
 			});
 			new _observer2.default(this.$data);
-			this.copyData2Vm();
+			this.initData();
+			// this.copyData2Vm();
 			this.initComputed();
-			new _compiler2.default({
-				el: this.$el,
-				vm: this
-			});
+			if (this.$el) {
+				new _compiler2.default({
+					el: this.$el,
+					vm: this
+				});
+			}
+		}
+	}, {
+		key: 'initData',
+		value: function initData() {
+			var keys = Object.keys(this.$data);
+			var i = keys.length;
+			while (i--) {
+				// proxy all property from data into instance.
+				proxy(this, keys[i]);
+			}
 		}
 	}, {
 		key: 'copyData2Vm',
@@ -95,11 +122,8 @@ var MVVM = function () {
 		value: function initComputed() {
 			var self = this;
 			for (var key in this.computed) {
-				// if (key in self) {
-				// 	console.log('property in computed will overwrite', key);
-				// }
 				var method = this.computed[key];
-				// this.$data[key] = this.defineComputeGetter(method);
+				// defineProperty(this.$data, key, {
 				defineProperty(this.$data, key, {
 					get: self.defineComputeGetter(method),
 					set: noop
