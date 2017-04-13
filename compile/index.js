@@ -76,7 +76,7 @@ var MVVM = function () {
 			var self = this;
 			this.$options = options;
 			// TODO: options.data is a function
-			this.$data = options.data || {};
+			this.$data = typeof options.data === 'function' ? options.data() : options.data || {};
 			this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el;
 			this.methods = options.methods || {};
 			this.filters = _.mixin(_index2.default, options.filters || {});
@@ -88,7 +88,6 @@ var MVVM = function () {
 			});
 			new _observer2.default(this.$data);
 			this.initData();
-			// this.copyData2Vm();
 			this.initComputed();
 			if (this.$el) {
 				new _compiler2.default({
@@ -108,23 +107,13 @@ var MVVM = function () {
 			}
 		}
 	}, {
-		key: 'copyData2Vm',
-		value: function copyData2Vm() {
-			// 将data属性copy到vm下
-			for (var prop in this.$data) {
-				if (this.$data.hasOwnProperty(prop) && !this.hasOwnProperty(prop)) {
-					this[prop] = this.$data[prop];
-				}
-			}
-		}
-	}, {
 		key: 'initComputed',
 		value: function initComputed() {
 			var self = this;
 			for (var key in this.computed) {
 				var method = this.computed[key];
 				// defineProperty(this.$data, key, {
-				defineProperty(this.$data, key, {
+				defineProperty(this, key, {
 					get: self.defineComputeGetter(method),
 					set: noop
 				});

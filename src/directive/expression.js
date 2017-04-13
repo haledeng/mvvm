@@ -35,17 +35,12 @@ function parseExpression(vm, exp, directive, node) {
                 var filterInfo = parseFilterExpression(exp);
                 value = filter.apply(null, [vm, filterInfo.method, calculateExpression(data, filterInfo.param)].concat(filterInfo.args));
             } else {
-                // computed property.
-                // if (value === null && vmComputed[exp]) {
-                //     // value = vmComputed[exp].call(vm.$data);
-                //     value = vmComputed[exp].call(vm);
-                // } else {
-                value = calculateExpression(data, exp);
+                // value = calculateExpression(data, exp);
+                value = calculateExpression(vm, exp);
                 // 向上查找
                 if (vm.props && vm.props[exp]) {
                     value = value || calculateExpression(vm.$parent.$data, vm.props[exp]);
                 }
-                // }
             }
             break;
 

@@ -111,6 +111,11 @@ const kebabCase = (str) => {
 	});
 }
 
+
+const praviteIterator = (str) => {
+	return str ? '_' + str + '_' : '';
+}
+
 export {
 	trim,
 	isType,

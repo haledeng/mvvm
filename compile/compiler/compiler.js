@@ -125,6 +125,7 @@ var Compiler = function () {
 			var keys = [];
 			var watcherMaps = {};
 
+			// TODO: name contains filters
 			html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
 				if (keys.indexOf(name) === -1) {
 					keys.push(name);
@@ -135,6 +136,7 @@ var Compiler = function () {
 			var _replace = function _replace(scope) {
 				var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
 					return watcherMaps[name].value;
+					// return scope[name];
 				});
 				node.textContent = newHtml;
 			};
@@ -142,7 +144,8 @@ var Compiler = function () {
 			keys.forEach(function (key) {
 				watcherMaps[key] = self.bindWatch(self.$vm, key, _replace);
 			});
-			_replace(this.$vm.$data);
+			_replace();
+			// _replace(this.$vm.$data);
 		}
 	}]);
 

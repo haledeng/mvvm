@@ -118,6 +118,10 @@ var kebabCase = function kebabCase(str) {
 	});
 };
 
+var praviteIterator = function praviteIterator(str) {
+	return str ? '_' + str + '_' : '';
+};
+
 exports.trim = trim;
 exports.isType = isType;
 exports.mixin = mixin;

@@ -36,7 +36,7 @@ class MVVM {
 		var self = this;
 		this.$options = options;
 		// TODO: options.data is a function
-		this.$data = options.data || {};
+		this.$data = typeof options.data === 'function' ? options.data() : (options.data || {});
 		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el;
 		this.methods = options.methods || {};
 		this.filters = _.mixin(defaultFilters, options.filters || {});
@@ -48,7 +48,6 @@ class MVVM {
 		});
 		new Observer(this.$data);
 		this.initData();
-		// this.copyData2Vm();
 		this.initComputed();
 		if (this.$el) {
 			new Compiler({
@@ -65,20 +64,12 @@ class MVVM {
 			proxy(this, keys[i]);
 		}
 	}
-	copyData2Vm() {
-		// 将data属性copy到vm下
-		for (var prop in this.$data) {
-			if (this.$data.hasOwnProperty(prop) && !this.hasOwnProperty(prop)) {
-				this[prop] = this.$data[prop];
-			}
-		}
-	}
 	initComputed() {
 		var self = this;
 		for (var key in this.computed) {
 			var method = this.computed[key];
 			// defineProperty(this.$data, key, {
-			defineProperty(this.$data, key, {
+			defineProperty(this, key, {
 				get: self.defineComputeGetter(method),
 				set: noop
 			});

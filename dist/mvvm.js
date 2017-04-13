@@ -132,7 +132,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				var self = this;
 				this.$options = options;
 				// TODO: options.data is a function
-				this.$data = options.data || {};
+				this.$data = typeof options.data === 'function' ? options.data() : options.data || {};
 				this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el;
 				this.methods = options.methods || {};
 				this.filters = _.mixin(_index2.default, options.filters || {});
@@ -144,7 +144,6 @@ return /******/ (function(modules) { // webpackBootstrap
 				});
 				new _observer2.default(this.$data);
 				this.initData();
-				// this.copyData2Vm();
 				this.initComputed();
 				if (this.$el) {
 					new _compiler2.default({
@@ -164,23 +163,13 @@ return /******/ (function(modules) { // webpackBootstrap
 				}
 			}
 		}, {
-			key: 'copyData2Vm',
-			value: function copyData2Vm() {
-				// 将data属性copy到vm下
-				for (var prop in this.$data) {
-					if (this.$data.hasOwnProperty(prop) && !this.hasOwnProperty(prop)) {
-						this[prop] = this.$data[prop];
-					}
-				}
-			}
-		}, {
 			key: 'initComputed',
 			value: function initComputed() {
 				var self = this;
 				for (var key in this.computed) {
 					var method = this.computed[key];
 					// defineProperty(this.$data, key, {
-					defineProperty(this.$data, key, {
+					defineProperty(this, key, {
 						get: self.defineComputeGetter(method),
 						set: noop
 					});
@@ -402,6 +391,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				var keys = [];
 				var watcherMaps = {};
 
+				// TODO: name contains filters
 				html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
 					if (keys.indexOf(name) === -1) {
 						keys.push(name);
@@ -412,6 +402,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				var _replace = function _replace(scope) {
 					var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
 						return watcherMaps[name].value;
+						// return scope[name];
 					});
 					node.textContent = newHtml;
 				};
@@ -419,7 +410,8 @@ return /******/ (function(modules) { // webpackBootstrap
 				keys.forEach(function (key) {
 					watcherMaps[key] = self.bindWatch(self.$vm, key, _replace);
 				});
-				_replace(this.$vm.$data);
+				_replace();
+				// _replace(this.$vm.$data);
 			}
 		}]);
 
@@ -553,6 +545,10 @@ return /******/ (function(modules) { // webpackBootstrap
 		return str.replace(/[A-Z]/, function (all) {
 			return '-' + all.toLowerCase();
 		});
+	};
+
+	var praviteIterator = function praviteIterator(str) {
+		return str ? '_' + str + '_' : '';
 	};
 
 	exports.trim = trim;
@@ -748,17 +744,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var filterInfo = (0, _filter3.default)(exp);
 	                value = _filter.filter.apply(null, [vm, filterInfo.method, (0, _expression2.default)(data, filterInfo.param)].concat(filterInfo.args));
 	            } else {
-	                // computed property.
-	                // if (value === null && vmComputed[exp]) {
-	                //     // value = vmComputed[exp].call(vm.$data);
-	                //     value = vmComputed[exp].call(vm);
-	                // } else {
-	                value = (0, _expression2.default)(data, exp);
+	                // value = calculateExpression(data, exp);
+	                value = (0, _expression2.default)(vm, exp);
 	                // 向上查找
 	                if (vm.props && vm.props[exp]) {
 	                    value = value || (0, _expression2.default)(vm.$parent.$data, vm.props[exp]);
 	                }
-	                // }
 	            }
 	            break;
 
@@ -1368,12 +1359,22 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+	// get subset of object
+	var getSubset = function getSubset(obj, keys) {
+		var ret = {};
+		if (_.isType(keys, 'object')) return null;
+		if (_.isType(keys, 'string')) keys = [keys];
+		keys.forEach(function (key) {
+			ret[key] = obj[key];
+		});
+		return ret;
+	};
+
 	// 会二次执行，监听的元素变化时，会重新调用vfor
 	function vFor(node, vm, expression) {
 		var parent = node.parentNode || node.__parent__;
 		var expInfo = this._expInfo;
 		var scope = vm.$data;
-		// var val = calculateExpression(scope, expInfo.val);
 		// parseExpression
 		var val = (0, _expression.parseExpression)(vm, expInfo.val, 'for', node);
 		if (vm.props && vm.props[expInfo.val]) {
@@ -1381,41 +1382,45 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 		if (!_.isType(val, 'array') && !_.isType(val, 'object')) return;
 		var docFrag = document.createDocumentFragment();
+		var iterators = [expInfo.scope];
+		if (expInfo.index) {
+			iterators.push(expInfo.index);
+		}
+		// store old value
+		var oldVals = getSubset(vm, iterators);
 		forEach(val, function (item, index) {
 			// 子节点如何编译，Compiler中可以，但是需要修改scope
 			var li = node.cloneNode(true);
 			li.removeAttribute('v-for');
-			var nodeScope = li.__scope__ = {
-				val: expInfo.val
-			};
 			var context = {};
-			context[expInfo.scope] = item;
+			vm[expInfo.scope] = context[expInfo.scope] = item;
+
 			if (expInfo.index !== undefined) {
-				context[expInfo.index] = index;
-				nodeScope.$index = expInfo.index;
-				nodeScope.index = index;
+				vm[expInfo.index] = context[expInfo.index] = index;
 			}
 			docFrag.appendChild(li);
-			nodeScope.$item = expInfo.scope;
-			nodeScope.item = item;
 			/**
 	   * item直接挂在$data下面，其中操作item会导致问题，
 	   * 都是操作同一份item
 	   * 渲染的时候，其实没有什么问题，每次item都不一致，
 	   * 但是write的时候，有问题
 	   */
+			// var _vm = Object.assign(vm.__proto__, vm, {
+			// 	$data: _.mixin(context, scope),
+			// 	// $data: _.mixin(context, vm),
+			// });
 			new _compiler2.default({
 				el: li,
-				vm: Object.assign(vm.__proto__, vm, {
-					$data: _.mixin(context, scope)
-				})
+				vm: vm
 			});
 		});
 		!node.__parent__ && parent.removeChild(node);
 		node.__parent__ = parent;
-		// console.log(docFrag.children);
 		replaceChild(parent, docFrag);
-		// node.__parent__ = replaceChild(parent, docFrag);
+		// recover same iterator key
+		forEach(oldVals, function (value, key) {
+			vm[key] = value;
+		});
 	}
 
 	function forEach(val, fn) {
@@ -2486,9 +2491,77 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 36 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Compiler from './complier/complier';
+
+
+	var _observer = __webpack_require__(37);
+
+	var _observer2 = _interopRequireDefault(_observer);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var id = 0;
+
+	var Component = function () {
+		function Component(name, descriptor) {
+			_classCallCheck(this, Component);
+
+			this.uid = ++id;
+			this.name = name;
+			this.descriptor = descriptor;
+			this.template = descriptor.template;
+			// props生成的数据，不需要重复监听
+			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+			// props中引用vm的数据，不监听
+			this.methods = descriptor.methods;
+			this.events = descriptor.events;
+			this.init();
+		}
+
+		_createClass(Component, [{
+			key: 'init',
+			value: function init() {
+				new _observer2.default(this.data);
+				this.render();
+			}
+		}, {
+			key: 'render',
+			value: function render() {
+				// component template.
+				var frag = document.createDocumentFragment();
+				// template ID
+				var template = this.template;
+				if (/^#/.test(template)) {
+					var tempDom = document.querySelector(template);
+					template = tempDom.innerHTML;
+					// remove template DOM from Document.
+					tempDom.parentNode.removeChild(tempDom);
+					// record finally component template
+					this.descriptor.template = template;
+				}
+				var div = document.createElement('div');
+				div.innerHTML = template;
+				[].slice.call(div.children).forEach(function (child) {
+					frag.appendChild(child);
+				});
+				this.frag = frag;
+			}
+		}]);
+
+		return Component;
+	}();
+
+	exports.default = Component;
 
 /***/ },
 /* 37 */

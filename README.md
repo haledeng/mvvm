@@ -66,4 +66,5 @@ A MVVM test library for study. **Do not use in project**
 
 ### TODO List
 + change all directive context from vm.$data to vm.
+	+ for, textNode
 + more complex functions in state manager.
