@@ -16,7 +16,7 @@ var _watcher2 = _interopRequireDefault(_watcher);
 
 var _index = require('../directive/index');
 
-var _filter = require('../filter');
+var _expression = require('../parser/expression');
 
 var _compiler_props = require('./compiler_props');
 
@@ -25,10 +25,6 @@ var _compiler_props2 = _interopRequireDefault(_compiler_props);
 var _compiler_component = require('./compiler_component');
 
 var _compiler_component2 = _interopRequireDefault(_compiler_component);
-
-var _filter2 = require('../parser/filter');
-
-var _filter3 = _interopRequireDefault(_filter2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -101,7 +97,7 @@ var Compiler = function () {
 				// 属性值是模板表达式
 				if (/^\{\{/.test(item.value) && /\}\}$/.test(item.value)) {
 					var name = item.value.replace(/^\{\{/, '').replace(/\}\}$/, '');
-					node.setAttribute(item.name, (0, _index.calculateExpression)(self.$vm.$data, name));
+					node.setAttribute(item.name, (0, _expression.calculateExpression)(self.$vm.$data, name));
 				}
 			}
 

@@ -43,7 +43,7 @@ var _component = require('../component');
 
 var _component2 = _interopRequireDefault(_component);
 
-var _expression = require('../directive/expression');
+var _expression = require('../parser/expression');
 
 var _util = require('../util');
 

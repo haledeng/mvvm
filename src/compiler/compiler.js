@@ -3,23 +3,17 @@ import Watcher from '../observer/watcher';
 import {
 	vModel,
 	vText,
-	calculateExpression,
-	setScopeValue,
 	vOn,
 	vFor,
-	parseForExpression,
-	parseExpression
 } from '../directive/index';
 
 import {
-	filter,
-	parseFilter
-} from '../filter';
+	calculateExpression
+} from '../parser/expression';
 
 import CompilerMixin from './compiler_props';
 import ComponentMixin from './compiler_component';
 
-import parseFilterExpression from '../parser/filter';
 
 class Compiler {
 	constructor(opts) {

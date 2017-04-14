@@ -44,9 +44,7 @@ function vBind(node, vm, value, property) {
 // export default vBind;
 
 export default {
-	bind: function() {
-
-	},
+	bind: function() {},
 	update: function(value) {
 		vBind(this.$el, this.$vm, value, this.extraName);
 	}

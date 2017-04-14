@@ -49,8 +49,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var defineProperty = Object.defineProperty;
 
-var noop = function noop() {};
-
 var proxy = function proxy(vm, key) {
 	defineProperty(vm, key, {
 		configurable: true,
@@ -112,10 +110,9 @@ var MVVM = function () {
 			var self = this;
 			for (var key in this.computed) {
 				var method = this.computed[key];
-				// defineProperty(this.$data, key, {
 				defineProperty(this, key, {
 					get: self.defineComputeGetter(method),
-					set: noop
+					set: _.noop
 				});
 			}
 		}
@@ -126,7 +123,7 @@ var MVVM = function () {
 			var watcher = new _watcher2.default({
 				vm: self,
 				exp: method,
-				callback: noop
+				callback: _.noop
 			});
 			return function () {
 				if (_depender2.default.target) {
@@ -151,7 +148,7 @@ var MVVM = function () {
 	}, {
 		key: 'bindDir',
 		value: function bindDir(descriptor, node) {
-			// 切换上下文
+			// change context.
 			var self = descriptor.context || this;
 			(this._directives || (this._directives = [])).push(new _directive2.default(descriptor, self, node));
 		}
@@ -168,6 +165,7 @@ MVVM.directive = function (name, descriptor) {
 		this._cusDirectives = {};
 	}
 	this._cusDirectives[name] = descriptor;
+	// init method
 	if (descriptor.bind) {
 		var _bind = descriptor.bind;
 		descriptor.bind = function () {
@@ -179,7 +177,7 @@ MVVM.directive = function (name, descriptor) {
 		};
 	}
 
-	// 自定义directive，重写方法，传递参数
+	// wrap update method, change function params
 	if (descriptor.update) {
 		var _update = descriptor.update;
 		descriptor.update = function () {

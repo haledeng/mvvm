@@ -4,7 +4,7 @@
 import Component from '../component';
 import {
 	parseExpression
-} from '../directive/expression';
+} from '../parser/expression';
 import * as _ from '../util';
 
 // 计算prop对应的value

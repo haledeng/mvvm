@@ -7,19 +7,16 @@
 import Watcher from './observer/watcher';
 import * as _ from './util';
 
-function noop() {};
 
 class Directive {
 	constructor(descriptor, vm, node) {
 		this.descriptor = descriptor;
 		_.mixin(this, this.descriptor);
-		this.bind = descriptor.bind || noop;
-		this.update = descriptor.update || noop;
-		// this.expression = descriptor.expression;
+		this.bind = descriptor.bind || _.noop;
+		this.update = descriptor.update || _.noop;
 		this.watchExp = descriptor.watchExp || descriptor.expression;
 		this.$el = node;
 		this.$vm = vm;
-		// this.name = descriptor.name;
 		// bind, on等后面跟的事件名或属性名
 		this.extraName = descriptor.extraName || descriptor.name;
 		this._bind();

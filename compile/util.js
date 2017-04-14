@@ -95,6 +95,22 @@ var praviteIterator = function praviteIterator(str) {
 	return str ? '_' + str + '_' : '';
 };
 
+var setScopeValue = function setScopeValue(scope, key, value) {
+	if (~key.indexOf('.')) {
+		var namespaces = key.split('.');
+		var last = namespaces.pop();
+		namespaces.forEach(function (name) {
+			scope = scope[name] || (scope[name] = {});
+		});
+		scope[last] = value;
+	} else {
+		scope[key] = value;
+	}
+};
+
+// empty function
+var noop = function noop() {};
+
 exports.trim = trim;
 exports.isType = isType;
 exports.mixin = mixin;
@@ -105,3 +121,5 @@ exports.kebabCase = kebabCase;
 exports.getType = getType;
 exports.isObjectEqual = isObjectEqual;
 exports.isArrayEqual = isArrayEqual;
+exports.setScopeValue = setScopeValue;
+exports.noop = noop;

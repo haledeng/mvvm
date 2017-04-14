@@ -3,12 +3,13 @@ import {
     filter
 } from '../filter';
 
-import parseBind from '../parser/bind';
+import parseBind from './bind';
 import {
     parseForExpression,
     parseItemScope
-} from '../parser/for';
-import parseFilterExpression from '../parser/filter';
+} from './for';
+
+import parseFilterExpression from './filter';
 
 
 // whether expression has filter
@@ -32,7 +33,7 @@ function parseExpression(vm, exp, directive, node) {
                 value = calculateExpression(vm, exp);
                 // 向上查找
                 if (vm.props && vm.props[exp]) {
-                    value = value || calculateExpression(vm.$parent, vm.props[exp]);
+                    value = calculateExpression(vm.$parent, vm.props[exp]);
                 }
             }
             break;
@@ -51,6 +52,5 @@ const calculateExpression = (scope, exp) => {
 
 export {
     calculateExpression,
-    parseForExpression,
     parseExpression
 };

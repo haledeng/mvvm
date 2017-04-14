@@ -2,7 +2,7 @@
 import * as _ from '../util';
 import {
 	calculateExpression
-} from '../directive/expression';
+} from '../parser/expression';
 
 /**
  * [parseBind description]

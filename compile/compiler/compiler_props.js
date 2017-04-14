@@ -24,7 +24,6 @@ exports.default = function (Compiler) {
 		var customDirectives = this.$vm.constructor._cusDirectives || {};
 		var customNames = Object.keys(customDirectives);
 		var self = this;
-		// var bindOn = /(on|bind)\:(\w*)/;
 		var bindOn = /(v\-on\:|v\-bind\:|@|\:)(\w*)/;
 		// short name
 		// v-on:event   @event
@@ -56,6 +55,8 @@ exports.default = function (Compiler) {
 					break;
 				case 'for':
 					var info = (0, _for.parseForExpression)(attr.value);
+					// cache directive infomation
+					node._info = info;
 					self.$vm.bindDir(Object.assign({
 						expression: attr.value,
 						watchExp: info.val,

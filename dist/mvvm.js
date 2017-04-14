@@ -105,8 +105,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var defineProperty = Object.defineProperty;
 
-	var noop = function noop() {};
-
 	var proxy = function proxy(vm, key) {
 		defineProperty(vm, key, {
 			configurable: true,
@@ -168,10 +166,9 @@ return /******/ (function(modules) { // webpackBootstrap
 				var self = this;
 				for (var key in this.computed) {
 					var method = this.computed[key];
-					// defineProperty(this.$data, key, {
 					defineProperty(this, key, {
 						get: self.defineComputeGetter(method),
-						set: noop
+						set: _.noop
 					});
 				}
 			}
@@ -182,7 +179,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				var watcher = new _watcher2.default({
 					vm: self,
 					exp: method,
-					callback: noop
+					callback: _.noop
 				});
 				return function () {
 					if (_depender2.default.target) {
@@ -207,7 +204,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'bindDir',
 			value: function bindDir(descriptor, node) {
-				// 切换上下文
+				// change context.
 				var self = descriptor.context || this;
 				(this._directives || (this._directives = [])).push(new _directive2.default(descriptor, self, node));
 			}
@@ -224,6 +221,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this._cusDirectives = {};
 		}
 		this._cusDirectives[name] = descriptor;
+		// init method
 		if (descriptor.bind) {
 			var _bind = descriptor.bind;
 			descriptor.bind = function () {
@@ -235,7 +233,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			};
 		}
 
-		// 自定义directive，重写方法，传递参数
+		// wrap update method, change function params
 		if (descriptor.update) {
 			var _update = descriptor.update;
 			descriptor.update = function () {
@@ -282,7 +280,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index = __webpack_require__(10);
 
-	var _filter = __webpack_require__(6);
+	var _expression = __webpack_require__(5);
 
 	var _compiler_props = __webpack_require__(33);
 
@@ -291,10 +289,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _compiler_component = __webpack_require__(34);
 
 	var _compiler_component2 = _interopRequireDefault(_compiler_component);
-
-	var _filter2 = __webpack_require__(9);
-
-	var _filter3 = _interopRequireDefault(_filter2);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -367,7 +361,7 @@ return /******/ (function(modules) { // webpackBootstrap
 					// 属性值是模板表达式
 					if (/^\{\{/.test(item.value) && /\}\}$/.test(item.value)) {
 						var name = item.value.replace(/^\{\{/, '').replace(/\}\}$/, '');
-						node.setAttribute(item.name, (0, _index.calculateExpression)(self.$vm.$data, name));
+						node.setAttribute(item.name, (0, _expression.calculateExpression)(self.$vm.$data, name));
 					}
 				}
 
@@ -526,6 +520,22 @@ return /******/ (function(modules) { // webpackBootstrap
 		return str ? '_' + str + '_' : '';
 	};
 
+	var setScopeValue = function setScopeValue(scope, key, value) {
+		if (~key.indexOf('.')) {
+			var namespaces = key.split('.');
+			var last = namespaces.pop();
+			namespaces.forEach(function (name) {
+				scope = scope[name] || (scope[name] = {});
+			});
+			scope[last] = value;
+		} else {
+			scope[key] = value;
+		}
+	};
+
+	// empty function
+	var noop = function noop() {};
+
 	exports.trim = trim;
 	exports.isType = isType;
 	exports.mixin = mixin;
@@ -536,6 +546,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getType = getType;
 	exports.isObjectEqual = isObjectEqual;
 	exports.isArrayEqual = isArrayEqual;
+	exports.setScopeValue = setScopeValue;
+	exports.noop = noop;
 
 /***/ },
 /* 3 */
@@ -672,7 +684,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.parseExpression = exports.parseForExpression = exports.calculateExpression = undefined;
+	exports.parseExpression = exports.calculateExpression = undefined;
 
 	var _util = __webpack_require__(2);
 
@@ -715,7 +727,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                value = calculateExpression(vm, exp);
 	                // 向上查找
 	                if (vm.props && vm.props[exp]) {
-	                    value = value || calculateExpression(vm.$parent, vm.props[exp]);
+	                    value = calculateExpression(vm.$parent, vm.props[exp]);
 	                }
 	            }
 	            break;
@@ -733,7 +745,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	exports.calculateExpression = calculateExpression;
-	exports.parseForExpression = _for.parseForExpression;
 	exports.parseExpression = parseExpression;
 
 /***/ },
@@ -931,7 +942,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.vShow = exports.vHtml = exports.vBind = exports.vIf = exports.parseExpression = exports.parseForExpression = exports.vFor = exports.vOn = exports.calculateExpression = exports.setScopeValue = exports.vText = exports.vModel = undefined;
+	exports.vShow = exports.vHtml = exports.vBind = exports.vIf = exports.vFor = exports.vOn = exports.vText = exports.vModel = undefined;
 
 	var _model = __webpack_require__(11);
 
@@ -940,8 +951,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _text = __webpack_require__(15);
 
 	var _text2 = _interopRequireDefault(_text);
-
-	var _expression = __webpack_require__(5);
 
 	var _on = __webpack_require__(16);
 
@@ -969,28 +978,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	// 设置属性值
-	var setScopeValue = function setScopeValue(scope, key, value) {
-	    if (~key.indexOf('.')) {
-	        var namespaces = key.split('.');
-	        var last = namespaces.pop();
-	        namespaces.forEach(function (name) {
-	            scope = scope[name] || (scope[name] = {});
-	        });
-	        scope[last] = value;
-	    } else {
-	        scope[key] = value;
-	    }
-	};
-
 	exports.vModel = _model2.default;
 	exports.vText = _text2.default;
-	exports.setScopeValue = setScopeValue;
-	exports.calculateExpression = _expression.calculateExpression;
 	exports.vOn = _on2.default;
 	exports.vFor = _for2.default;
-	exports.parseForExpression = _expression.parseForExpression;
-	exports.parseExpression = _expression.parseExpression;
 	exports.vIf = _if2.default;
 	exports.vBind = _bind2.default;
 	exports.vHtml = _html2.default;
@@ -1301,13 +1292,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+	// wrap forEach
+	function forEach(val, fn) {
+		if (_.isType(val, 'array')) {
+			val.forEach(fn);
+		} else if (_.isType(val, 'object')) {
+			Object.keys(val).forEach(function (key) {
+				fn(val[key], key);
+			});
+		} else {}
+	}
+
 	// get subset of object
 	var getSubset = function getSubset(obj, keys) {
-		var ret = {};
-		if (_.isType(keys, 'object')) return null;
-		if (_.isType(keys, 'string')) keys = [keys];
-		keys.forEach(function (key) {
-			ret[key] = obj[key];
+		var ret = {},
+		    type = _.getType(keys);
+		if ('object' === type) return null;
+		if ('string' === type) keys = [keys];
+		forEach(keys, function (value, key) {
+			ret[key] = value;
 		});
 		return ret;
 	};
@@ -1315,14 +1318,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	// 会二次执行，监听的元素变化时，会重新调用vfor
 	function vFor(node, vm, expression) {
 		var parent = node.parentNode || node.__parent__;
-		var expInfo = this._expInfo;
+		var expInfo = node._info;
 		var scope = vm.$data;
 		// parseExpression
 		var val = (0, _expression.parseExpression)(vm, expInfo.val, 'for', node);
-		if (vm.props && vm.props[expInfo.val]) {
-			val = (0, _expression.calculateExpression)(vm.$parent.$data, vm.props[expInfo.val]);
-		}
-		if (!_.isType(val, 'array') && !_.isType(val, 'object')) return;
+		if (['array', 'object'].indexOf(_.getType(val)) === -1) return;
 		var docFrag = document.createDocumentFragment();
 		var iterators = [expInfo.scope];
 		if (expInfo.index) {
@@ -1331,7 +1331,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		// store old value
 		var oldVals = getSubset(vm, iterators);
 		forEach(val, function (item, index) {
-			// 子节点如何编译，Compiler中可以，但是需要修改scope
 			var li = node.cloneNode(true);
 			li.removeAttribute('v-for');
 
@@ -1340,16 +1339,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				vm[expInfo.index] = index;
 			}
 			docFrag.appendChild(li);
-			/**
-	   * item直接挂在$data下面，其中操作item会导致问题，
-	   * 都是操作同一份item
-	   * 渲染的时候，其实没有什么问题，每次item都不一致，
-	   * 但是write的时候，有问题
-	   */
-			// var _vm = Object.assign(vm.__proto__, vm, {
-			// 	$data: _.mixin(context, scope),
-			// 	// $data: _.mixin(context, vm),
-			// });
+			// item 临时挂载到vm下
 			new _compiler2.default({
 				el: li,
 				vm: vm
@@ -1364,22 +1354,10 @@ return /******/ (function(modules) { // webpackBootstrap
 		});
 	}
 
-	function forEach(val, fn) {
-		if (_.isType(val, 'array')) {
-			val.forEach(fn);
-		} else if (_.isType(val, 'object')) {
-			Object.keys(val).forEach(function (key) {
-				fn(val[key], key);
-			});
-		} else {}
-	}
-
 	function replaceChild(node, docFrag) {
 		var parent = node.parentNode;
 		var newNode = node.cloneNode(false);
 		newNode.appendChild(docFrag);
-		// parent.replaceChild(newNode, node);
-		// return newNode;
 		// dom-diff
 		var diff = (0, _diffDom2.default)(node, newNode);
 		console.log(diff);
@@ -1388,7 +1366,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.default = {
 		bind: function bind() {
-			this._expInfo = (0, _expression.parseForExpression)(this.expression);
+			// this._expInfo = this.$el._info;
 		},
 		update: function update(value) {
 			vFor.call(this, this.$el, this.$vm, this.expression);
@@ -2135,17 +2113,12 @@ return /******/ (function(modules) { // webpackBootstrap
 				this.elseEl.__anchor__ = document.createTextNode('');
 				(0, _patch2.default)((0, _diffDom2.default)(this.elseEl, this.elseEl.__anchor__));
 			}
-			// if (this.nextSibling.parentNode) {
-			// 	patch(diffDom(this.nextSibling, this.$el));
-			// }
 		} else {
 			this.$el.__anchor__ = document.createTextNode('');
 			(0, _patch2.default)((0, _diffDom2.default)(this.$el, this.$el.__anchor__));
 			if (this.elseEl) {
 				(0, _patch2.default)((0, _diffDom2.default)(this.elseEl.__anchor__, this.elseEl));
 			}
-			// this.nextSibling修改了
-			// patch(diffDom(this.$el, this.nextSibling));
 		}
 	}
 
@@ -2154,60 +2127,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		return (0, _diffDom2.default)(node, node.__anchor__);
 	}
 
-	// function vIf(node, vm, value) {
-	// 	var parent = node.parentNode || node.__parent__;
-	// 	// difference between nextSibling and nextElementSibling
-	// 	// get from node.childNode and node.children
-	// 	var nextSibling = node.__nextSibling__ || node.nextElementSibling;
-
-	// 	var hasElseNext = this._hasElseNext;
-	// 	if (value) {
-	// 		if (node.__parent__) {
-	// 			// record the new node in document
-	// 			node.__new__ = insert(node.__new__ || node, parent);
-	// 		} else {
-	// 			// first time
-	// 			// clone新节点，删除v-if
-	// 			node.__new__ = replace(node, parent);
-	// 			node.__parent__ = parent;
-	// 		}
-	// 		if (hasElseNext) {
-	// 			node.__nextSibling__ = nextSibling;
-	// 			remove(nextSibling, parent);
-	// 		}
-	// 	} else {
-	// 		remove(node.__new__ || node, parent);
-	// 		if (hasElseNext) {
-	// 			node.__nextSibling__ = insert(nextSibling, parent);;
-	// 		}
-	// 	}
-	// }
-
-
-	// function replace(node, parent) {
-	// 	var newNode = node.cloneNode(true);
-	// 	newNode.removeAttribute('v-if');
-	// 	parent.replaceChild(newNode, node);
-	// 	return newNode;
-	// }
-
-	// function insert(node, parent) {
-	// 	var newNode = node.cloneNode(true);
-	// 	newNode.removeAttribute('v-if');
-	// 	newNode.removeAttribute('v-else');
-	// 	parent.replaceChild(newNode, node.__anchor__);
-	// 	return newNode;
-	// }
-
-	// function remove(node, parent) {
-	// 	// 这里应该是用something来占位，下次value变化是，直接替换
-	// 	// vue中使用注释来占位的,或者创建空的textNode，证实上面的猜想
-	// 	// node.__anchor__ = document.createComment('v-if');
-	// 	node.__anchor__ = document.createTextNode('');
-	// 	parent.replaceChild(node.__anchor__, node);
-	// 	node.__parent__ = parent;
-	// }
-
 	exports.default = {
 		bind: function bind() {
 			// 是否有v-else元素
@@ -2215,20 +2134,11 @@ return /******/ (function(modules) { // webpackBootstrap
 			if (nextSibling && nextSibling.getAttribute('v-else') !== null) {
 				this.elseEl = nextSibling;
 			}
-			// this.nextSibling = nextSibling;
-			// this._hasElseNext = ;
-			// if (this._hasElseNext) {
-			// 	this.nextSibling = nextSibling;
-			// 	nextSibling.parentNode.removeChild(nextSibling);
-			// } else {
-			// 	this.nextSibling = document.createTextNode('');
-			// }
 		},
 		update: function update(value) {
 			vIf.call(this, this.$el, this.$vm, value);
 		}
 	};
-	// export default vIf;
 
 /***/ },
 /* 32 */
@@ -2288,7 +2198,6 @@ return /******/ (function(modules) { // webpackBootstrap
 			var customDirectives = this.$vm.constructor._cusDirectives || {};
 			var customNames = Object.keys(customDirectives);
 			var self = this;
-			// var bindOn = /(on|bind)\:(\w*)/;
 			var bindOn = /(v\-on\:|v\-bind\:|@|\:)(\w*)/;
 			// short name
 			// v-on:event   @event
@@ -2320,6 +2229,8 @@ return /******/ (function(modules) { // webpackBootstrap
 						break;
 					case 'for':
 						var info = (0, _for.parseForExpression)(attr.value);
+						// cache directive infomation
+						node._info = info;
 						self.$vm.bindDir(Object.assign({
 							expression: attr.value,
 							watchExp: info.val,
@@ -2754,21 +2665,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function noop() {};
-
 	var Directive = function () {
 		function Directive(descriptor, vm, node) {
 			_classCallCheck(this, Directive);
 
 			this.descriptor = descriptor;
 			_.mixin(this, this.descriptor);
-			this.bind = descriptor.bind || noop;
-			this.update = descriptor.update || noop;
-			// this.expression = descriptor.expression;
+			this.bind = descriptor.bind || _.noop;
+			this.update = descriptor.update || _.noop;
 			this.watchExp = descriptor.watchExp || descriptor.expression;
 			this.$el = node;
 			this.$vm = vm;
-			// this.name = descriptor.name;
 			// bind, on等后面跟的事件名或属性名
 			this.extraName = descriptor.extraName || descriptor.name;
 			this._bind();

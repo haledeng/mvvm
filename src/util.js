@@ -89,6 +89,23 @@ const praviteIterator = (str) => {
 	return str ? '_' + str + '_' : '';
 }
 
+
+const setScopeValue = (scope, key, value) => {
+	if (~key.indexOf('.')) {
+		var namespaces = key.split('.');
+		var last = namespaces.pop();
+		namespaces.forEach(function(name) {
+			scope = scope[name] || (scope[name] = {});
+		});
+		scope[last] = value;
+	} else {
+		scope[key] = value;
+	}
+}
+
+// empty function
+const noop = () => {};
+
 export {
 	trim,
 	isType,
@@ -99,5 +116,7 @@ export {
 	kebabCase,
 	getType,
 	isObjectEqual,
-	isArrayEqual
+	isArrayEqual,
+	setScopeValue,
+	noop
 }
