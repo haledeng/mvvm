@@ -42,11 +42,10 @@ function vFor(node, vm, expression) {
 		// 子节点如何编译，Compiler中可以，但是需要修改scope
 		var li = node.cloneNode(true);
 		li.removeAttribute('v-for');
-		var context = {};
-		vm[expInfo.scope] = context[expInfo.scope] = item;
 
+		vm[expInfo.scope] = item;
 		if (expInfo.index !== undefined) {
-			vm[expInfo.index] = context[expInfo.index] = index;
+			vm[expInfo.index] = index;
 		}
 		docFrag.appendChild(li);
 		/**
@@ -81,7 +80,7 @@ function forEach(val, fn) {
 		Object.keys(val).forEach(function(key) {
 			fn(val[key], key);
 		})
-	}
+	} else {}
 }
 
 

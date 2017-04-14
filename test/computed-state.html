@@ -45,7 +45,7 @@
     <div id="app">
         <ul>
             <li v-for="(item, index) in todos">
-                {{item}} -> {{index}}
+                {{item | capitalize}} -> {{index}}
             </li>
         </ul>
         <button v-on:click="add">add</button>
@@ -57,7 +57,7 @@
     <script src="../dist/mvvmx.js"></script>
     <script>
         var state = {
-            todos: ['test', '12354']
+            todos: ['test', 'gen12354']
         };
 
         var store = new MVVMX.Store({

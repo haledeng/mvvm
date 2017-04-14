@@ -26,6 +26,10 @@ var _compiler_component = require('./compiler_component');
 
 var _compiler_component2 = _interopRequireDefault(_compiler_component);
 
+var _filter2 = require('../parser/filter');
+
+var _filter3 = _interopRequireDefault(_filter2);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -125,14 +129,12 @@ var Compiler = function () {
 			var keys = [];
 			var watcherMaps = {};
 
-			// TODO: name contains filters
 			html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
 				if (keys.indexOf(name) === -1) {
 					keys.push(name);
 				}
 			});
 
-			// TODO: filters
 			var _replace = function _replace(scope) {
 				var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
 					return watcherMaps[name].value;

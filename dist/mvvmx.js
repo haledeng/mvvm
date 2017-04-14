@@ -131,13 +131,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	accessor.state.get = function () {
 		return this._vm.$data.$$state;
 	};
-
 	accessor.state.set = function () {};
 
 	Object.defineProperties(_proto_, accessor);
 
 	var MVVMX = {
-
 		Store: Store
 	};
 

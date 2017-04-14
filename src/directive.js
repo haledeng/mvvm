@@ -31,7 +31,7 @@ class Directive {
 		}
 		// 事件不需要update
 		if (this.name === 'on') return;
-		if (this.update) {
+		if ('function' === typeof this.update) {
 			this._watcher = new Watcher({
 				vm: this.$vm,
 				$el: this.$el,

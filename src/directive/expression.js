@@ -9,20 +9,15 @@ import {
     parseItemScope
 } from '../parser/for';
 import parseFilterExpression from '../parser/filter';
-import calculateExpression from '../parser/expression';
 
 
 // whether expression has filter
 function hasFilter(exp) {
-    // if (!exp || exp.indexOf('|') === -1) return false;
     return exp && /\s\|\s/.test(exp);
-    // return true;
 }
 
-
-
 function parseExpression(vm, exp, directive, node) {
-    var data = vm.$data;
+    // var data = vm.$data;
     var value = null;
     var vmComputed = vm.computed || {};
     node && (exp = parseItemScope(node, exp));
@@ -33,13 +28,12 @@ function parseExpression(vm, exp, directive, node) {
         default:
             if (hasFilter(exp)) {
                 var filterInfo = parseFilterExpression(exp);
-                value = filter.apply(null, [vm, filterInfo.method, calculateExpression(data, filterInfo.param)].concat(filterInfo.args));
+                value = filter.apply(null, [vm, filterInfo.method, calculateExpression(vm, filterInfo.param)].concat(filterInfo.args));
             } else {
-                // value = calculateExpression(data, exp);
                 value = calculateExpression(vm, exp);
                 // 向上查找
                 if (vm.props && vm.props[exp]) {
-                    value = value || calculateExpression(vm.$parent.$data, vm.props[exp]);
+                    value = value || calculateExpression(vm.$parent, vm.props[exp]);
                 }
             }
             break;
@@ -48,9 +42,16 @@ function parseExpression(vm, exp, directive, node) {
     return value;
 }
 
+const calculateExpression = (scope, exp) => {
+    var prefix = 'scope';
+    exp = _.addScope(exp);
+    var fn = new Function(prefix, 'return ' + exp);
+    return fn(scope);
+    // with. //strict mode.
+}
+
 export {
     calculateExpression,
     parseForExpression,
-    parseFilterExpression,
     parseExpression
 };

@@ -52,7 +52,7 @@ var Directive = function () {
 			}
 			// 事件不需要update
 			if (this.name === 'on') return;
-			if (this.update) {
+			if ('function' === typeof this.update) {
 				this._watcher = new _watcher2.default({
 					vm: this.$vm,
 					$el: this.$el,

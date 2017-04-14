@@ -19,6 +19,8 @@ import {
 import CompilerMixin from './compiler_props';
 import ComponentMixin from './compiler_component';
 
+import parseFilterExpression from '../parser/filter';
+
 class Compiler {
 	constructor(opts) {
 		this.$el = typeof opts.el === 'string' ? document.querySelector(opts.el) : opts.el;
@@ -100,14 +102,12 @@ class Compiler {
 		var keys = [];
 		var watcherMaps = {};
 
-		// TODO: name contains filters
 		html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
 			if (keys.indexOf(name) === -1) {
 				keys.push(name);
 			}
 		});
 
-		// TODO: filters
 		const _replace = (scope) => {
 			var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
 				return watcherMaps[name].value;

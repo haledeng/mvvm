@@ -75,7 +75,6 @@ var MVVM = function () {
 		value: function init(options) {
 			var self = this;
 			this.$options = options;
-			// TODO: options.data is a function
 			this.$data = typeof options.data === 'function' ? options.data() : options.data || {};
 			this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el;
 			this.methods = options.methods || {};
@@ -126,7 +125,7 @@ var MVVM = function () {
 			var watcher = new _watcher2.default({
 				vm: self,
 				exp: method,
-				callback: function callback() {}
+				callback: noop
 			});
 			return function () {
 				if (_depender2.default.target) {

@@ -35,7 +35,6 @@ class MVVM {
 	init(options) {
 		var self = this;
 		this.$options = options;
-		// TODO: options.data is a function
 		this.$data = typeof options.data === 'function' ? options.data() : (options.data || {});
 		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el;
 		this.methods = options.methods || {};
@@ -80,7 +79,7 @@ class MVVM {
 		var watcher = new Watcher({
 			vm: self,
 			exp: method,
-			callback: function() {}
+			callback: noop
 		});
 		return function() {
 			if (Dep.target) {

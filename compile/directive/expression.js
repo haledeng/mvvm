@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.parseExpression = exports.parseFilterExpression = exports.parseForExpression = exports.calculateExpression = undefined;
+exports.parseExpression = exports.parseForExpression = exports.calculateExpression = undefined;
 
 var _util = require('../util');
 
@@ -21,23 +21,17 @@ var _filter2 = require('../parser/filter');
 
 var _filter3 = _interopRequireDefault(_filter2);
 
-var _expression = require('../parser/expression');
-
-var _expression2 = _interopRequireDefault(_expression);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // whether expression has filter
 function hasFilter(exp) {
-    // if (!exp || exp.indexOf('|') === -1) return false;
     return exp && /\s\|\s/.test(exp);
-    // return true;
 }
 
 function parseExpression(vm, exp, directive, node) {
-    var data = vm.$data;
+    // var data = vm.$data;
     var value = null;
     var vmComputed = vm.computed || {};
     node && (exp = (0, _for.parseItemScope)(node, exp));
@@ -48,13 +42,12 @@ function parseExpression(vm, exp, directive, node) {
         default:
             if (hasFilter(exp)) {
                 var filterInfo = (0, _filter3.default)(exp);
-                value = _filter.filter.apply(null, [vm, filterInfo.method, (0, _expression2.default)(data, filterInfo.param)].concat(filterInfo.args));
+                value = _filter.filter.apply(null, [vm, filterInfo.method, calculateExpression(vm, filterInfo.param)].concat(filterInfo.args));
             } else {
-                // value = calculateExpression(data, exp);
-                value = (0, _expression2.default)(vm, exp);
+                value = calculateExpression(vm, exp);
                 // 向上查找
                 if (vm.props && vm.props[exp]) {
-                    value = value || (0, _expression2.default)(vm.$parent.$data, vm.props[exp]);
+                    value = value || calculateExpression(vm.$parent, vm.props[exp]);
                 }
             }
             break;
@@ -63,7 +56,14 @@ function parseExpression(vm, exp, directive, node) {
     return value;
 }
 
-exports.calculateExpression = _expression2.default;
+var calculateExpression = function calculateExpression(scope, exp) {
+    var prefix = 'scope';
+    exp = _.addScope(exp);
+    var fn = new Function(prefix, 'return ' + exp);
+    return fn(scope);
+    // with. //strict mode.
+};
+
+exports.calculateExpression = calculateExpression;
 exports.parseForExpression = _for.parseForExpression;
-exports.parseFilterExpression = _filter3.default;
 exports.parseExpression = parseExpression;

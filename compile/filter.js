@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", {
 function filter(vm, name, params) {
 	var method = vm.filters[name];
 	if (!method) return params;
-	return method.apply(vm.$data, [params].concat([].slice.call(arguments, 3)));
+	return method.apply(vm, [params].concat([].slice.call(arguments, 3)));
 }
 
 exports.filter = filter;

@@ -1,6 +1,8 @@
 // parse bind expression
 import * as _ from '../util';
-import calculateExpression from './expression';
+import {
+	calculateExpression
+} from '../directive/expression';
 
 /**
  * [parseBind description]
