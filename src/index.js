@@ -12,11 +12,12 @@ import Dep from './observer/depender';
 import * as _ from './util';
 
 const defineProperty = Object.defineProperty;
+
 const noop = function() {};
 
 
 const proxy = function(vm, key) {
-	Object.defineProperty(vm, key, {
+	defineProperty(vm, key, {
 		configurable: true,
 		enumerable: true,
 		get: function() {

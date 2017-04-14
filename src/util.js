@@ -34,46 +34,19 @@ const upperFirst = (str) => {
 	return str.charAt(0).toUpperCase() + str.substring(1);
 }
 
-// const addScope = (exp, prefix = 'scope') => {
-// 	exp = trim(exp);
-// 	// x.y => scope.x.y
-// 	// x.y.z = > scope.x.y.z
-// 	// Math.random()  全局函数调用
-// 	var globalObject = ['Math', 'window', 'Date', 'navigator', 'document'];
-// 	exp = exp.replace(/[\w\[\]]+(?=\.)/g, function(match, index, all) {
-// 		if (~globalObject.indexOf(match) || /^\d*$/.test(match)) return match;
-// 		if (all.indexOf('.' + match) === -1) {
-// 			return [prefix, match].join('.');
-// 		}
-// 		return match;
-// 	});
-// 	exp = ' ' + exp + ' ';
-// 	// x
-// 	exp = exp.replace(/[\+\-\*\/\s\>\<\=\(]\w+(?![\'\.])[\+\-\*\/\s\>\<\=\)]/g, function(match, index, all) {
-// 		match = trim(match);
-// 		if (/^\d*$/.test(match)) {
-// 			return match;
-// 		}
-// 		match = match.replace(/([\+\-\*\/\s\>\<\=\(]?)(\w+)([\+\-\*\/\s\>\<\=\)]?)/, function(all, before, cur, after) {
-// 			return before + [prefix, cur].join('.') + after;
-// 		});
-// 		return match;
-// 		// return [prefix, match].join('.');
-// 	});
-// 	return trim(exp);
-// }
-
 // add context to expression
 const addScope = (exp, prefix = 'scope') => {
+	// Global Object call
+	var globalObjReg = /^(Math|window|document|location|navigator|screen)/;
 	// begin with variables
 	return exp.replace(/^[\w\[\]\-]+/, function(all) {
+		if (globalObjReg.test(all)) return all;
 		return [prefix, all].join('.');
 	}).replace(/\s([\w\[\]\-]+)/g, function(match, val, index, all) {
-		if (/^\d*$/.test(val)) return match;
+		if (/^\d*$/.test(val) || globalObjReg.test(val)) return match;
 		return ' ' + [prefix, val].join('.');
 	}).replace(/\(([\w\[\]\-]+)\)/g, function(match, val, index, all) {
-		if (/^\d*$/.test(val)) return match;
-		if (/^[\'\"]/.test(val)) return match;
+		if (/^\d*$/.test(val) || globalObjReg.test(val) || /^[\'\"]/.test(val)) return match;
 		return '(' + [prefix, val].join('.') + ')';
 	});
 };

@@ -31,7 +31,6 @@ function hasFilter(exp) {
 }
 
 function parseExpression(vm, exp, directive, node) {
-    // var data = vm.$data;
     var value = null;
     var vmComputed = vm.computed || {};
     node && (exp = (0, _for.parseItemScope)(node, exp));
@@ -57,11 +56,11 @@ function parseExpression(vm, exp, directive, node) {
 }
 
 var calculateExpression = function calculateExpression(scope, exp) {
+    // with expression. not support in strict mode.
     var prefix = 'scope';
     exp = _.addScope(exp);
     var fn = new Function(prefix, 'return ' + exp);
     return fn(scope);
-    // with. //strict mode.
 };
 
 exports.calculateExpression = calculateExpression;

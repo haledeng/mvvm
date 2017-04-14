@@ -104,10 +104,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var defineProperty = Object.defineProperty;
+
 	var noop = function noop() {};
 
 	var proxy = function proxy(vm, key) {
-		Object.defineProperty(vm, key, {
+		defineProperty(vm, key, {
 			configurable: true,
 			enumerable: true,
 			get: function get() {
@@ -471,48 +472,21 @@ return /******/ (function(modules) { // webpackBootstrap
 		return str.charAt(0).toUpperCase() + str.substring(1);
 	};
 
-	// const addScope = (exp, prefix = 'scope') => {
-	// 	exp = trim(exp);
-	// 	// x.y => scope.x.y
-	// 	// x.y.z = > scope.x.y.z
-	// 	// Math.random()  全局函数调用
-	// 	var globalObject = ['Math', 'window', 'Date', 'navigator', 'document'];
-	// 	exp = exp.replace(/[\w\[\]]+(?=\.)/g, function(match, index, all) {
-	// 		if (~globalObject.indexOf(match) || /^\d*$/.test(match)) return match;
-	// 		if (all.indexOf('.' + match) === -1) {
-	// 			return [prefix, match].join('.');
-	// 		}
-	// 		return match;
-	// 	});
-	// 	exp = ' ' + exp + ' ';
-	// 	// x
-	// 	exp = exp.replace(/[\+\-\*\/\s\>\<\=\(]\w+(?![\'\.])[\+\-\*\/\s\>\<\=\)]/g, function(match, index, all) {
-	// 		match = trim(match);
-	// 		if (/^\d*$/.test(match)) {
-	// 			return match;
-	// 		}
-	// 		match = match.replace(/([\+\-\*\/\s\>\<\=\(]?)(\w+)([\+\-\*\/\s\>\<\=\)]?)/, function(all, before, cur, after) {
-	// 			return before + [prefix, cur].join('.') + after;
-	// 		});
-	// 		return match;
-	// 		// return [prefix, match].join('.');
-	// 	});
-	// 	return trim(exp);
-	// }
-
 	// add context to expression
 	var addScope = function addScope(exp) {
 		var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
 
+		// Global Object call
+		var globalObjReg = /^(Math|window|document|location|navigator|screen)/;
 		// begin with variables
 		return exp.replace(/^[\w\[\]\-]+/, function (all) {
+			if (globalObjReg.test(all)) return all;
 			return [prefix, all].join('.');
 		}).replace(/\s([\w\[\]\-]+)/g, function (match, val, index, all) {
-			if (/^\d*$/.test(val)) return match;
+			if (/^\d*$/.test(val) || globalObjReg.test(val)) return match;
 			return ' ' + [prefix, val].join('.');
 		}).replace(/\(([\w\[\]\-]+)\)/g, function (match, val, index, all) {
-			if (/^\d*$/.test(val)) return match;
-			if (/^[\'\"]/.test(val)) return match;
+			if (/^\d*$/.test(val) || globalObjReg.test(val) || /^[\'\"]/.test(val)) return match;
 			return '(' + [prefix, val].join('.') + ')';
 		});
 	};
@@ -726,7 +700,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function parseExpression(vm, exp, directive, node) {
-	    // var data = vm.$data;
 	    var value = null;
 	    var vmComputed = vm.computed || {};
 	    node && (exp = (0, _for.parseItemScope)(node, exp));
@@ -752,11 +725,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	var calculateExpression = function calculateExpression(scope, exp) {
+	    // with expression. not support in strict mode.
 	    var prefix = 'scope';
 	    exp = _.addScope(exp);
 	    var fn = new Function(prefix, 'return ' + exp);
 	    return fn(scope);
-	    // with. //strict mode.
 	};
 
 	exports.calculateExpression = calculateExpression;
