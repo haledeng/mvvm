@@ -83,7 +83,6 @@ class MVVM {
 		});
 		return function() {
 			if (Dep.target) {
-				debugger;
 				watcher.update();
 			}
 			return watcher.value;

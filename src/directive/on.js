@@ -2,8 +2,16 @@
 // 事件多次绑定
 import * as _ from '../util';
 import {
+	calculateExpression
+} from '../parser/expression';
+import {
 	parseItemScope
 } from '../parser/for';
+
+
+var keyCodeConf = {
+	'enter': 13
+}
 
 // v-on:click="method(arg1, arg2, arg3)"
 // v-on:click="item.a=4"
@@ -30,19 +38,36 @@ function vOn(node, methods, value, eventName) {
 			args = args.split(',');
 			args.forEach(function(arg, index) {
 				arg = _.trim(arg);
-				args[index] = self[arg] !== undefined ? self[arg] : '';
+				// object
+				if (/^\{.*\}$/.test(arg)) {
+					args[index] = _.parseStr2Obj(arg, function(value) {
+						return calculateExpression(self, value);
+					});
+				} else {
+					args[index] = self[arg] !== undefined ? self[arg] : '';
+				}
 			});
 		}
-		node.addEventListener(eventName, function() {
-			method.apply(self, args);
-			// watcher表达式计算有问题
-		}, false);
+
+		// async
+		(function(_args) {
+			node.addEventListener(eventName, function(e) {
+				if (eventName === 'keyup') {
+					var code = e.keyCode || e.charCode;
+					if (code == keyCodeConf[node['_' + eventName]]) {
+						method.apply(self, [e]);
+					}
+				} else {
+					method.apply(self, (_args || []).concat([e]));
+				}
+			}, false);
+		})(args);
 	}
 
 }
 
 
-var allowEvents = ['click', 'submit', 'touch', 'mousedown'];
+var allowEvents = ['click', 'submit', 'touch', 'mousedown', 'keyup'];
 
 
 // export default vOn;

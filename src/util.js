@@ -103,6 +103,17 @@ const setScopeValue = (scope, key, value) => {
 	}
 }
 
+
+const parseStr2Obj = function(str, fn) {
+	var ret = {};
+	if (!str) return ret;
+	str = trim(str.replace(/^\{|\}$/g, ''));
+	str.replace(/([^\:\,]*)\:([^\,]*)/g, function(all, key, value) {
+		ret[key] = fn ? fn(value) : value;
+	});
+	return ret;
+};
+
 // empty function
 const noop = () => {};
 
@@ -118,5 +129,6 @@ export {
 	isObjectEqual,
 	isArrayEqual,
 	setScopeValue,
-	noop
+	noop,
+	parseStr2Obj
 }

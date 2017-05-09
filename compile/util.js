@@ -108,6 +108,16 @@ var setScopeValue = function setScopeValue(scope, key, value) {
 	}
 };
 
+var parseStr2Obj = function parseStr2Obj(str, fn) {
+	var ret = {};
+	if (!str) return ret;
+	str = trim(str.replace(/^\{|\}$/g, ''));
+	str.replace(/([^\:\,]*)\:([^\,]*)/g, function (all, key, value) {
+		ret[key] = fn ? fn(value) : value;
+	});
+	return ret;
+};
+
 // empty function
 var noop = function noop() {};
 
@@ -123,3 +133,4 @@ exports.isObjectEqual = isObjectEqual;
 exports.isArrayEqual = isArrayEqual;
 exports.setScopeValue = setScopeValue;
 exports.noop = noop;
+exports.parseStr2Obj = parseStr2Obj;

@@ -21,7 +21,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
  */
 // parse bind expression
 function parseBind(vm, attr) {
-	debugger;
 	attr = _.trim(attr);
 	var data = vm;
 	// var data = vm.$data;

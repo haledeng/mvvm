@@ -184,7 +184,6 @@ return /******/ (function(modules) { // webpackBootstrap
 				});
 				return function () {
 					if (_depender2.default.target) {
-						debugger;
 						watcher.update();
 					}
 					return watcher.value;
@@ -535,6 +534,16 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 	};
 
+	var parseStr2Obj = function parseStr2Obj(str, fn) {
+		var ret = {};
+		if (!str) return ret;
+		str = trim(str.replace(/^\{|\}$/g, ''));
+		str.replace(/([^\:\,]*)\:([^\,]*)/g, function (all, key, value) {
+			ret[key] = fn ? fn(value) : value;
+		});
+		return ret;
+	};
+
 	// empty function
 	var noop = function noop() {};
 
@@ -550,6 +559,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.isArrayEqual = isArrayEqual;
 	exports.setScopeValue = setScopeValue;
 	exports.noop = noop;
+	exports.parseStr2Obj = parseStr2Obj;
 
 /***/ },
 /* 3 */
@@ -795,7 +805,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	// parse bind expression
 	function parseBind(vm, attr) {
-		debugger;
 		attr = _.trim(attr);
 		var data = vm;
 		// var data = vm.$data;
@@ -1172,9 +1181,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _ = _interopRequireWildcard(_util);
 
+	var _expression = __webpack_require__(5);
+
 	var _for = __webpack_require__(8);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	var keyCodeConf = {
+		'enter': 13
+	};
 
 	// v-on:click="method(arg1, arg2, arg3)"
 	// v-on:click="item.a=4"
@@ -1203,17 +1218,34 @@ return /******/ (function(modules) { // webpackBootstrap
 				args = args.split(',');
 				args.forEach(function (arg, index) {
 					arg = _.trim(arg);
-					args[index] = self[arg] !== undefined ? self[arg] : '';
+					// object
+					if (/^\{.*\}$/.test(arg)) {
+						args[index] = _.parseStr2Obj(arg, function (value) {
+							return (0, _expression.calculateExpression)(self, value);
+						});
+					} else {
+						args[index] = self[arg] !== undefined ? self[arg] : '';
+					}
 				});
 			}
-			node.addEventListener(eventName, function () {
-				method.apply(self, args);
-				// watcher表达式计算有问题
-			}, false);
+
+			// async
+			(function (_args) {
+				node.addEventListener(eventName, function (e) {
+					if (eventName === 'keyup') {
+						var code = e.keyCode || e.charCode;
+						if (code == keyCodeConf[node['_' + eventName]]) {
+							method.apply(self, [e]);
+						}
+					} else {
+						method.apply(self, (_args || []).concat([e]));
+					}
+				}, false);
+			})(args);
 		}
 	}
 
-	var allowEvents = ['click', 'submit', 'touch', 'mousedown'];
+	var allowEvents = ['click', 'submit', 'touch', 'mousedown', 'keyup'];
 
 	// export default vOn;
 
@@ -1319,7 +1351,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		var expInfo = node._info;
 		var scope = vm.$data;
 		// parseExpression
-		debugger;
 		// var val = parseExpression(vm, expInfo.val, 'for', node);
 		var val = node._vForValue;
 		if (['array', 'object'].indexOf(_.getType(val)) === -1) return;
@@ -2206,6 +2237,11 @@ return /******/ (function(modules) { // webpackBootstrap
 			if (bindOn.test(attr.name)) {
 				var extraName = RegExp.$2;
 				var directiveName = parseBindOn(RegExp.$1);
+				var keyCode = attr.name.replace(bindOn, '');
+				// @keyup.enter
+				if (keyCode) {
+					node['_' + extraName] = keyCode.replace(/^\./, '');
+				}
 				self.$vm.bindDir(Object.assign({
 					expression: attr.value,
 					name: directiveName,

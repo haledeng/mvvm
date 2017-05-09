@@ -11,7 +11,6 @@ import {
  * @return {Object}      value of the expression
  */
 export default function parseBind(vm, attr) {
-	debugger;
 	attr = _.trim(attr);
 	var data = vm;
 	// var data = vm.$data;

@@ -55,7 +55,6 @@ function vFor(node, vm, expression) {
 	var expInfo = node._info;
 	var scope = vm.$data;
 	// parseExpression
-	debugger;
 	// var val = parseExpression(vm, expInfo.val, 'for', node);
 	var val = node._vForValue;
 	if (['array', 'object'].indexOf(_.getType(val)) === -1) return;

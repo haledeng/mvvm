@@ -31,6 +31,11 @@ exports.default = function (Compiler) {
 		if (bindOn.test(attr.name)) {
 			var extraName = RegExp.$2;
 			var directiveName = parseBindOn(RegExp.$1);
+			var keyCode = attr.name.replace(bindOn, '');
+			// @keyup.enter
+			if (keyCode) {
+				node['_' + extraName] = keyCode.replace(/^\./, '');
+			}
 			self.$vm.bindDir(Object.assign({
 				expression: attr.value,
 				name: directiveName,
