@@ -34,6 +34,16 @@ function parseExpression(vm, exp, directive, node) {
     var value = null;
     var vmComputed = vm.computed || {};
     node && (exp = (0, _for.parseItemScope)(node, exp));
+    var oldVals = {};
+    var iterators = _.getIterators(node);
+    if (node && iterators) {
+        console.log(iterators);
+        _.forEach(iterators, function (value, key) {
+            // record old value.
+            oldVals[key] = vm[key];
+            vm[key] = value;
+        });
+    }
     switch (directive) {
         case 'bind':
             value = (0, _bind2.default)(vm, exp);
@@ -52,6 +62,7 @@ function parseExpression(vm, exp, directive, node) {
             break;
 
     }
+    _.resetObject(oldVals, vm);
     return value;
 }
 

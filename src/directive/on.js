@@ -31,6 +31,7 @@ function vOn(node, methods, value, eventName) {
 			// TODO: RegExp 
 			// value = value.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
 			value = parseItemScope(node, value);
+
 			method = new Function(_.addScope(value, 'this'));
 		}
 		var args = matches[3];
@@ -48,7 +49,6 @@ function vOn(node, methods, value, eventName) {
 				}
 			});
 		}
-
 		// async
 		(function(_args) {
 			node.addEventListener(eventName, function(e) {
@@ -58,7 +58,17 @@ function vOn(node, methods, value, eventName) {
 						method.apply(self, [e]);
 					}
 				} else {
+					var oldVals = {};
+					var iterators = _.getIterators(node);
+					if (node && iterators) {
+						_.forEach(iterators, function(value, key) {
+							// record old value.
+							oldVals[key] = self[key];
+							self[key] = value;
+						});
+					}
 					method.apply(self, (_args || []).concat([e]));
+					_.resetObject(oldVals, self);
 				}
 			}, false);
 		})(args);

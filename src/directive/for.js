@@ -7,29 +7,6 @@ import Compiler from '../compiler/compiler';
 import diffDom from '../dom-diff/diffDom';
 import patch from '../dom-diff/patch';
 
-// wrap forEach
-function forEach(val, fn) {
-	if (_.isType(val, 'array')) {
-		val.forEach(fn);
-	} else if (_.isType(val, 'object')) {
-		Object.keys(val).forEach(function(key) {
-			fn(val[key], key);
-		})
-	} else {}
-}
-
-// get subset of object
-var getSubset = function(obj, keys) {
-	var ret = {},
-		type = _.getType(keys);
-	if ('object' === type) return null;
-	if ('string' === type) keys = [keys];
-	forEach(keys, function(value, key) {
-		ret[key] = value;
-	});
-	return ret;
-}
-
 // 会二次执行，监听的元素变化时，会重新调用vfor
 function vFor(node, vm, expression) {
 	var parent = node.parentNode || node.__parent__;
@@ -45,29 +22,36 @@ function vFor(node, vm, expression) {
 		iterators.push(expInfo.index);
 	}
 	// store old value
-	var oldVals = getSubset(vm, iterators);
-	forEach(val, function(item, index) {
+	var oldVals = _.getSubset(vm, iterators);
+	// var temp = {};
+	_.forEach(val, function(item, index) {
 		var li = node.cloneNode(true);
 		li.removeAttribute('v-for');
 
-		vm[expInfo.scope] = item;
+		li._iterators = {};
+
+		li._iterators[expInfo.scope] = vm[expInfo.scope] = item;
+		// temp[expInfo.scope] = item;
 		if (expInfo.index !== undefined) {
-			vm[expInfo.index] = index;
+			li._iterators[expInfo.index] = vm[expInfo.index] = index;
+			// temp[expInfo.index] = index;
 		}
 		docFrag.appendChild(li);
+		// debugger;
 		// item 临时挂载到vm下
 		new Compiler({
 			el: li,
 			vm: vm
+				// vm: Object.assign(vm, temp)
 		});
 	});
 	!node.__parent__ && parent.removeChild(node);
 	node.__parent__ = parent;
 	replaceChild(parent, docFrag);
 	// recover same iterator key
-	forEach(oldVals, function(value, key) {
-		vm[key] = value;
-	});
+	_.resetObject(oldVals, vm);
+	oldVals = null;
+	console.log(vm);
 }
 
 

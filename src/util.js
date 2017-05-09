@@ -39,12 +39,12 @@ const addScope = (exp, prefix = 'scope') => {
 	// Global Object call
 	var globalObjReg = /^(Math|window|document|location|navigator|screen)/;
 	// begin with variables
-	return exp.replace(/^[\w\[\]\-]+/, function(all) {
+	return exp.replace(/^[\w\[\]\-]+/g, function(all) {
 		if (globalObjReg.test(all)) return all;
 		return [prefix, all].join('.');
-	}).replace(/\s([\w\[\]\-]+)/g, function(match, val, index, all) {
+	}).replace(/([\s\=])([\w\[\]\-]+)/g, function(match, sep, val, index, all) {
 		if (/^\d*$/.test(val) || globalObjReg.test(val)) return match;
-		return ' ' + [prefix, val].join('.');
+		return sep + [prefix, val].join('.');
 	}).replace(/\(([\w\[\]\-]+)\)/g, function(match, val, index, all) {
 		if (/^\d*$/.test(val) || globalObjReg.test(val) || /^[\'\"]/.test(val)) return match;
 		return '(' + [prefix, val].join('.') + ')';
@@ -114,6 +114,52 @@ const parseStr2Obj = function(str, fn) {
 	return ret;
 };
 
+
+// wrap forEach
+function forEach(val, fn) {
+	if (isType(val, 'array')) {
+		val.forEach(fn);
+	} else if (isType(val, 'object')) {
+		Object.keys(val).forEach(function(key) {
+			fn(val[key], key);
+		})
+	} else {}
+}
+
+
+// get subset of object
+var getSubset = function(obj, keys) {
+	var ret = {},
+		type = getType(keys);
+	if ('object' === type) return null;
+	if ('string' === type) keys = [keys];
+	forEach(keys, function(value, key) {
+		ret[value] = obj[value];
+	});
+	return ret;
+}
+
+
+var resetObject = function(oldVals, vm) {
+	forEach(oldVals, function(value, key) {
+		if (value == undefined) {
+			delete vm[key];
+		} else {
+			vm[key] = value;
+		}
+	});
+}
+
+
+function getIterators(node) {
+	var parent = node;
+	while (parent && !parent._iterators) {
+		parent = parent.parentNode;
+	}
+	return parent ? parent._iterators : null;
+}
+
+
 // empty function
 const noop = () => {};
 
@@ -130,5 +176,9 @@ export {
 	isArrayEqual,
 	setScopeValue,
 	noop,
-	parseStr2Obj
+	parseStr2Obj,
+	forEach,
+	getSubset,
+	resetObject,
+	getIterators
 }

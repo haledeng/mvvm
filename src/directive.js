@@ -30,9 +30,9 @@ class Directive {
 		if (this.name === 'on') return;
 		if ('function' === typeof this.update) {
 			this._watcher = new Watcher({
-				vm: this.$vm,
-				$el: this.$el,
-				exp: this.watchExp,
+				vm: self.$vm,
+				$el: self.$el,
+				exp: self.watchExp,
 				directive: this.name,
 				callback: function(vm, value, oldValue) {
 					self.update(value);

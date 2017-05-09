@@ -46,11 +46,13 @@ var filters = {
 		return todos;
 	},
 	active: function(todos) {
+		debugger;
 		return todos.filter(function(todo) {
 			return !todo.done;
 		});
 	},
 	completed: function(todos) {
+		debugger;
 		return todos.filter(function(todo) {
 			return todo.done;
 		});
@@ -58,6 +60,9 @@ var filters = {
 };
 var maps = MVVMX.mapMutations(['clearCompleted', 'toggleAll']);
 var methods = Object.assign({
+	change: function(key) {
+		this.visibility = key;
+	},
 	deleteTodo: function(obj) {
 		this.$store.commit('deleteTodo', obj);
 	},
@@ -112,7 +117,6 @@ var app = new MVVM({
 			return filters[this.visibility](this.$store.state.todos);
 		},
 		allChecked: function() {
-			console.log(this);
 			return this.$store.state.todos.every(function(todo) {
 				return todo.done;
 			});

@@ -179,8 +179,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				var watcher = new _watcher2.default({
 					vm: self,
 					exp: method,
-					callback: _.noop,
-					lazy: true
+					callback: _.noop
 				});
 				return function () {
 					if (_depender2.default.target) {
@@ -474,12 +473,12 @@ return /******/ (function(modules) { // webpackBootstrap
 		// Global Object call
 		var globalObjReg = /^(Math|window|document|location|navigator|screen)/;
 		// begin with variables
-		return exp.replace(/^[\w\[\]\-]+/, function (all) {
+		return exp.replace(/^[\w\[\]\-]+/g, function (all) {
 			if (globalObjReg.test(all)) return all;
 			return [prefix, all].join('.');
-		}).replace(/\s([\w\[\]\-]+)/g, function (match, val, index, all) {
+		}).replace(/([\s\=])([\w\[\]\-]+)/g, function (match, sep, val, index, all) {
 			if (/^\d*$/.test(val) || globalObjReg.test(val)) return match;
-			return ' ' + [prefix, val].join('.');
+			return sep + [prefix, val].join('.');
 		}).replace(/\(([\w\[\]\-]+)\)/g, function (match, val, index, all) {
 			if (/^\d*$/.test(val) || globalObjReg.test(val) || /^[\'\"]/.test(val)) return match;
 			return '(' + [prefix, val].join('.') + ')';
@@ -544,6 +543,47 @@ return /******/ (function(modules) { // webpackBootstrap
 		return ret;
 	};
 
+	// wrap forEach
+	function forEach(val, fn) {
+		if (isType(val, 'array')) {
+			val.forEach(fn);
+		} else if (isType(val, 'object')) {
+			Object.keys(val).forEach(function (key) {
+				fn(val[key], key);
+			});
+		} else {}
+	}
+
+	// get subset of object
+	var getSubset = function getSubset(obj, keys) {
+		var ret = {},
+		    type = getType(keys);
+		if ('object' === type) return null;
+		if ('string' === type) keys = [keys];
+		forEach(keys, function (value, key) {
+			ret[value] = obj[value];
+		});
+		return ret;
+	};
+
+	var resetObject = function resetObject(oldVals, vm) {
+		forEach(oldVals, function (value, key) {
+			if (value == undefined) {
+				delete vm[key];
+			} else {
+				vm[key] = value;
+			}
+		});
+	};
+
+	function getIterators(node) {
+		var parent = node;
+		while (parent && !parent._iterators) {
+			parent = parent.parentNode;
+		}
+		return parent ? parent._iterators : null;
+	}
+
 	// empty function
 	var noop = function noop() {};
 
@@ -560,6 +600,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.setScopeValue = setScopeValue;
 	exports.noop = noop;
 	exports.parseStr2Obj = parseStr2Obj;
+	exports.forEach = forEach;
+	exports.getSubset = getSubset;
+	exports.resetObject = resetObject;
+	exports.getIterators = getIterators;
 
 /***/ },
 /* 3 */
@@ -601,7 +645,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.exp = opts.exp;
 			this.directive = opts.directive || '';
 			this.callback = opts.callback;
-			this.lazy = opts.lazy || false;
+			// this.lazy = opts.lazy || false;
 			this.value = this.init();
 			// call 2 times
 		}
@@ -628,7 +672,8 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'init',
 			value: function init() {
 				this.beforeGet();
-				var value = this.lazy ? null : this.get();
+				// var value = (this.lazy ? null : this.get());
+				var value = this.get();
 				this.afterGet();
 				return value;
 			}
@@ -728,6 +773,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var value = null;
 	    var vmComputed = vm.computed || {};
 	    node && (exp = (0, _for.parseItemScope)(node, exp));
+	    var oldVals = {};
+	    var iterators = _.getIterators(node);
+	    if (node && iterators) {
+	        console.log(iterators);
+	        _.forEach(iterators, function (value, key) {
+	            // record old value.
+	            oldVals[key] = vm[key];
+	            vm[key] = value;
+	        });
+	    }
 	    switch (directive) {
 	        case 'bind':
 	            value = (0, _bind2.default)(vm, exp);
@@ -746,6 +801,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            break;
 
 	    }
+	    _.resetObject(oldVals, vm);
 	    return value;
 	}
 
@@ -1211,6 +1267,7 @@ return /******/ (function(modules) { // webpackBootstrap
 					// TODO: RegExp 
 					// value = value.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
 					value = (0, _for.parseItemScope)(node, value);
+
 					method = new Function(_.addScope(value, 'this'));
 				}
 			var args = matches[3];
@@ -1228,7 +1285,6 @@ return /******/ (function(modules) { // webpackBootstrap
 					}
 				});
 			}
-
 			// async
 			(function (_args) {
 				node.addEventListener(eventName, function (e) {
@@ -1238,7 +1294,17 @@ return /******/ (function(modules) { // webpackBootstrap
 							method.apply(self, [e]);
 						}
 					} else {
+						var oldVals = {};
+						var iterators = _.getIterators(node);
+						if (node && iterators) {
+							_.forEach(iterators, function (value, key) {
+								// record old value.
+								oldVals[key] = self[key];
+								self[key] = value;
+							});
+						}
 						method.apply(self, (_args || []).concat([e]));
+						_.resetObject(oldVals, self);
 					}
 				}, false);
 			})(args);
@@ -1322,29 +1388,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-	// wrap forEach
-	function forEach(val, fn) {
-		if (_.isType(val, 'array')) {
-			val.forEach(fn);
-		} else if (_.isType(val, 'object')) {
-			Object.keys(val).forEach(function (key) {
-				fn(val[key], key);
-			});
-		} else {}
-	}
-
-	// get subset of object
-	var getSubset = function getSubset(obj, keys) {
-		var ret = {},
-		    type = _.getType(keys);
-		if ('object' === type) return null;
-		if ('string' === type) keys = [keys];
-		forEach(keys, function (value, key) {
-			ret[key] = value;
-		});
-		return ret;
-	};
-
 	// 会二次执行，监听的元素变化时，会重新调用vfor
 	function vFor(node, vm, expression) {
 		var parent = node.parentNode || node.__parent__;
@@ -1360,29 +1403,36 @@ return /******/ (function(modules) { // webpackBootstrap
 			iterators.push(expInfo.index);
 		}
 		// store old value
-		var oldVals = getSubset(vm, iterators);
-		forEach(val, function (item, index) {
+		var oldVals = _.getSubset(vm, iterators);
+		// var temp = {};
+		_.forEach(val, function (item, index) {
 			var li = node.cloneNode(true);
 			li.removeAttribute('v-for');
 
-			vm[expInfo.scope] = item;
+			li._iterators = {};
+
+			li._iterators[expInfo.scope] = vm[expInfo.scope] = item;
+			// temp[expInfo.scope] = item;
 			if (expInfo.index !== undefined) {
-				vm[expInfo.index] = index;
+				li._iterators[expInfo.index] = vm[expInfo.index] = index;
+				// temp[expInfo.index] = index;
 			}
 			docFrag.appendChild(li);
+			// debugger;
 			// item 临时挂载到vm下
 			new _compiler2.default({
 				el: li,
 				vm: vm
+				// vm: Object.assign(vm, temp)
 			});
 		});
 		!node.__parent__ && parent.removeChild(node);
 		node.__parent__ = parent;
 		replaceChild(parent, docFrag);
 		// recover same iterator key
-		forEach(oldVals, function (value, key) {
-			vm[key] = value;
-		});
+		_.resetObject(oldVals, vm);
+		oldVals = null;
+		console.log(vm);
 	}
 
 	function replaceChild(node, docFrag) {
@@ -2079,6 +2129,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = {
 		bind: function bind() {},
 		update: function update(value) {
+			// debugger;
 			vBind(this.$el, this.$vm, value, this.extraName);
 		}
 	};
@@ -2380,77 +2431,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 35 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Compiler from './complier/complier';
-
-
-	var _observer = __webpack_require__(36);
-
-	var _observer2 = _interopRequireDefault(_observer);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var id = 0;
-
-	var Component = function () {
-		function Component(name, descriptor) {
-			_classCallCheck(this, Component);
-
-			this.uid = ++id;
-			this.name = name;
-			this.descriptor = descriptor;
-			this.template = descriptor.template;
-			// props生成的数据，不需要重复监听
-			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
-			// props中引用vm的数据，不监听
-			this.methods = descriptor.methods;
-			this.events = descriptor.events;
-			this.init();
-		}
-
-		_createClass(Component, [{
-			key: 'init',
-			value: function init() {
-				new _observer2.default(this.data);
-				this.render();
-			}
-		}, {
-			key: 'render',
-			value: function render() {
-				// component template.
-				var frag = document.createDocumentFragment();
-				// template ID
-				var template = this.template;
-				if (/^#/.test(template)) {
-					var tempDom = document.querySelector(template);
-					template = tempDom.innerHTML;
-					// remove template DOM from Document.
-					tempDom.parentNode.removeChild(tempDom);
-					// record finally component template
-					this.descriptor.template = template;
-				}
-				var div = document.createElement('div');
-				div.innerHTML = template;
-				[].slice.call(div.children).forEach(function (child) {
-					frag.appendChild(child);
-				});
-				this.frag = frag;
-			}
-		}]);
-
-		return Component;
-	}();
-
-	exports.default = Component;
+	
 
 /***/ },
 /* 36 */
@@ -2729,9 +2712,9 @@ return /******/ (function(modules) { // webpackBootstrap
 				if (this.name === 'on') return;
 				if ('function' === typeof this.update) {
 					this._watcher = new _watcher2.default({
-						vm: this.$vm,
-						$el: this.$el,
-						exp: this.watchExp,
+						vm: self.$vm,
+						$el: self.$el,
+						exp: self.watchExp,
 						directive: this.name,
 						callback: function callback(vm, value, oldValue) {
 							self.update(value);

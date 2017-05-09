@@ -8,13 +8,14 @@ import {
 
 class Watcher {
 	constructor(opts) {
+
 		this.id = ++uid;
 		this.vm = opts.vm;
 		this.$el = opts.$el;
 		this.exp = opts.exp;
 		this.directive = opts.directive || '';
 		this.callback = opts.callback;
-		this.lazy = opts.lazy || false;
+		// this.lazy = opts.lazy || false;
 		this.value = this.init();
 		// call 2 times
 	}
@@ -32,7 +33,8 @@ class Watcher {
 	}
 	init() {
 		this.beforeGet();
-		var value = (this.lazy ? null : this.get());
+		// var value = (this.lazy ? null : this.get());
+		var value = this.get();
 		this.afterGet();
 		return value;
 	}
