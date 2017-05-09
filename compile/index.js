@@ -123,10 +123,12 @@ var MVVM = function () {
 			var watcher = new _watcher2.default({
 				vm: self,
 				exp: method,
-				callback: _.noop
+				callback: _.noop,
+				lazy: true
 			});
 			return function () {
 				if (_depender2.default.target) {
+					debugger;
 					watcher.update();
 				}
 				return watcher.value;

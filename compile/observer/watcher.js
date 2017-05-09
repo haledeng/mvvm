@@ -34,13 +34,14 @@ var Watcher = function () {
 		this.exp = opts.exp;
 		this.directive = opts.directive || '';
 		this.callback = opts.callback;
+		this.lazy = opts.lazy || false;
 		this.value = this.init();
+		// call 2 times
 	}
 
 	_createClass(Watcher, [{
 		key: 'update',
 		value: function update() {
-
 			var newVal = this.get();
 			var oldVal = this.value;
 			this.value = newVal;
@@ -60,15 +61,15 @@ var Watcher = function () {
 		key: 'init',
 		value: function init() {
 			this.beforeGet();
-			var value = this.get();
+			var value = this.lazy ? null : this.get();
 			this.afterGet();
 			return value;
 		}
 	}, {
 		key: 'get',
 		value: function get() {
+
 			if (typeof this.exp === 'function') {
-				// return this.exp.call(this.vm.$data);
 				return this.exp.call(this.vm);
 			}
 			return (0, _expression.parseExpression)(this.vm, this.exp, this.directive, this.$el);

@@ -14,10 +14,11 @@ class Watcher {
 		this.exp = opts.exp;
 		this.directive = opts.directive || '';
 		this.callback = opts.callback;
+		this.lazy = opts.lazy || false;
 		this.value = this.init();
+		// call 2 times
 	}
 	update() {
-
 		var newVal = this.get();
 		var oldVal = this.value;
 		this.value = newVal;
@@ -31,13 +32,13 @@ class Watcher {
 	}
 	init() {
 		this.beforeGet();
-		var value = this.get();
+		var value = (this.lazy ? null : this.get());
 		this.afterGet();
 		return value;
 	}
 	get() {
+
 		if (typeof this.exp === 'function') {
-			// return this.exp.call(this.vm.$data);
 			return this.exp.call(this.vm);
 		}
 		return parseExpression(this.vm, this.exp, this.directive, this.$el);

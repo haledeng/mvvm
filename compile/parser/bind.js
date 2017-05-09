@@ -3,10 +3,6 @@
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; // parse bind expression
-
-
 exports.default = parseBind;
 
 var _util = require('../util');
@@ -23,9 +19,12 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
  * @param  {String} attr expression
  * @return {Object}      value of the expression
  */
+// parse bind expression
 function parseBind(vm, attr) {
+	debugger;
 	attr = _.trim(attr);
-	var data = vm.$data;
+	var data = vm;
+	// var data = vm.$data;
 	var computed = vm.computed;
 	var value = {};
 	if (/^\{(.*)\}$/.test(attr)) {
@@ -35,12 +34,8 @@ function parseBind(vm, attr) {
 			return all;
 		});
 	} else if (/\w*/.test(attr)) {
-		// computed or data.property
-		if (_typeof(data[attr]) === 'object') {
-			value = data[attr];
-		} else if (typeof computed[attr] === 'function') {
-			value = computed[attr].apply(data);
-		}
+		// computed已经被计算
+		value = data[attr];
 	}
 	return value;
 }

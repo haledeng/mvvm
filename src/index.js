@@ -78,10 +78,12 @@ class MVVM {
 		var watcher = new Watcher({
 			vm: self,
 			exp: method,
-			callback: _.noop
+			callback: _.noop,
+			lazy: true,
 		});
 		return function() {
 			if (Dep.target) {
+				debugger;
 				watcher.update();
 			}
 			return watcher.value;

@@ -74,8 +74,22 @@ accessor.state.set = function() {};
 
 Object.defineProperties(_proto_, accessor);
 
+function mapMutations(mutations) {
+	var res = {};
+	mutations.forEach(function(mutation) {
+		res[mutation] = function() {
+			var args = [],
+				len = arguments.length;
+			while (len--) args[len] = arguments[len];
+			return this.$store.commit.apply(this.$store, [mutation].concat(args));
+		}
+	});
+	return res;
+}
+
 var MVVMX = {
-	Store: Store
+	Store: Store,
+	mapMutations: mapMutations
 };
 
 applyMixin();

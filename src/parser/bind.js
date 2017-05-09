@@ -11,8 +11,10 @@ import {
  * @return {Object}      value of the expression
  */
 export default function parseBind(vm, attr) {
+	debugger;
 	attr = _.trim(attr);
-	var data = vm.$data;
+	var data = vm;
+	// var data = vm.$data;
 	var computed = vm.computed;
 	var value = {};
 	if (/^\{(.*)\}$/.test(attr)) {
@@ -22,12 +24,8 @@ export default function parseBind(vm, attr) {
 			return all;
 		});
 	} else if (/\w*/.test(attr)) {
-		// computed or data.property
-		if (typeof data[attr] === 'object') {
-			value = data[attr];
-		} else if (typeof computed[attr] === 'function') {
-			value = computed[attr].apply(data);
-		}
+		// computed已经被计算
+		value = data[attr];
 	}
 	return value;
 }

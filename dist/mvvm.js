@@ -179,10 +179,12 @@ return /******/ (function(modules) { // webpackBootstrap
 				var watcher = new _watcher2.default({
 					vm: self,
 					exp: method,
-					callback: _.noop
+					callback: _.noop,
+					lazy: true
 				});
 				return function () {
 					if (_depender2.default.target) {
+						debugger;
 						watcher.update();
 					}
 					return watcher.value;
@@ -589,13 +591,14 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.exp = opts.exp;
 			this.directive = opts.directive || '';
 			this.callback = opts.callback;
+			this.lazy = opts.lazy || false;
 			this.value = this.init();
+			// call 2 times
 		}
 
 		_createClass(Watcher, [{
 			key: 'update',
 			value: function update() {
-
 				var newVal = this.get();
 				var oldVal = this.value;
 				this.value = newVal;
@@ -615,15 +618,15 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'init',
 			value: function init() {
 				this.beforeGet();
-				var value = this.get();
+				var value = this.lazy ? null : this.get();
 				this.afterGet();
 				return value;
 			}
 		}, {
 			key: 'get',
 			value: function get() {
+
 				if (typeof this.exp === 'function') {
-					// return this.exp.call(this.vm.$data);
 					return this.exp.call(this.vm);
 				}
 				return (0, _expression.parseExpression)(this.vm, this.exp, this.directive, this.$el);
@@ -774,10 +777,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; // parse bind expression
-
-
 	exports.default = parseBind;
 
 	var _util = __webpack_require__(2);
@@ -794,9 +793,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param  {String} attr expression
 	 * @return {Object}      value of the expression
 	 */
+	// parse bind expression
 	function parseBind(vm, attr) {
+		debugger;
 		attr = _.trim(attr);
-		var data = vm.$data;
+		var data = vm;
+		// var data = vm.$data;
 		var computed = vm.computed;
 		var value = {};
 		if (/^\{(.*)\}$/.test(attr)) {
@@ -806,12 +808,8 @@ return /******/ (function(modules) { // webpackBootstrap
 				return all;
 			});
 		} else if (/\w*/.test(attr)) {
-			// computed or data.property
-			if (_typeof(data[attr]) === 'object') {
-				value = data[attr];
-			} else if (typeof computed[attr] === 'function') {
-				value = computed[attr].apply(data);
-			}
+			// computed已经被计算
+			value = data[attr];
 		}
 		return value;
 	}
@@ -1321,7 +1319,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		var expInfo = node._info;
 		var scope = vm.$data;
 		// parseExpression
-		var val = (0, _expression.parseExpression)(vm, expInfo.val, 'for', node);
+		debugger;
+		// var val = parseExpression(vm, expInfo.val, 'for', node);
+		var val = node._vForValue;
 		if (['array', 'object'].indexOf(_.getType(val)) === -1) return;
 		var docFrag = document.createDocumentFragment();
 		var iterators = [expInfo.scope];
@@ -1369,6 +1369,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			// this._expInfo = this.$el._info;
 		},
 		update: function update(value) {
+			this.$el._vForValue = value;
 			vFor.call(this, this.$el, this.$vm, this.expression);
 		}
 	};
