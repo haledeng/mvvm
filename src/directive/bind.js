@@ -28,12 +28,16 @@ function removeProperty(node, property, value) {
 }
 
 function vBind(node, vm, value, property) {
-	for (var key in value) {
-		if (value[key]) {
-			addProperty(node, property, key);
-		} else {
-			removeProperty(node, property, key);
+	if (_.isType(value, 'object')) {
+		for (var key in value) {
+			if (value[key]) {
+				addProperty(node, property, key);
+			} else {
+				removeProperty(node, property, key);
+			}
 		}
+	} else {
+		addProperty(node, property, value);
 	}
 	// issue
 	// 删除会导致后面的属性遍历有问题
@@ -46,7 +50,6 @@ function vBind(node, vm, value, property) {
 export default {
 	bind: function() {},
 	update: function(value) {
-		// debugger;
 		vBind(this.$el, this.$vm, value, this.extraName);
 	}
 }

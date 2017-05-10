@@ -68,13 +68,9 @@ function vOn(node, methods, value, eventName) {
 					var oldVals = {};
 					var iterators = _.getIterators(node);
 					if (node && iterators) {
-						// _.forEach(iterators, function(value, key) {
-						// 	// record old value.
-						// 	oldVals[key] = self[key];
-						// 	self[key] = value;
-						// });
 						oldVals = _.extendScope(iterators, self);
 					}
+					// debugger;
 					method.apply(self, (_args || []).concat([e]));
 					_.resetObject(oldVals, self);
 				}
@@ -83,7 +79,7 @@ function vOn(node, methods, value, eventName) {
 	}
 }
 
-var allowEvents = ['click', 'submit', 'touch', 'mousedown', 'keyup'];
+var allowEvents = ['click', 'submit', 'touch', 'mousedown', 'keyup', 'dblclick', 'blur'];
 
 // export default vOn;
 

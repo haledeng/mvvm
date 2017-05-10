@@ -43,11 +43,10 @@
 				<ul class="filters">
 					<li  v-for="(value, key) in filters">
 						<a :class="{selected:visibility == key}" href="#/" @click="visibility=key">{{key}}</a>
-						<!-- <a :class="{selected:visibility == key}" href="#/" @click="change(key)">{{key}}</a> -->
 					</li>
 				</ul>
 				<!-- Hidden if no completed items are left ↓ -->
-				<!-- <button class="clear-completed" @click="clearCompleted">Clear completed</button> -->
+				<button class="clear-completed" @click="clearCompleted">Clear completed</button>
 			</footer>
 		</section>
 		<script src="../../dist/mvvm.js"></script>

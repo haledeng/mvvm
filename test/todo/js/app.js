@@ -58,8 +58,9 @@ var filters = {
 };
 var maps = MVVMX.mapMutations(['clearCompleted', 'toggleAll']);
 var methods = Object.assign({
-	change: function(key) {
-		this.visibility = key;
+	change: function() {
+		debugger;
+		this.editing = true;
 	},
 	deleteTodo: function(obj) {
 		this.$store.commit('deleteTodo', obj);

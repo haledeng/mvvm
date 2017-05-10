@@ -24,7 +24,9 @@ export default function parseBind(vm, attr) {
 		});
 	} else if (/\w*/.test(attr)) {
 		// computed已经被计算
-		value = data[attr];
+		// value = data[attr];
+		// a.b.c
+		value = _.getVal(data, attr);
 	}
 	return value;
 }

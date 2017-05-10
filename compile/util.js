@@ -46,7 +46,7 @@ var addScope = function addScope(exp) {
 	var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
 
 	// Global Object call
-	var globalObjReg = /^(Math|window|document|location|navigator|screen)/;
+	var globalObjReg = /^(Math|window|document|location|navigator|screen|true|false)/;
 	// begin with variables
 	return exp.replace(/^[\w\[\]\-]+/g, function (all) {
 		if (globalObjReg.test(all)) return all;
@@ -173,6 +173,17 @@ function getIterators(node) {
 	return parent ? parent._iterators : null;
 }
 
+var getVal = function getVal(obj, namespace) {
+	var names = namespace.split('.'),
+	    len = names.length,
+	    i = 1,
+	    ret = obj[names[0]];
+	while (i < len && obj) {
+		ret = ret[names[i++]];
+	}
+	return ret;
+};
+
 // empty function
 var noop = function noop() {};
 
@@ -194,3 +205,4 @@ exports.getSubset = getSubset;
 exports.resetObject = resetObject;
 exports.getIterators = getIterators;
 exports.extendScope = extendScope;
+exports.getVal = getVal;

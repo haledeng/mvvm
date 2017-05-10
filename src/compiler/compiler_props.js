@@ -31,7 +31,7 @@ export default function(Compiler) {
 		var customDirectives = this.$vm.constructor._cusDirectives || {};
 		var customNames = Object.keys(customDirectives);
 		var self = this;
-		var bindOn = /(v\-on\:|v\-bind\:|@|\:)(\w*)/;
+		var bindOn = /(v\-on\:|v\-bind\:|@|\:)([\w\-]*)/;
 		// short name
 		// v-on:event   @event
 		// v-bind:property  :property

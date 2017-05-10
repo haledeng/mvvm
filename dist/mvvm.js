@@ -471,7 +471,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		var prefix = arguments.length <= 1 || arguments[1] === undefined ? 'scope' : arguments[1];
 
 		// Global Object call
-		var globalObjReg = /^(Math|window|document|location|navigator|screen)/;
+		var globalObjReg = /^(Math|window|document|location|navigator|screen|true|false)/;
 		// begin with variables
 		return exp.replace(/^[\w\[\]\-]+/g, function (all) {
 			if (globalObjReg.test(all)) return all;
@@ -598,6 +598,17 @@ return /******/ (function(modules) { // webpackBootstrap
 		return parent ? parent._iterators : null;
 	}
 
+	var getVal = function getVal(obj, namespace) {
+		var names = namespace.split('.'),
+		    len = names.length,
+		    i = 1,
+		    ret = obj[names[0]];
+		while (i < len && obj) {
+			ret = ret[names[i++]];
+		}
+		return ret;
+	};
+
 	// empty function
 	var noop = function noop() {};
 
@@ -619,6 +630,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.resetObject = resetObject;
 	exports.getIterators = getIterators;
 	exports.extendScope = extendScope;
+	exports.getVal = getVal;
 
 /***/ },
 /* 3 */
@@ -885,7 +897,9 @@ return /******/ (function(modules) { // webpackBootstrap
 			});
 		} else if (/\w*/.test(attr)) {
 			// computed已经被计算
-			value = data[attr];
+			// value = data[attr];
+			// a.b.c
+			value = _.getVal(data, attr);
 		}
 		return value;
 	}
@@ -1308,13 +1322,9 @@ return /******/ (function(modules) { // webpackBootstrap
 						var oldVals = {};
 						var iterators = _.getIterators(node);
 						if (node && iterators) {
-							// _.forEach(iterators, function(value, key) {
-							// 	// record old value.
-							// 	oldVals[key] = self[key];
-							// 	self[key] = value;
-							// });
 							oldVals = _.extendScope(iterators, self);
 						}
+						// debugger;
 						method.apply(self, (_args || []).concat([e]));
 						_.resetObject(oldVals, self);
 					}
@@ -1323,7 +1333,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 	}
 
-	var allowEvents = ['click', 'submit', 'touch', 'mousedown', 'keyup'];
+	var allowEvents = ['click', 'submit', 'touch', 'mousedown', 'keyup', 'dblclick', 'blur'];
 
 	// export default vOn;
 
@@ -2121,12 +2131,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function vBind(node, vm, value, property) {
-		for (var key in value) {
-			if (value[key]) {
-				addProperty(node, property, key);
-			} else {
-				removeProperty(node, property, key);
+		if (_.isType(value, 'object')) {
+			for (var key in value) {
+				if (value[key]) {
+					addProperty(node, property, key);
+				} else {
+					removeProperty(node, property, key);
+				}
 			}
+		} else {
+			addProperty(node, property, value);
 		}
 		// issue
 		// 删除会导致后面的属性遍历有问题
@@ -2139,7 +2153,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = {
 		bind: function bind() {},
 		update: function update(value) {
-			// debugger;
 			vBind(this.$el, this.$vm, value, this.extraName);
 		}
 	};
@@ -2291,7 +2304,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			var customDirectives = this.$vm.constructor._cusDirectives || {};
 			var customNames = Object.keys(customDirectives);
 			var self = this;
-			var bindOn = /(v\-on\:|v\-bind\:|@|\:)(\w*)/;
+			var bindOn = /(v\-on\:|v\-bind\:|@|\:)([\w\-]*)/;
 			// short name
 			// v-on:event   @event
 			// v-bind:property  :property

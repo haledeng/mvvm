@@ -37,7 +37,7 @@ const upperFirst = (str) => {
 // add context to expression
 const addScope = (exp, prefix = 'scope') => {
 	// Global Object call
-	var globalObjReg = /^(Math|window|document|location|navigator|screen)/;
+	var globalObjReg = /^(Math|window|document|location|navigator|screen|true|false)/;
 	// begin with variables
 	return exp.replace(/^[\w\[\]\-]+/g, function(all) {
 		if (globalObjReg.test(all)) return all;
@@ -172,6 +172,17 @@ function getIterators(node) {
 }
 
 
+const getVal = (obj, namespace) => {
+	var names = namespace.split('.'),
+		len = names.length,
+		i = 1,
+		ret = obj[names[0]];
+	while (i < len && obj) {
+		ret = ret[names[i++]];
+	}
+	return ret;
+}
+
 // empty function
 const noop = () => {};
 
@@ -193,5 +204,6 @@ export {
 	getSubset,
 	resetObject,
 	getIterators,
-	extendScope
+	extendScope,
+	getVal
 }
