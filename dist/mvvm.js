@@ -372,11 +372,12 @@ return /******/ (function(modules) { // webpackBootstrap
 			}
 		}, {
 			key: 'bindWatch',
-			value: function bindWatch(vm, exp, callback, directive) {
+			value: function bindWatch(node, vm, exp, callback, directive) {
 				var noop = function noop() {};
 				return new _watcher2.default({
 					vm: vm,
 					exp: exp,
+					$el: node,
 					directive: directive || '',
 					callback: callback || noop
 				});
@@ -404,7 +405,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				};
 				// watcher会计算parseExpression，_replace中不单独计算，
 				keys.forEach(function (key) {
-					watcherMaps[key] = self.bindWatch(self.$vm, key, _replace);
+					watcherMaps[key] = self.bindWatch(node, self.$vm, key, _replace);
 				});
 				_replace();
 				// _replace(this.$vm.$data);
@@ -1268,31 +1269,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-	var keyCodeConf = {
+	// 键码
+	var KEYCODE_MAP = {
 		'enter': 13,
 		'esc': 27
 	};
 
 	// v-on:click="method(arg1, arg2, arg3)"
 	// v-on:click="item.a=4"
-	// event hander
-	// 事件多次绑定
 	function vOn(node, methods, value, eventName) {
-		// console.log(node.__scope__);
+		var self = this;
 		if (typeof value !== 'string') return;
 		var fnReg = /([^\(]*)(\(([^\)]*)\))?/;
 		// 解析
 		var matches = value.match(fnReg);
-		var self = this;
 		if (matches) {
 			// 函数调用或者表达式
 			var method = methods[_.trim(matches[1])];
 			// for语句内部on表达式
 			if (!method /* && node.__scope__*/) {
-					// var scope = node.__scope__;
 					// TODO: RegExp 
 					value = (0, _for.parseItemScope)(node, value);
-
 					method = new Function(_.addScope(value, 'this'));
 				}
 			var args = matches[3];
@@ -1312,10 +1309,13 @@ return /******/ (function(modules) { // webpackBootstrap
 			}
 			// async
 			(function (_args) {
+				// TODO: 重复监听, node._keyup
+				// keyup.enter
+				// keyup.esc
 				node.addEventListener(eventName, function (e) {
 					if (eventName === 'keyup') {
 						var code = e.keyCode || e.charCode;
-						if (code == keyCodeConf[node['_' + eventName]]) {
+						if (code == KEYCODE_MAP[node['_' + eventName]]) {
 							method.apply(self, [e]);
 						}
 					} else {
@@ -1324,7 +1324,6 @@ return /******/ (function(modules) { // webpackBootstrap
 						if (node && iterators) {
 							oldVals = _.extendScope(iterators, self);
 						}
-						// debugger;
 						method.apply(self, (_args || []).concat([e]));
 						_.resetObject(oldVals, self);
 					}

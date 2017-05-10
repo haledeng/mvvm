@@ -108,11 +108,12 @@ var Compiler = function () {
 		}
 	}, {
 		key: 'bindWatch',
-		value: function bindWatch(vm, exp, callback, directive) {
+		value: function bindWatch(node, vm, exp, callback, directive) {
 			var noop = function noop() {};
 			return new _watcher2.default({
 				vm: vm,
 				exp: exp,
+				$el: node,
 				directive: directive || '',
 				callback: callback || noop
 			});
@@ -140,7 +141,7 @@ var Compiler = function () {
 			};
 			// watcher会计算parseExpression，_replace中不单独计算，
 			keys.forEach(function (key) {
-				watcherMaps[key] = self.bindWatch(self.$vm, key, _replace);
+				watcherMaps[key] = self.bindWatch(node, self.$vm, key, _replace);
 			});
 			_replace();
 			// _replace(this.$vm.$data);

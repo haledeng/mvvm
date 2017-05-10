@@ -14,31 +14,27 @@ var _for = require('../parser/for');
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-var keyCodeConf = {
+// 键码
+var KEYCODE_MAP = {
 	'enter': 13,
 	'esc': 27
 };
 
 // v-on:click="method(arg1, arg2, arg3)"
 // v-on:click="item.a=4"
-// event hander
-// 事件多次绑定
 function vOn(node, methods, value, eventName) {
-	// console.log(node.__scope__);
+	var self = this;
 	if (typeof value !== 'string') return;
 	var fnReg = /([^\(]*)(\(([^\)]*)\))?/;
 	// 解析
 	var matches = value.match(fnReg);
-	var self = this;
 	if (matches) {
 		// 函数调用或者表达式
 		var method = methods[_.trim(matches[1])];
 		// for语句内部on表达式
 		if (!method /* && node.__scope__*/) {
-				// var scope = node.__scope__;
 				// TODO: RegExp 
 				value = (0, _for.parseItemScope)(node, value);
-
 				method = new Function(_.addScope(value, 'this'));
 			}
 		var args = matches[3];
@@ -58,10 +54,13 @@ function vOn(node, methods, value, eventName) {
 		}
 		// async
 		(function (_args) {
+			// TODO: 重复监听, node._keyup
+			// keyup.enter
+			// keyup.esc
 			node.addEventListener(eventName, function (e) {
 				if (eventName === 'keyup') {
 					var code = e.keyCode || e.charCode;
-					if (code == keyCodeConf[node['_' + eventName]]) {
+					if (code == KEYCODE_MAP[node['_' + eventName]]) {
 						method.apply(self, [e]);
 					}
 				} else {
@@ -70,7 +69,6 @@ function vOn(node, methods, value, eventName) {
 					if (node && iterators) {
 						oldVals = _.extendScope(iterators, self);
 					}
-					// debugger;
 					method.apply(self, (_args || []).concat([e]));
 					_.resetObject(oldVals, self);
 				}
