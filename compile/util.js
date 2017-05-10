@@ -71,6 +71,16 @@ var isArrayEqual = function isArrayEqual(a, b) {
 	return false;
 };
 
+var extendScope = function extendScope(obj, vm) {
+	var oldVals = {};
+	forEach(obj, function (value, key) {
+		// record old value.
+		oldVals[key] = vm[key];
+		vm[key] = value;
+	});
+	return oldVals;
+};
+
 var isObjectEqual = function isObjectEqual(a, b) {
 	if (isType(a, 'object') && isType(b, 'object')) {
 		var aKeys = Object.keys[a];
@@ -141,6 +151,7 @@ var getSubset = function getSubset(obj, keys) {
 	return ret;
 };
 
+// 重置原来的对象
 var resetObject = function resetObject(oldVals, vm) {
 	forEach(oldVals, function (value, key) {
 		if (value == undefined) {
@@ -149,8 +160,11 @@ var resetObject = function resetObject(oldVals, vm) {
 			vm[key] = value;
 		}
 	});
+	oldVals = null;
 };
 
+// 向上查找当前作用域迭代器
+// v-for中的临时变量
 function getIterators(node) {
 	var parent = node;
 	while (parent && !parent._iterators) {
@@ -179,3 +193,4 @@ exports.forEach = forEach;
 exports.getSubset = getSubset;
 exports.resetObject = resetObject;
 exports.getIterators = getIterators;
+exports.extendScope = extendScope;

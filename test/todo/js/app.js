@@ -46,13 +46,11 @@ var filters = {
 		return todos;
 	},
 	active: function(todos) {
-		debugger;
 		return todos.filter(function(todo) {
 			return !todo.done;
 		});
 	},
 	completed: function(todos) {
-		debugger;
 		return todos.filter(function(todo) {
 			return todo.done;
 		});

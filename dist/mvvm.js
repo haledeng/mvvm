@@ -496,6 +496,16 @@ return /******/ (function(modules) { // webpackBootstrap
 		return false;
 	};
 
+	var extendScope = function extendScope(obj, vm) {
+		var oldVals = {};
+		forEach(obj, function (value, key) {
+			// record old value.
+			oldVals[key] = vm[key];
+			vm[key] = value;
+		});
+		return oldVals;
+	};
+
 	var isObjectEqual = function isObjectEqual(a, b) {
 		if (isType(a, 'object') && isType(b, 'object')) {
 			var aKeys = Object.keys[a];
@@ -566,6 +576,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		return ret;
 	};
 
+	// 重置原来的对象
 	var resetObject = function resetObject(oldVals, vm) {
 		forEach(oldVals, function (value, key) {
 			if (value == undefined) {
@@ -574,8 +585,11 @@ return /******/ (function(modules) { // webpackBootstrap
 				vm[key] = value;
 			}
 		});
+		oldVals = null;
 	};
 
+	// 向上查找当前作用域迭代器
+	// v-for中的临时变量
 	function getIterators(node) {
 		var parent = node;
 		while (parent && !parent._iterators) {
@@ -604,6 +618,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getSubset = getSubset;
 	exports.resetObject = resetObject;
 	exports.getIterators = getIterators;
+	exports.extendScope = extendScope;
 
 /***/ },
 /* 3 */
@@ -775,13 +790,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    node && (exp = (0, _for.parseItemScope)(node, exp));
 	    var oldVals = {};
 	    var iterators = _.getIterators(node);
+	    // extend vm scope, v-for temp variable
 	    if (node && iterators) {
-	        console.log(iterators);
-	        _.forEach(iterators, function (value, key) {
-	            // record old value.
-	            oldVals[key] = vm[key];
-	            vm[key] = value;
-	        });
+	        oldVals = _.extendScope(iterators, vm);
 	    }
 	    switch (directive) {
 	        case 'bind':
@@ -1244,7 +1255,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	var keyCodeConf = {
-		'enter': 13
+		'enter': 13,
+		'esc': 27
 	};
 
 	// v-on:click="method(arg1, arg2, arg3)"
@@ -1265,7 +1277,6 @@ return /******/ (function(modules) { // webpackBootstrap
 			if (!method /* && node.__scope__*/) {
 					// var scope = node.__scope__;
 					// TODO: RegExp 
-					// value = value.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
 					value = (0, _for.parseItemScope)(node, value);
 
 					method = new Function(_.addScope(value, 'this'));
@@ -1297,11 +1308,12 @@ return /******/ (function(modules) { // webpackBootstrap
 						var oldVals = {};
 						var iterators = _.getIterators(node);
 						if (node && iterators) {
-							_.forEach(iterators, function (value, key) {
-								// record old value.
-								oldVals[key] = self[key];
-								self[key] = value;
-							});
+							// _.forEach(iterators, function(value, key) {
+							// 	// record old value.
+							// 	oldVals[key] = self[key];
+							// 	self[key] = value;
+							// });
+							oldVals = _.extendScope(iterators, self);
 						}
 						method.apply(self, (_args || []).concat([e]));
 						_.resetObject(oldVals, self);
@@ -1431,8 +1443,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		replaceChild(parent, docFrag);
 		// recover same iterator key
 		_.resetObject(oldVals, vm);
-		oldVals = null;
-		console.log(vm);
 	}
 
 	function replaceChild(node, docFrag) {
@@ -2431,9 +2441,77 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 35 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Compiler from './complier/complier';
+
+
+	var _observer = __webpack_require__(36);
+
+	var _observer2 = _interopRequireDefault(_observer);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var id = 0;
+
+	var Component = function () {
+		function Component(name, descriptor) {
+			_classCallCheck(this, Component);
+
+			this.uid = ++id;
+			this.name = name;
+			this.descriptor = descriptor;
+			this.template = descriptor.template;
+			// props生成的数据，不需要重复监听
+			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+			// props中引用vm的数据，不监听
+			this.methods = descriptor.methods;
+			this.events = descriptor.events;
+			this.init();
+		}
+
+		_createClass(Component, [{
+			key: 'init',
+			value: function init() {
+				new _observer2.default(this.data);
+				this.render();
+			}
+		}, {
+			key: 'render',
+			value: function render() {
+				// component template.
+				var frag = document.createDocumentFragment();
+				// template ID
+				var template = this.template;
+				if (/^#/.test(template)) {
+					var tempDom = document.querySelector(template);
+					template = tempDom.innerHTML;
+					// remove template DOM from Document.
+					tempDom.parentNode.removeChild(tempDom);
+					// record finally component template
+					this.descriptor.template = template;
+				}
+				var div = document.createElement('div');
+				div.innerHTML = template;
+				[].slice.call(div.children).forEach(function (child) {
+					frag.appendChild(child);
+				});
+				this.frag = frag;
+			}
+		}]);
+
+		return Component;
+	}();
+
+	exports.default = Component;
 
 /***/ },
 /* 36 */

@@ -15,7 +15,8 @@ var _for = require('../parser/for');
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var keyCodeConf = {
-	'enter': 13
+	'enter': 13,
+	'esc': 27
 };
 
 // v-on:click="method(arg1, arg2, arg3)"
@@ -36,7 +37,6 @@ function vOn(node, methods, value, eventName) {
 		if (!method /* && node.__scope__*/) {
 				// var scope = node.__scope__;
 				// TODO: RegExp 
-				// value = value.replace(new RegExp(scope.$item, 'g'), scope.val + '[' + scope.index + ']');
 				value = (0, _for.parseItemScope)(node, value);
 
 				method = new Function(_.addScope(value, 'this'));
@@ -68,11 +68,12 @@ function vOn(node, methods, value, eventName) {
 					var oldVals = {};
 					var iterators = _.getIterators(node);
 					if (node && iterators) {
-						_.forEach(iterators, function (value, key) {
-							// record old value.
-							oldVals[key] = self[key];
-							self[key] = value;
-						});
+						// _.forEach(iterators, function(value, key) {
+						// 	// record old value.
+						// 	oldVals[key] = self[key];
+						// 	self[key] = value;
+						// });
+						oldVals = _.extendScope(iterators, self);
 					}
 					method.apply(self, (_args || []).concat([e]));
 					_.resetObject(oldVals, self);

@@ -69,8 +69,6 @@ function vFor(node, vm, expression) {
 	replaceChild(parent, docFrag);
 	// recover same iterator key
 	_.resetObject(oldVals, vm);
-	oldVals = null;
-	console.log(vm);
 }
 
 function replaceChild(node, docFrag) {

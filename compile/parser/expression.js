@@ -36,13 +36,9 @@ function parseExpression(vm, exp, directive, node) {
     node && (exp = (0, _for.parseItemScope)(node, exp));
     var oldVals = {};
     var iterators = _.getIterators(node);
+    // extend vm scope, v-for temp variable
     if (node && iterators) {
-        console.log(iterators);
-        _.forEach(iterators, function (value, key) {
-            // record old value.
-            oldVals[key] = vm[key];
-            vm[key] = value;
-        });
+        oldVals = _.extendScope(iterators, vm);
     }
     switch (directive) {
         case 'bind':
