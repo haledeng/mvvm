@@ -79,7 +79,6 @@ class MVVM {
 			vm: self,
 			exp: method,
 			callback: _.noop,
-			// lazy: true,
 		});
 		return function() {
 			if (Dep.target) {

@@ -1,14 +1,19 @@
 import Dep from './depender';
 import * as _ from '../util';
+
+
+// splice添加参数起始位置
+const SPLICT_PARAM_INDEX = 2;
+
 class Observer {
 	constructor(data) {
 		this.$data = data;
 		this.observe(this.$data);
 	}
 	defineArrayReactive(arr, callback) {
+		var self = this;
 		var oldProto = Array.prototype;
 		var overrideProto = Object.create(Array.prototype);
-		var result;
 		['push', 'pop', 'reverse', 'sort', 'slice', 'shift',
 			'unshift', 'splice'
 		].forEach(function(name) {
@@ -20,15 +25,32 @@ class Observer {
 				value: function() {
 					var oldArr = [].slice.call(this);
 					var arg = [].slice.call(arguments);
-					result = oldMethod.apply(this, arg);
-					if (_.isType(arg, 'object')) {
-						self.observe(arg);
+					oldMethod.apply(this, arg);
+					// arg is array
+					switch (name) {
+						case 'push':
+						case 'unshift':
+						case 'splice':
+							// push(item1, item2,..., itemn);
+							// unshift(item1, item2,..., itemn);
+							// splice(index, count, item1, ..., itemn);
+							if (name == 'push' || name == 'unshift' || (name == 'splice' && arg.length > SPLICT_PARAM_INDEX)) {
+								var start = name == 'splice' ? SPLICT_PARAM_INDEX : 0;
+								for (var i = start; i < arg.length; i++) {
+									if (_.isType(arg[i], 'object')) {
+										self.observe(arg[i]);
+									}
+								}
+							}
+							break;
+						default:
+							break;
 					}
 					// 后面有dom diff的算法，这里可以不需要
-					if (result.length !== oldArr.length || name === 'reverse' || name === 'sort') {
-						callback(result);
+					if (this.length !== oldArr.length || name === 'reverse' || name === 'sort') {
+						callback(this);
 					}
-					return result;
+					return this;
 				}
 			})
 		});

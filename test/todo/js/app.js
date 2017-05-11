@@ -1,4 +1,5 @@
 var STORAGE_KEY = 'vuex-todos';
+var uid = 0;
 var state = {
 	todos: JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
 };
@@ -9,8 +10,9 @@ var store = new MVVMX.Store({
 			state.todos.splice(state.todos.indexOf(obj.todo), 1);
 		},
 		addTodo: function(state, obj) {
-			obj.id = state.todos.length;
+			obj.id = uid++;
 			obj.done = false;
+			// TODO: new watcher
 			state.todos.push(obj);
 		},
 		toggleTodo: function(state, obj) {
@@ -59,7 +61,6 @@ var filters = {
 var maps = MVVMX.mapMutations(['clearCompleted', 'toggleAll']);
 var methods = Object.assign({
 	change: function() {
-		debugger;
 		this.editing = true;
 	},
 	deleteTodo: function(obj) {

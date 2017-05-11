@@ -26,6 +26,7 @@ function transformProperty(property) {
 
 function addProperty(node, property, value) {
 	property = transformProperty(property);
+	if (property === 'value') return node.value = value;
 	if (property === 'className') {
 		node[property] = _.trim([node[property], value].join(' '));
 	} else {

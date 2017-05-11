@@ -34,7 +34,6 @@ var Watcher = function () {
 		this.exp = opts.exp;
 		this.directive = opts.directive || '';
 		this.callback = opts.callback;
-		// this.lazy = opts.lazy || false;
 		this.value = this.init();
 		// call 2 times
 	}
