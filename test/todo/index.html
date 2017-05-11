@@ -30,12 +30,13 @@
 					      :value="todo.text"
 					      :data-id="todo.id"
 					      @keyup.enter="doneEdit"
+					      @keyup.esc="cancelEdit"
 					     >
 					</li>
 				</ul>
 			</section>
 			<!-- This footer should hidden by default and shown when there are todos 
- @keyup.esc="cancelEdit"
+
   @blur="doneEdit"
 			-->
 			<footer class="footer">
@@ -48,7 +49,7 @@
 					</li>
 				</ul>
 				<!-- Hidden if no completed items are left ↓ -->
-<!-- 				<button class="clear-completed" @click="clearCompleted">Clear completed</button> -->
+				<button class="clear-completed" @click="clearCompleted">Clear completed</button>
 			</footer>
 		</section>
 		<script src="../../dist/mvvm.js"></script>

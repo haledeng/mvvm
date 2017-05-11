@@ -184,6 +184,32 @@ var getVal = function getVal(obj, namespace) {
 	return ret;
 };
 
+// 键码
+var KEYCODE_MAP = {
+	'enter': 13,
+	'esc': 27
+};
+
+var getKeyCode = function getKeyCode(key) {
+	return KEYCODE_MAP[key] || 0;
+};
+
+var getKeyCodes = function getKeyCodes(keys) {
+	var codes = [];
+	forEach(keys, function (key) {
+		codes.push(getKeyCode(key));
+	});
+	return codes;
+};
+
+// get key by keycode
+var getKey = function getKey(code) {
+	for (var key in KEYCODE_MAP) {
+		if (KEYCODE_MAP[key] === code) return key;
+	}
+	return '';
+};
+
 // empty function
 var noop = function noop() {};
 
@@ -206,3 +232,6 @@ exports.resetObject = resetObject;
 exports.getIterators = getIterators;
 exports.extendScope = extendScope;
 exports.getVal = getVal;
+exports.getKeyCode = getKeyCode;
+exports.getKeyCodes = getKeyCodes;
+exports.getKey = getKey;

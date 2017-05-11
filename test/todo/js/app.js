@@ -1,8 +1,12 @@
 var STORAGE_KEY = 'vuex-todos';
-var uid = 0;
 var state = {
 	todos: JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
 };
+
+function generateGUID() {
+	return Math.random().toString(32).substr(2, 10);
+}
+
 var store = new MVVMX.Store({
 	state: state,
 	mutations: {
@@ -10,9 +14,8 @@ var store = new MVVMX.Store({
 			state.todos.splice(state.todos.indexOf(obj.todo), 1);
 		},
 		addTodo: function(state, obj) {
-			obj.id = uid++;
+			obj.id = generateGUID();
 			obj.done = false;
-			// TODO: new watcher
 			state.todos.push(obj);
 		},
 		toggleTodo: function(state, obj) {

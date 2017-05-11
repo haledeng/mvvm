@@ -183,6 +183,35 @@ const getVal = (obj, namespace) => {
 	return ret;
 }
 
+
+
+// 键码
+const KEYCODE_MAP = {
+	'enter': 13,
+	'esc': 27
+};
+
+const getKeyCode = function(key) {
+	return KEYCODE_MAP[key] || 0;
+};
+
+const getKeyCodes = function(keys) {
+	var codes = [];
+	forEach(keys, function(key) {
+		codes.push(getKeyCode(key));
+	});
+	return codes;
+};
+
+
+// get key by keycode
+const getKey = function(code) {
+	for (var key in KEYCODE_MAP) {
+		if (KEYCODE_MAP[key] === code) return key;
+	}
+	return '';
+}
+
 // empty function
 const noop = () => {};
 
@@ -205,5 +234,8 @@ export {
 	resetObject,
 	getIterators,
 	extendScope,
-	getVal
+	getVal,
+	getKeyCode,
+	getKeyCodes,
+	getKey
 }

@@ -29,33 +29,6 @@ A MVVM test library for study. **Do not use in project**
 + defineProperty监听时，属性值如果是Object，需要继续监听。
 
 
-### DOM Diff
-+ DOM解析成对象 
-```
-	{
-		tag: 'div', 
-		props: {}, 
-		children: [
-			{
-				tag:'p', 
-				props: {}, 
-				children[]
-			}
-		]
-	}
-```
-+ 对比2个DOM的3个属性值，差异写入到Patch。
-+ 根据patch，给原来的DOM打补丁。
-
-
-### 指令解析
-+ 解析字符串表达式，提取变量
-+ 添加变量的依赖
-+ 生成对应的DOM结构
-+ dom-diff比对差异，patch增量
-+ for和if的处理比较复杂，for中定义了临时变量，涉及作用域的问题
-
-
 ### history
 ##### fix state management
 + methods and computed中 this 指向了 vm.$data, 需要切换到vm；
@@ -63,8 +36,3 @@ A MVVM test library for study. **Do not use in project**
 + store 目前挂在vm.$data上
 	+ install store on VM, create a new instanca to watch state change. redefine state getter and setter.
 
-
-### TODO List
-+ change all directive context from vm.$data to vm.
-	+ for, textNode
-+ more complex functions in state manager.

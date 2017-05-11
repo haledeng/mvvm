@@ -14,12 +14,6 @@ var _for = require('../parser/for');
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-// 键码
-var KEYCODE_MAP = {
-	'enter': 13,
-	'esc': 27
-};
-
 // v-on:click="method(arg1, arg2, arg3)"
 // v-on:click="item.a=4"
 function vOn(node, methods, value, eventName) {
@@ -33,7 +27,6 @@ function vOn(node, methods, value, eventName) {
 		var method = methods[_.trim(matches[1])];
 		// for语句内部on表达式
 		if (!method /* && node.__scope__*/) {
-				// TODO: RegExp 
 				value = (0, _for.parseItemScope)(node, value);
 				method = new Function(_.addScope(value, 'this'));
 			}
@@ -54,25 +47,42 @@ function vOn(node, methods, value, eventName) {
 		}
 		// async
 		(function (_args) {
-			// TODO: 重复监听, node._keyup
 			// keyup.enter
 			// keyup.esc
-			node.addEventListener(eventName, function (e) {
-				if (eventName === 'keyup') {
-					var code = e.keyCode || e.charCode;
-					if (code == KEYCODE_MAP[node['_' + eventName]]) {
-						method.apply(self, [e]);
-					}
-				} else {
+			// avoid repeat listeners on same event.
+			if (eventName === 'keyup') {
+				var keys = node['_' + eventName];
+				node._listeners = node._listeners || {};
+				// 每个keyCode对应的回调
+				node._listeners[keys[keys.length - 1]] = method;
+			}
+			if (!node._events || node._events.indexOf(eventName) === -1) {
+				node.addEventListener(eventName, function (e) {
+					// extend current context
+					// temporary variables in v-for
+					// TODO: this的扩展统一放到一个地方
 					var oldVals = {};
 					var iterators = _.getIterators(node);
 					if (node && iterators) {
 						oldVals = _.extendScope(iterators, self);
 					}
-					method.apply(self, (_args || []).concat([e]));
+					if (eventName === 'keyup') {
+						var code = e.keyCode || e.charCode;
+						var key = _.getKey(code);
+						var codes = _.getKeyCodes(keys);
+						if (~codes.indexOf(code) && key) {
+							node._listeners[key].apply(self, [e]);
+							// method.apply(self, [e]);
+						}
+					} else {
+						method.apply(self, (_args || []).concat([e]));
+					}
 					_.resetObject(oldVals, self);
-				}
-			}, false);
+				}, false);
+				// all event listeners
+				node._events = node._events || [];
+				node._events.push(eventName);
+			}
 		})(args);
 	}
 }
@@ -89,12 +99,10 @@ exports.default = {
 		if (!this.$vm._listenedFn) {
 			this.$vm._listenedFn = [];
 		}
-		// TODO：vOn里面的scope不一定是data，特别是在v-for中
 		if (allowEvents.indexOf(this.extraName) === -1) {
 			// 重复方法不监听
 			if (this.$vm._listenedFn.indexOf(self.expression) === -1) {
 				this.$vm._listenedFn.push(self.expression);
-				// custom event;
 				this.$vm.$on(this.extraName, function () {
 					self.$vm.methods[self.expression].call(self.$vm.$data);
 					// self.$vm.methods[self.expression].call(self);
