@@ -66,4 +66,3 @@ export default {
 		vFor.call(this, this.$el, this.$vm, this.expression);
 	}
 }
-// export default vFor

@@ -20,7 +20,7 @@
 				<ul class="todo-list">
 					<!-- These are here just to show the structure of the list items -->
 					<!-- List items should get the class `editing` when editing and `completed` when marked as completed -->
-<!-- 					<li v-for="todo in todos" :class="{completed:todo.done, editing: editing}">
+					<li v-for="todo in todos" :class="{completed:todo.done, editing: editing}">
 						<div class="view">
 							<input class="toggle" type="checkbox" :checked="todo.done" @click="toggleTodo({ todo: todo })">
 							<label @dblclick="editing=true">{{todo.text}}</label>
@@ -31,17 +31,18 @@
 					      :data-id="todo.id"
 					      @keyup.enter="doneEdit"
 					      @keyup.esc="cancelEdit"
+					      @blur="doneEdit"
 					     >
-					</li> -->
+					</li>
 				</ul>
 			</section>
 			<!-- This footer should hidden by default and shown when there are todos 
 
-  @blur="doneEdit"
+
 			-->
 			<footer class="footer">
 				<!-- This should be `0 items left` by default -->
-				<!-- <span class="todo-count"><strong>{{remaining}}</strong> item left</span> -->
+				<span class="todo-count"><strong>{{remaining}}</strong> item left</span>
 				<!-- Remove this if you don't implement routing -->
 				<ul class="filters">
 					<li  v-for="(value, key) in filters">

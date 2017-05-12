@@ -1501,7 +1501,6 @@ return /******/ (function(modules) { // webpackBootstrap
 			vFor.call(this, this.$el, this.$vm, this.expression);
 		}
 	};
-	// export default vFor
 
 /***/ },
 /* 18 */
@@ -2171,8 +2170,6 @@ return /******/ (function(modules) { // webpackBootstrap
 			addProperty(node, property, value);
 		}
 	}
-
-	// export default vBind;
 
 	exports.default = {
 		bind: function bind() {},

@@ -57,8 +57,6 @@ function vBind(node, vm, value, property) {
 	}
 }
 
-// export default vBind;
-
 exports.default = {
 	bind: function bind() {},
 	update: function update(value) {
