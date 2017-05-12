@@ -22,12 +22,13 @@ function parseExpression(vm, exp, directive, node) {
     var value = null;
     var vmComputed = vm.computed || {};
     node && (exp = parseItemScope(node, exp));
-    var oldVals = {};
-    var iterators = _.getIterators(node);
-    // extend vm scope, v-for temp variable
-    if (node && iterators) {
-        oldVals = _.extendScope(iterators, vm);
-    }
+    // extend context 统一放到compiler中
+    // var oldVals = {};
+    // var iterators = _.getIterators(node);
+    // // extend vm scope, v-for temp variable
+    // if (node && iterators) {
+    //     oldVals = _.extendScope(iterators, vm);
+    // }
     switch (directive) {
         case 'bind':
             value = parseBind(vm, exp);
@@ -46,7 +47,7 @@ function parseExpression(vm, exp, directive, node) {
             break;
 
     }
-    _.resetObject(oldVals, vm);
+    // _.resetObject(oldVals, vm);
     return value;
 }
 

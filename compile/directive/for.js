@@ -31,18 +31,16 @@ function vFor(node, vm, expression) {
 	var parent = node.parentNode || node.__parent__;
 	var expInfo = node._info;
 	var scope = vm.$data;
-	// parseExpression
-	// var val = parseExpression(vm, expInfo.val, 'for', node);
 	var val = node._vForValue;
 	if (['array', 'object'].indexOf(_.getType(val)) === -1) return;
 	var docFrag = document.createDocumentFragment();
+	// temporary variables.
 	var iterators = [expInfo.scope];
 	if (expInfo.index) {
 		iterators.push(expInfo.index);
 	}
 	// store old value
 	var oldVals = _.getSubset(vm, iterators);
-	// var temp = {};
 	_.forEach(val, function (item, index) {
 		var li = node.cloneNode(true);
 		li.removeAttribute('v-for');
@@ -50,18 +48,13 @@ function vFor(node, vm, expression) {
 		li._iterators = {};
 
 		li._iterators[expInfo.scope] = vm[expInfo.scope] = item;
-		// temp[expInfo.scope] = item;
 		if (expInfo.index !== undefined) {
 			li._iterators[expInfo.index] = vm[expInfo.index] = index;
-			// temp[expInfo.index] = index;
 		}
 		docFrag.appendChild(li);
-		// debugger;
-		// item 临时挂载到vm下
 		new _compiler2.default({
 			el: li,
 			vm: vm
-			// vm: Object.assign(vm, temp)
 		});
 	});
 	!node.__parent__ && parent.removeChild(node);
