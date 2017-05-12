@@ -50,13 +50,6 @@ var Compiler = function () {
 			var self = this;
 
 			function _traversal(node) {
-				// extend context (v-for temporary variables)
-				// 异步方法需要再绑定一次
-				var oldVals = {};
-				var iterators = _.getIterators(node);
-				if (node && iterators) {
-					oldVals = _.extendScope(iterators, self.$vm);
-				}
 				self.traversalAttribute(node);
 				self.parseCustomComponent(node);
 				if ((node.parentNode || node.nodeType == 11) && _.containOnlyTextNode(node)) {
@@ -71,7 +64,7 @@ var Compiler = function () {
 						});
 					}
 				}
-				_.resetObject(oldVals, self.$vm);
+				// _.resetObject(oldVals, self.$vm);
 			}
 			_traversal(node);
 		}
