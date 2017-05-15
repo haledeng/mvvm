@@ -64,7 +64,6 @@ var Compiler = function () {
 						});
 					}
 				}
-				// _.resetObject(oldVals, self.$vm);
 			}
 			_traversal(node);
 		}
@@ -88,10 +87,9 @@ var Compiler = function () {
 			var dirs = [];
 			for (var i = 0; i < attrs.length; i++) {
 				var item = attrs[i];
-				// v-for已经解析了其他的指定了，防止重复解析
+				// v-for已经解析了其他的directive了，防止重复解析
 				// /(v\-\w*)?(\:|\@)/
 				if ((/^v\-([\w\:\']*)/.test(item.name) || /^[\:\@]/.test(item.name)) && node.parentNode) {
-					// if (/(v\-\w*)?(\:|\@)?(\w*)/.test(item.name) && node.parentNode) {
 					this._parseAttr(node, item);
 					dirs.push(item.name);
 				}
@@ -101,7 +99,6 @@ var Compiler = function () {
 					node.setAttribute(item.name, (0, _expression.calculateExpression)(self.$vm.$data, name));
 				}
 			}
-
 			// remove all directives
 			dirs.forEach(function (dir) {
 				node.removeAttribute(dir);
@@ -136,7 +133,6 @@ var Compiler = function () {
 			var _replace = function _replace(scope) {
 				var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
 					return watcherMaps[name].value;
-					// return scope[name];
 				});
 				node.textContent = newHtml;
 			};
@@ -145,7 +141,6 @@ var Compiler = function () {
 				watcherMaps[key] = self.bindWatch(node, self.$vm, key, _replace);
 			});
 			_replace();
-			// _replace(this.$vm.$data);
 		}
 	}]);
 

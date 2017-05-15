@@ -11,12 +11,12 @@ import {
 // v-on:click="method(arg1, arg2, arg3)"
 // v-on:click="item.a=4"
 function vOn(node, methods, value, eventName) {
-	var self = this;
 	if (typeof value !== 'string') return;
+	var self = this;
 	var fnReg = /([^\(]*)(\(([^\)]*)\))?/;
 	// 解析
 	var matches = value.match(fnReg);
-	if (!matches) return console.log('');
+	if (!matches) return console.log('wrong format expression in v-on');
 	// 函数调用或者表达式
 	var method = methods[_.trim(matches[1])];
 	// for语句内部on表达式
@@ -41,10 +41,11 @@ function vOn(node, methods, value, eventName) {
 	}
 	// async
 	(function(_args) {
+		var isKeyEvent = eventName === 'keyup' || eventName === 'keydown';
 		// keyup.enter
 		// keyup.esc
 		// avoid repeat listeners on same event.
-		if (eventName === 'keyup' || eventName === 'keydown') {
+		if (isKeyEvent) {
 			var keys = node['_' + eventName];
 			node._listeners = node._listeners || {};
 			// 每个keyCode对应的回调
@@ -60,7 +61,7 @@ function vOn(node, methods, value, eventName) {
 				if (node && iterators) {
 					oldVals = _.extendScope(iterators, self);
 				}
-				if (eventName === 'keyup' || eventName === 'keydown') {
+				if (isKeyEvent) {
 					var code = e.keyCode || e.charCode;
 					var key = _.getKey(code);
 					var codes = _.getKeyCodes(keys);

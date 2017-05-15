@@ -29,7 +29,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 // 会二次执行，监听的元素变化时，会重新调用vfor
 function vFor(node, vm, expression) {
 	var parent = node.parentNode || node.__parent__;
-	var expInfo = node._info;
+	var expInfo = node._forInfo;
 	var scope = vm.$data;
 	var val = node._vForValue;
 	if (['array', 'object'].indexOf(_.getType(val)) === -1) return;
@@ -75,9 +75,7 @@ function replaceChild(node, docFrag) {
 }
 
 exports.default = {
-	bind: function bind() {
-		// this._expInfo = this.$el._info;
-	},
+	bind: function bind() {},
 	update: function update(value) {
 		this.$el._vForValue = value;
 		vFor.call(this, this.$el, this.$vm, this.expression);

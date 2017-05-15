@@ -46,7 +46,7 @@
 				<!-- Remove this if you don't implement routing -->
 				<ul class="filters">
 					<li  v-for="(value, key) in filters">
-						<a :class="{selected:visibility == key}" href="#/" @click="visibility=key">{{key}}</a>
+						<a :class="{selected:visibility == key}" href="#/" @click="visibility=key">{{key | capitalize}}</a>
 					</li>
 				</ul>
 				<!-- Hidden if no completed items are left ↓ -->

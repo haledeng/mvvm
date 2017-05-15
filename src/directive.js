@@ -23,7 +23,7 @@ class Directive {
 	}
 	_bind() {
 		var self = this;
-		if (this.bind) {
+		if (typeof this.bind === 'function') {
 			this.bind();
 		}
 		// 事件不需要update

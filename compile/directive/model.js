@@ -22,19 +22,8 @@ var handlers = {
 	checkbox: _checkbox2.default,
 	text: _text2.default,
 	select: _select2.default
-}; // const vModel = (node, vm, value) => {
-// 	var tagName = node.tagName.toLowerCase();
-// 	if (tagName === 'input') {
-// 		node.value = value;
-// 	} else if (tagName === 'textarea') {
-// 		node.textContent = value;
-// 	}
-// 	node.removeAttribute('v-model');
-// }
+};
 
-
-// export default vModel;
-// 
 exports.default = {
 	bind: function bind() {
 		var tagName = this.$el.tagName.toLowerCase();

@@ -7,16 +7,16 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = function (Compiler) {
 
 	function parseBindOn(str) {
-		// @event
 		if (/^@/.test(str)) {
+			// @event
 			return 'on';
-		}
-		// :bindProperty
-		if (/^\:/.test(str)) {
+		} else if (/^\:/.test(str)) {
+			// :bindProperty
 			return 'bind';
+		} else {
+			// v-on:  v-bind:
+			return str.replace(/^v\-|\:$/g, '');
 		}
-		// v-on:  v-bind:
-		return str.replace(/^v\-|\:$/g, '');
 	}
 
 	// ES6 function写法会导致this解析问题
@@ -48,7 +48,13 @@ exports.default = function (Compiler) {
 			var attrReg = /^v\-([\w\:\']*)/;
 			var matches = attr.name.match(attrReg);
 			var property = matches[1];
+			var watchExp = null;
 			switch (property) {
+				case 'for':
+					var info = (0, _for.parseForExpression)(attr.value);
+					// cache directive infomation
+					node._forInfo = info;
+					watchExp = info.val;
 				// v-model
 				case 'model':
 				case 'text':
@@ -57,20 +63,12 @@ exports.default = function (Compiler) {
 				case 'if':
 					self.$vm.bindDir(Object.assign({
 						expression: attr.value,
-						name: property
-					}, Dir['v' + _.upperFirst(property)]), node);
-					break;
-				case 'for':
-					var info = (0, _for.parseForExpression)(attr.value);
-					// cache directive infomation
-					node._info = info;
-					self.$vm.bindDir(Object.assign({
-						expression: attr.value,
-						watchExp: info.val,
-						name: property
+						name: property,
+						watchExp: watchExp
 					}, Dir['v' + _.upperFirst(property)]), node);
 					break;
 				default:
+					console.log('custom directive `' + property + '`');
 					// custom directives
 					if (~customNames.indexOf(property)) {
 						self.$vm.bindDir(Object.assign({

@@ -328,7 +328,6 @@ return /******/ (function(modules) { // webpackBootstrap
 							});
 						}
 					}
-					// _.resetObject(oldVals, self.$vm);
 				}
 				_traversal(node);
 			}
@@ -352,10 +351,9 @@ return /******/ (function(modules) { // webpackBootstrap
 				var dirs = [];
 				for (var i = 0; i < attrs.length; i++) {
 					var item = attrs[i];
-					// v-for已经解析了其他的指定了，防止重复解析
+					// v-for已经解析了其他的directive了，防止重复解析
 					// /(v\-\w*)?(\:|\@)/
 					if ((/^v\-([\w\:\']*)/.test(item.name) || /^[\:\@]/.test(item.name)) && node.parentNode) {
-						// if (/(v\-\w*)?(\:|\@)?(\w*)/.test(item.name) && node.parentNode) {
 						this._parseAttr(node, item);
 						dirs.push(item.name);
 					}
@@ -365,7 +363,6 @@ return /******/ (function(modules) { // webpackBootstrap
 						node.setAttribute(item.name, (0, _expression.calculateExpression)(self.$vm.$data, name));
 					}
 				}
-
 				// remove all directives
 				dirs.forEach(function (dir) {
 					node.removeAttribute(dir);
@@ -400,7 +397,6 @@ return /******/ (function(modules) { // webpackBootstrap
 				var _replace = function _replace(scope) {
 					var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function (all, name) {
 						return watcherMaps[name].value;
-						// return scope[name];
 					});
 					node.textContent = newHtml;
 				};
@@ -409,7 +405,6 @@ return /******/ (function(modules) { // webpackBootstrap
 					watcherMaps[key] = self.bindWatch(node, self.$vm, key, _replace);
 				});
 				_replace();
-				// _replace(this.$vm.$data);
 			}
 		}]);
 
@@ -1135,19 +1130,8 @@ return /******/ (function(modules) { // webpackBootstrap
 		checkbox: _checkbox2.default,
 		text: _text2.default,
 		select: _select2.default
-	}; // const vModel = (node, vm, value) => {
-	// 	var tagName = node.tagName.toLowerCase();
-	// 	if (tagName === 'input') {
-	// 		node.value = value;
-	// 	} else if (tagName === 'textarea') {
-	// 		node.textContent = value;
-	// 	}
-	// 	node.removeAttribute('v-model');
-	// }
+	};
 
-
-	// export default vModel;
-	// 
 	exports.default = {
 		bind: function bind() {
 			var tagName = this.$el.tagName.toLowerCase();
@@ -1303,12 +1287,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	// v-on:click="method(arg1, arg2, arg3)"
 	// v-on:click="item.a=4"
 	function vOn(node, methods, value, eventName) {
-		var self = this;
 		if (typeof value !== 'string') return;
+		var self = this;
 		var fnReg = /([^\(]*)(\(([^\)]*)\))?/;
 		// 解析
 		var matches = value.match(fnReg);
-		if (!matches) return console.log('');
+		if (!matches) return console.log('wrong format expression in v-on');
 		// 函数调用或者表达式
 		var method = methods[_.trim(matches[1])];
 		// for语句内部on表达式
@@ -1333,10 +1317,11 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 		// async
 		(function (_args) {
+			var isKeyEvent = eventName === 'keyup' || eventName === 'keydown';
 			// keyup.enter
 			// keyup.esc
 			// avoid repeat listeners on same event.
-			if (eventName === 'keyup' || eventName === 'keydown') {
+			if (isKeyEvent) {
 				var keys = node['_' + eventName];
 				node._listeners = node._listeners || {};
 				// 每个keyCode对应的回调
@@ -1352,7 +1337,7 @@ return /******/ (function(modules) { // webpackBootstrap
 					if (node && iterators) {
 						oldVals = _.extendScope(iterators, self);
 					}
-					if (eventName === 'keyup' || eventName === 'keydown') {
+					if (isKeyEvent) {
 						var code = e.keyCode || e.charCode;
 						var key = _.getKey(code);
 						var codes = _.getKeyCodes(keys);
@@ -1447,7 +1432,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// 会二次执行，监听的元素变化时，会重新调用vfor
 	function vFor(node, vm, expression) {
 		var parent = node.parentNode || node.__parent__;
-		var expInfo = node._info;
+		var expInfo = node._forInfo;
 		var scope = vm.$data;
 		var val = node._vForValue;
 		if (['array', 'object'].indexOf(_.getType(val)) === -1) return;
@@ -1493,9 +1478,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	exports.default = {
-		bind: function bind() {
-			// this._expInfo = this.$el._info;
-		},
+		bind: function bind() {},
 		update: function update(value) {
 			this.$el._vForValue = value;
 			vFor.call(this, this.$el, this.$vm, this.expression);
@@ -2163,7 +2146,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	exports.default = {
-		bind: function bind() {},
 		update: function update(value) {
 			vBind(this.$el, this.$vm, value, this.extraName);
 		}
@@ -2299,16 +2281,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = function (Compiler) {
 
 		function parseBindOn(str) {
-			// @event
 			if (/^@/.test(str)) {
+				// @event
 				return 'on';
-			}
-			// :bindProperty
-			if (/^\:/.test(str)) {
+			} else if (/^\:/.test(str)) {
+				// :bindProperty
 				return 'bind';
+			} else {
+				// v-on:  v-bind:
+				return str.replace(/^v\-|\:$/g, '');
 			}
-			// v-on:  v-bind:
-			return str.replace(/^v\-|\:$/g, '');
 		}
 
 		// ES6 function写法会导致this解析问题
@@ -2340,7 +2322,13 @@ return /******/ (function(modules) { // webpackBootstrap
 				var attrReg = /^v\-([\w\:\']*)/;
 				var matches = attr.name.match(attrReg);
 				var property = matches[1];
+				var watchExp = null;
 				switch (property) {
+					case 'for':
+						var info = (0, _for.parseForExpression)(attr.value);
+						// cache directive infomation
+						node._forInfo = info;
+						watchExp = info.val;
 					// v-model
 					case 'model':
 					case 'text':
@@ -2349,20 +2337,12 @@ return /******/ (function(modules) { // webpackBootstrap
 					case 'if':
 						self.$vm.bindDir(Object.assign({
 							expression: attr.value,
-							name: property
-						}, Dir['v' + _.upperFirst(property)]), node);
-						break;
-					case 'for':
-						var info = (0, _for.parseForExpression)(attr.value);
-						// cache directive infomation
-						node._info = info;
-						self.$vm.bindDir(Object.assign({
-							expression: attr.value,
-							watchExp: info.val,
-							name: property
+							name: property,
+							watchExp: watchExp
 						}, Dir['v' + _.upperFirst(property)]), node);
 						break;
 					default:
+						console.log('custom directive `' + property + '`');
 						// custom directives
 						if (~customNames.indexOf(property)) {
 							self.$vm.bindDir(Object.assign({
@@ -2673,114 +2653,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.default = Observer;
 
-	// function defineArrayReactive() {
-	// 	// will excute several times
-	// 	var oldProto = Array.prototype;
-	// 	var overrideProto = Object.create(Array.prototype);
-	// 	var result;
-
-	// 	['push', 'pop', 'reverse', 'sort', 'slice', 'shift',
-	// 		'unshift'
-	// 	].forEach(function(name) {
-	// 		var oldMethod = oldProto[name];
-	// 		Object.defineProperty(overrideProto, name, {
-	// 			enumerable: false,
-	// 			configurable: true,
-	// 			writable: true,
-	// 			value: function() {
-	// 				var oldArr = this /*.slice(0)*/ ;
-	// 				var i = arguments.length
-	// 				var arg = new Array(i)
-	// 				while (i--) {
-	// 					arg[i] = arguments[i]
-	// 				}
-	// 				// var arg = [].slice.call(arguments);
-	// 				result = oldMethod.apply(this, arg);
-	// 				var ob = this.__ob__;
-	// 				// 后面有dom diff的算法，这里可以不需要
-	// 				if (result.length !== oldArr.length || name === 'reverse' || name === 'sort') {
-	// 					ob.dep.notify();
-	// 				}
-	// 				// TODO: watcher中oldVal和newVal指向了同一引用
-	// 				return result;
-	// 			}
-	// 		})
-	// 	});
-	// 	return overrideProto;
-	// }
-
-
-	// var overrideProto = defineArrayReactive();
-
-	// class Observer {
-	// 	constructor(data) {
-	// 		this.$data = data;
-	// 		this.dep = new Dep();
-	// 		data.__ob__ = this;
-	// 		if (_.isType(data, 'array')) {
-	// 			this.observeArray(data);
-	// 		} else {
-	// 			this.walk(data);
-	// 		}
-	// 	}
-	// 	observeArray(data) {
-	// 		for (var i = 0; i < data.length; i++) {
-	// 			observe(data[i]);
-	// 		}
-	// 		data.__proto__ = overrideProto;
-	// 	}
-	// 	walk(data) {
-	// 		var self = this;
-	// 		var value;
-	// 		Object.keys(data).forEach(function(key) {
-	// 			value = data[key];
-	// 			if (key === '__ob__') return;
-	// 			if (_.isType(value, 'array') || _.isType(value, 'object')) {
-	// 				observe(value);
-	// 			}
-	// 			self.defineReactive(data, key, value);
-	// 		});
-	// 	}
-	// 	defineReactive(data, key, val) {
-	// 		console.log(val);
-	// 		var dep = data.__ob__.dep;
-	// 		Object.defineProperty(data, key, {
-	// 			configurable: false,
-	// 			enumerable: true,
-	// 			set: function(newVal) {
-	// 				// 引用类型
-	// 				if (newVal !== val) {
-	// 					val = newVal;
-	// 					observe(newVal);
-	// 					dep.notify();
-	// 				}
-	// 			},
-	// 			get: function() {
-	// 				var childOb = observe(val);
-	// 				if (Dep.target) {
-	// 					dep.addSub(Dep.target);
-	// 					childOb.dep.addSub(Dep.target);
-	// 				}
-	// 				debugger;
-	// 				return val;
-	// 			}
-	// 		});
-	// 	}
-	// }
-
-	// function observe(data) {
-	// 	if (!_.isType(data, 'object') && !_.isType(data, 'array')) return;
-	// 	var ob;
-	// 	if (data.__ob__) {
-	// 		ob = data.__ob__;
-	// 	} else {
-	// 		ob = new Observer(data);
-	// 	}
-	// 	return ob;
-	// }
-
-	// export default observe;
-
 /***/ },
 /* 37 */
 /***/ function(module, exports, __webpack_require__) {
@@ -2830,7 +2702,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: '_bind',
 			value: function _bind() {
 				var self = this;
-				if (this.bind) {
+				if (typeof this.bind === 'function') {
 					this.bind();
 				}
 				// 事件不需要update

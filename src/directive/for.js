@@ -10,7 +10,7 @@ import patch from '../dom-diff/patch';
 // 会二次执行，监听的元素变化时，会重新调用vfor
 function vFor(node, vm, expression) {
 	var parent = node.parentNode || node.__parent__;
-	var expInfo = node._info;
+	var expInfo = node._forInfo;
 	var scope = vm.$data;
 	var val = node._vForValue;
 	if (['array', 'object'].indexOf(_.getType(val)) === -1) return;
@@ -58,9 +58,7 @@ function replaceChild(node, docFrag) {
 }
 
 export default {
-	bind: function() {
-		// this._expInfo = this.$el._info;
-	},
+	bind: function() {},
 	update: function(value) {
 		this.$el._vForValue = value;
 		vFor.call(this, this.$el, this.$vm, this.expression);

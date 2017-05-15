@@ -42,7 +42,6 @@ class Compiler {
 					});
 				}
 			}
-			// _.resetObject(oldVals, self.$vm);
 		}
 		_traversal(node);
 	}
@@ -62,10 +61,9 @@ class Compiler {
 		var dirs = [];
 		for (var i = 0; i < attrs.length; i++) {
 			var item = attrs[i];
-			// v-for已经解析了其他的指定了，防止重复解析
+			// v-for已经解析了其他的directive了，防止重复解析
 			// /(v\-\w*)?(\:|\@)/
 			if ((/^v\-([\w\:\']*)/.test(item.name) || /^[\:\@]/.test(item.name)) && node.parentNode) {
-				// if (/(v\-\w*)?(\:|\@)?(\w*)/.test(item.name) && node.parentNode) {
 				this._parseAttr(node, item);
 				dirs.push(item.name);
 			}
@@ -75,7 +73,6 @@ class Compiler {
 				node.setAttribute(item.name, calculateExpression(self.$vm.$data, name))
 			}
 		}
-
 		// remove all directives
 		dirs.forEach(function(dir) {
 			node.removeAttribute(dir);
@@ -107,7 +104,6 @@ class Compiler {
 		const _replace = (scope) => {
 			var newHtml = html.replace(/\{\{([^\}]*)\}\}/g, function(all, name) {
 				return watcherMaps[name].value;
-				// return scope[name];
 			});
 			node.textContent = newHtml;
 		};
@@ -116,7 +112,6 @@ class Compiler {
 			watcherMaps[key] = self.bindWatch(node, self.$vm, key, _replace);
 		});
 		_replace();
-		// _replace(this.$vm.$data);
 	}
 }
 
