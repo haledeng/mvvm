@@ -38,8 +38,8 @@ class MVVM {
 		this.$data = typeof options.data === 'function' ? options.data() : (options.data || {});
 		this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el;
 		this.methods = options.methods || {};
-		this.filters = _.mixin(defaultFilters, options.filters || {});
-		this.computed = options.computed || {};
+		this._filters = _.mixin(defaultFilters, options.filters || {});
+		this._computed = options.computed || {};
 		var init = options.init || [];
 		// lifecycle hook.
 		init.forEach(function(hook) {
@@ -65,8 +65,8 @@ class MVVM {
 	}
 	initComputed() {
 		var self = this;
-		for (var key in this.computed) {
-			var method = this.computed[key];
+		for (var key in this._computed) {
+			var method = this._computed[key];
 			defineProperty(this, key, {
 				get: self.defineComputeGetter(method),
 				set: _.noop

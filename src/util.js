@@ -212,6 +212,15 @@ const getKey = function(code) {
 	return '';
 }
 
+function parseNodeAttr2Obj(node) {
+	var attrs = [].slice.call(node.attributes) || [];
+	var ret = {};
+	attrs.map(function(attr) {
+		ret[attr.name] = attr.value;
+	})
+	return ret;
+}
+
 // empty function
 const noop = () => {};
 
@@ -237,5 +246,6 @@ export {
 	getVal,
 	getKeyCode,
 	getKeyCodes,
-	getKey
+	getKey,
+	parseNodeAttr2Obj
 }

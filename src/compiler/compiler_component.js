@@ -8,22 +8,13 @@ import {
 import * as _ from '../util';
 
 // 计算prop对应的value
-function parseProps(props, vm, node) {
-	var ret = {};
-	props.forEach(function(prop) {
-		ret[prop] = parseExpression(vm, node.getAttribute(_.kebabCase(prop)));
-	});
-	return ret;
-}
-
-function getComProps(node) {
-	var attrs = [].slice.call(node.attributes) || [];
-	var ret = {};
-	attrs.map(function(attr) {
-		ret[attr.name] = attr.value;
-	})
-	return ret;
-}
+// function parseProps(props, vm, node) {
+// 	var ret = {};
+// 	props.forEach(function(prop) {
+// 		ret[prop] = parseExpression(vm, node.getAttribute(_.kebabCase(prop)));
+// 	});
+// 	return ret;
+// }
 
 export default function(Compiler) {
 	Compiler.prototype._parseComponent = function(node) {
@@ -45,7 +36,7 @@ export default function(Compiler) {
 		comVm.$data = instance.data || {};
 		// 遇到props，向上查找parent
 		// comVm.props = descriptor.props || [];
-		comVm.props = getComProps(node);
+		comVm.props = _.parseNodeAttr2Obj(node);
 		// 记录全局VM
 		comVm.$parent = vm;
 		comVm._events = instance.events;

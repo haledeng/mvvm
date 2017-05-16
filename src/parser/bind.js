@@ -10,11 +10,9 @@ import {
  * @param  {String} attr expression
  * @return {Object}      value of the expression
  */
-export default function parseBind(vm, attr) {
+export default function parseBind(data, attr) {
 	attr = _.trim(attr);
-	var data = vm;
 	// var data = vm.$data;
-	var computed = vm.computed;
 	var value = {};
 	if (/^\{(.*)\}$/.test(attr)) {
 		// 计算表达式

@@ -20,11 +20,9 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
  * @return {Object}      value of the expression
  */
 // parse bind expression
-function parseBind(vm, attr) {
+function parseBind(data, attr) {
 	attr = _.trim(attr);
-	var data = vm;
 	// var data = vm.$data;
-	var computed = vm.computed;
 	var value = {};
 	if (/^\{(.*)\}$/.test(attr)) {
 		// 计算表达式

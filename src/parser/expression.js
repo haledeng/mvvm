@@ -20,7 +20,6 @@ function hasFilter(exp) {
 
 function parseExpression(vm, exp, directive, node) {
     var value = null;
-    var vmComputed = vm.computed || {};
     node && (exp = parseItemScope(node, exp));
     // extend context 统一放到compiler中
     // 放到compiler中，由于异步的问题，这里计算有bug

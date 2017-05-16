@@ -133,8 +133,8 @@ return /******/ (function(modules) { // webpackBootstrap
 				this.$data = typeof options.data === 'function' ? options.data() : options.data || {};
 				this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el;
 				this.methods = options.methods || {};
-				this.filters = _.mixin(_index2.default, options.filters || {});
-				this.computed = options.computed || {};
+				this._filters = _.mixin(_index2.default, options.filters || {});
+				this._computed = options.computed || {};
 				var init = options.init || [];
 				// lifecycle hook.
 				init.forEach(function (hook) {
@@ -164,8 +164,8 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'initComputed',
 			value: function initComputed() {
 				var self = this;
-				for (var key in this.computed) {
-					var method = this.computed[key];
+				for (var key in this._computed) {
+					var method = this._computed[key];
 					defineProperty(this, key, {
 						get: self.defineComputeGetter(method),
 						set: _.noop
@@ -632,6 +632,15 @@ return /******/ (function(modules) { // webpackBootstrap
 		return '';
 	};
 
+	function parseNodeAttr2Obj(node) {
+		var attrs = [].slice.call(node.attributes) || [];
+		var ret = {};
+		attrs.map(function (attr) {
+			ret[attr.name] = attr.value;
+		});
+		return ret;
+	}
+
 	// empty function
 	var noop = function noop() {};
 
@@ -657,6 +666,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getKeyCode = getKeyCode;
 	exports.getKeyCodes = getKeyCodes;
 	exports.getKey = getKey;
+	exports.parseNodeAttr2Obj = parseNodeAttr2Obj;
 
 /***/ },
 /* 3 */
@@ -823,7 +833,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function parseExpression(vm, exp, directive, node) {
 	    var value = null;
-	    var vmComputed = vm.computed || {};
 	    node && (exp = (0, _for.parseItemScope)(node, exp));
 	    // extend context 统一放到compiler中
 	    // 放到compiler中，由于异步的问题，这里计算有bug
@@ -877,7 +886,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	// filters 过滤器
 	function filter(vm, name, params) {
-		var method = vm.filters[name];
+		var method = vm._filters[name];
 		if (!method) return params;
 		return method.apply(vm, [params].concat([].slice.call(arguments, 3)));
 	}
@@ -910,11 +919,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @return {Object}      value of the expression
 	 */
 	// parse bind expression
-	function parseBind(vm, attr) {
+	function parseBind(data, attr) {
 		attr = _.trim(attr);
-		var data = vm;
 		// var data = vm.$data;
-		var computed = vm.computed;
 		var value = {};
 		if (/^\{(.*)\}$/.test(attr)) {
 			// 计算表达式
@@ -1430,11 +1437,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	// 会二次执行，监听的元素变化时，会重新调用vfor
-	function vFor(node, vm, expression) {
+	function vFor(node, vm, expression, val) {
 		var parent = node.parentNode || node.__parent__;
 		var expInfo = node._forInfo;
 		var scope = vm.$data;
-		var val = node._vForValue;
 		if (['array', 'object'].indexOf(_.getType(val)) === -1) return;
 		var docFrag = document.createDocumentFragment();
 		// temporary variables.
@@ -1480,8 +1486,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = {
 		bind: function bind() {},
 		update: function update(value) {
-			this.$el._vForValue = value;
-			vFor.call(this, this.$el, this.$vm, this.expression);
+			vFor.call(this, this.$el, this.$vm, this.expression, value);
 		}
 	};
 
@@ -2398,7 +2403,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			comVm.$data = instance.data || {};
 			// 遇到props，向上查找parent
 			// comVm.props = descriptor.props || [];
-			comVm.props = getComProps(node);
+			comVm.props = _.parseNodeAttr2Obj(node);
 			// 记录全局VM
 			comVm.$parent = vm;
 			comVm._events = instance.events;
@@ -2426,25 +2431,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	// 计算prop对应的value
-	function parseProps(props, vm, node) {
-		var ret = {};
-		props.forEach(function (prop) {
-			ret[prop] = (0, _expression.parseExpression)(vm, node.getAttribute(_.kebabCase(prop)));
-		});
-		return ret;
-	} // 解析自定义component
-	// import Observer from '../observer';
-
-	function getComProps(node) {
-		var attrs = [].slice.call(node.attributes) || [];
-		var ret = {};
-		attrs.map(function (attr) {
-			ret[attr.name] = attr.value;
-		});
-		return ret;
-	}
 
 /***/ },
 /* 35 */

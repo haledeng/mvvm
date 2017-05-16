@@ -210,6 +210,15 @@ var getKey = function getKey(code) {
 	return '';
 };
 
+function parseNodeAttr2Obj(node) {
+	var attrs = [].slice.call(node.attributes) || [];
+	var ret = {};
+	attrs.map(function (attr) {
+		ret[attr.name] = attr.value;
+	});
+	return ret;
+}
+
 // empty function
 var noop = function noop() {};
 
@@ -235,3 +244,4 @@ exports.getVal = getVal;
 exports.getKeyCode = getKeyCode;
 exports.getKeyCodes = getKeyCodes;
 exports.getKey = getKey;
+exports.parseNodeAttr2Obj = parseNodeAttr2Obj;

@@ -27,11 +27,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // 会二次执行，监听的元素变化时，会重新调用vfor
-function vFor(node, vm, expression) {
+function vFor(node, vm, expression, val) {
 	var parent = node.parentNode || node.__parent__;
 	var expInfo = node._forInfo;
 	var scope = vm.$data;
-	var val = node._vForValue;
 	if (['array', 'object'].indexOf(_.getType(val)) === -1) return;
 	var docFrag = document.createDocumentFragment();
 	// temporary variables.
@@ -77,7 +76,6 @@ function replaceChild(node, docFrag) {
 exports.default = {
 	bind: function bind() {},
 	update: function update(value) {
-		this.$el._vForValue = value;
-		vFor.call(this, this.$el, this.$vm, this.expression);
+		vFor.call(this, this.$el, this.$vm, this.expression, value);
 	}
 };

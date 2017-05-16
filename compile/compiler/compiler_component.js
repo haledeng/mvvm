@@ -24,7 +24,7 @@ exports.default = function (Compiler) {
 		comVm.$data = instance.data || {};
 		// 遇到props，向上查找parent
 		// comVm.props = descriptor.props || [];
-		comVm.props = getComProps(node);
+		comVm.props = _.parseNodeAttr2Obj(node);
 		// 记录全局VM
 		comVm.$parent = vm;
 		comVm._events = instance.events;
@@ -52,22 +52,3 @@ var _ = _interopRequireWildcard(_util);
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// 计算prop对应的value
-function parseProps(props, vm, node) {
-	var ret = {};
-	props.forEach(function (prop) {
-		ret[prop] = (0, _expression.parseExpression)(vm, node.getAttribute(_.kebabCase(prop)));
-	});
-	return ret;
-} // 解析自定义component
-// import Observer from '../observer';
-
-function getComProps(node) {
-	var attrs = [].slice.call(node.attributes) || [];
-	var ret = {};
-	attrs.map(function (attr) {
-		ret[attr.name] = attr.value;
-	});
-	return ret;
-}
