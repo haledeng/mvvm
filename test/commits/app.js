@@ -9,7 +9,7 @@ var demo = new MVVM({
   el: '#demo',
 
   data: {
-    branches: ['master', 'dev'],
+    branches: ['master', 'dev', 'dist'],
     currentBranch: 'master',
     commits: null
   },

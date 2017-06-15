@@ -29,6 +29,7 @@ exports.default = function (Compiler) {
 		// v-on:event   @event
 		// v-bind:property  :property
 		if (bindOn.test(attr.name)) {
+			// debugger;
 			var extraName = RegExp.$2;
 			var directiveName = parseBindOn(RegExp.$1);
 			var keyCode = attr.name.replace(bindOn, '');

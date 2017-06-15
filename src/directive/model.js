@@ -1,19 +1,22 @@
 import checkbox from './model/checkbox';
 import text from './model/text';
 import select from './model/select'
+import radio from './model/radio';
 
 var handlers = {
 	checkbox,
 	text,
-	select
+	select,
+	radio
 };
 
 export default {
 	bind: function() {
-		var tagName = this.$el.tagName.toLowerCase();
+		var $el = this.$el;
+		var tagName = $el.tagName.toLowerCase();
 		var handler = null;
 		if (tagName === 'input') {
-			handler = handlers[this.$el.type] || handlers['text'];
+			handler = handlers[$el.type] || handlers['text'];
 		} else if (tagName === 'textarea') {
 			handler = handlers['text'];
 		} else if (tagName === 'select') {
