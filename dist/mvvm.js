@@ -65,6 +65,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * entry
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
 
+	// TODO: slot support
+
+
 	var _compiler = __webpack_require__(1);
 
 	var _compiler2 = _interopRequireDefault(_compiler);
@@ -105,18 +108,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var defineProperty = Object.defineProperty;
 
-	var proxy = function proxy(vm, key) {
-		defineProperty(vm, key, {
-			configurable: true,
-			enumerable: true,
-			get: function get() {
-				return vm.$data[key];
-			},
-			set: function set(val) {
-				vm.$data[key] = val;
-			}
-		});
-	};
+	// const proxy = function(vm, key) {
+	// 	defineProperty(vm, key, {
+	// 		configurable: true,
+	// 		enumerable: true,
+	// 		get: function() {
+	// 			return vm.$data[key];
+	// 		},
+	// 		set: function(val) {
+	// 			vm.$data[key] = val;
+	// 		}
+	// 	});
+	// }
 
 	var MVVM = function () {
 		function MVVM(options) {
@@ -140,9 +143,14 @@ return /******/ (function(modules) { // webpackBootstrap
 				init.forEach(function (hook) {
 					hook.call(self);
 				});
+				// add Observer
 				new _observer2.default(this.$data);
-				this.initData();
+				this.proxyData();
+				this.proxyMethod();
 				this.initComputed();
+				// lifeCycle
+				var created = options.created || null;
+				typeof created === 'function' && created.call(this);
 				if (this.$el) {
 					new _compiler2.default({
 						el: this.$el,
@@ -151,14 +159,39 @@ return /******/ (function(modules) { // webpackBootstrap
 				}
 			}
 		}, {
-			key: 'initData',
-			value: function initData() {
+			key: 'proxyMethod',
+			value: function proxyMethod() {
+				var methods = Object.keys(this.methods);
+				var vm = this;
+				methods.map(function (name) {
+					Object.defineProperty(vm, name, {
+						configurable: true,
+						enumerable: true,
+						get: function get() {
+							return vm.methods[name];
+						},
+						set: _.noop
+					});
+				});
+			}
+		}, {
+			key: 'proxyData',
+			value: function proxyData() {
 				var keys = Object.keys(this.$data);
-				var i = keys.length;
-				while (i--) {
+				var vm = this;
+				keys.map(function (key) {
 					// proxy all property from data into instance.
-					proxy(this, keys[i]);
-				}
+					Object.defineProperty(vm, key, {
+						configurable: true,
+						enumerable: true,
+						get: function get() {
+							return vm.$data[key];
+						},
+						set: function set(val) {
+							vm.$data[key] = val;
+						}
+					});
+				});
 			}
 		}, {
 			key: 'initComputed',
@@ -296,6 +329,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	var TEXT_NODE_TYPE = 11;
+
 	var Compiler = function () {
 		function Compiler(opts) {
 			_classCallCheck(this, Compiler);
@@ -316,11 +351,12 @@ return /******/ (function(modules) { // webpackBootstrap
 				function _traversal(node) {
 					self.traversalAttribute(node);
 					self.parseCustomComponent(node);
-					if ((node.parentNode || node.nodeType == 11) && _.containOnlyTextNode(node)) {
+					if (node.tagName && node.tagName.toLowerCase() === 'slot') return self.parseSlot(node);
+					if ((node.parentNode || node.nodeType == TEXT_NODE_TYPE || node instanceof DocumentFragment) && _.containOnlyTextNode(node)) {
 						self.parseTextNode(node);
 					} else {
 						// node has been removed
-						if (node.parentNode || node.nodeType == 11) {
+						if (node.parentNode || node.nodeType == TEXT_NODE_TYPE || node instanceof DocumentFragment) {
 							var elements = node.children;
 							elements = [].slice.call(elements);
 							elements.forEach(function (element) {
@@ -330,6 +366,15 @@ return /******/ (function(modules) { // webpackBootstrap
 					}
 				}
 				_traversal(node);
+			}
+		}, {
+			key: 'parseSlot',
+			value: function parseSlot(node) {
+				// parse slot
+				var attrs = node.attributes || [];
+				var slot = this.$vm._slot = this.$vm._slot || {};
+				slot[node.getAttribute('name')] = node;
+				node.removeAttribute('name');
 			}
 		}, {
 			key: 'parseCustomComponent',
@@ -356,6 +401,13 @@ return /******/ (function(modules) { // webpackBootstrap
 					if ((/^v\-([\w\:\']*)/.test(item.name) || /^[\:\@]/.test(item.name)) && node.parentNode) {
 						this._parseAttr(node, item);
 						dirs.push(item.name);
+					}
+					// slot
+					if (item.name === 'slot') {
+						var slotName = item.value;
+						var slot = self.$vm._slot[item.value];
+						node.removeAttribute(item.name);
+						slot.parentNode && slot.parentNode.replaceChild(node, slot);
 					}
 					// 属性值是模板表达式
 					if (/^\{\{/.test(item.value) && /\}\}$/.test(item.value)) {
@@ -600,6 +652,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		    len = names.length,
 		    i = 1,
 		    ret = obj[names[0]];
+		if (typeof ret === 'undefined') return '';
 		while (i < len && obj) {
 			ret = ret[names[i++]];
 		}
@@ -1294,6 +1347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// v-on:click="method(arg1, arg2, arg3)"
 	// v-on:click="item.a=4"
 	function vOn(node, methods, value, eventName) {
+		methods = methods || {};
 		if (typeof value !== 'string') return;
 		var self = this;
 		var fnReg = /([^\(]*)(\(([^\)]*)\))?/;
@@ -1301,7 +1355,12 @@ return /******/ (function(modules) { // webpackBootstrap
 		var matches = value.match(fnReg);
 		if (!matches) return console.log('wrong format expression in v-on');
 		// 函数调用或者表达式
-		var method = methods[_.trim(matches[1])];
+		var methodName = _.trim(matches[1]);
+		var method = methods[methodName];
+		// $emit, $dispatch
+		if (this[methodName] && /^\$/.test(methodName)) {
+			method = this[methodName];
+		}
 		// for语句内部on表达式
 		if (!method /* && node.__scope__*/) {
 				value = (0, _for.parseItemScope)(node, value);
@@ -1317,6 +1376,8 @@ return /******/ (function(modules) { // webpackBootstrap
 					args[index] = _.parseStr2Obj(arg, function (value) {
 						return (0, _expression.calculateExpression)(self, value);
 					});
+				} else if (/^\'.*\'$/.test(arg)) {
+					args[index] = arg.replace(/^\'|\'$/g, '');
 				} else {
 					args[index] = self[arg] !== undefined ? self[arg] : '';
 				}
@@ -1381,7 +1442,13 @@ return /******/ (function(modules) { // webpackBootstrap
 				if (this.$vm._listenedFn.indexOf(self.expression) === -1) {
 					this.$vm._listenedFn.push(self.expression);
 					this.$vm.$on(this.extraName, function () {
-						self.$vm.methods[self.expression].call(self.$vm.$data);
+						var method = self.$vm.methods[self.expression];
+						if (!method) {
+							var value = (0, _for.parseItemScope)(this.$el, self.expression);
+							method = new Function(_.addScope(value, 'this'));
+						}
+						method.call(self.$vm);
+						// self.$vm.methods[self.expression].call(self.$vm.$data);
 					});
 				}
 			} else {
@@ -1438,10 +1505,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// 会二次执行，监听的元素变化时，会重新调用vfor
 	function vFor(node, vm, expression, val) {
+		// fix val=null，v-for中的模板还是在编译
 		var parent = node.parentNode || node.__parent__;
 		var expInfo = node._forInfo;
 		var scope = vm.$data;
-		if (['array', 'object'].indexOf(_.getType(val)) === -1) return;
+		var isTpl = node.tagName.toLowerCase() === 'template';
+		// have to remove iterator template.
+		if (['array', 'object'].indexOf(_.getType(val)) === -1) {
+			// fix type error
+			// val=null
+			val = [];
+		}
 		var docFrag = document.createDocumentFragment();
 		// temporary variables.
 		var iterators = [expInfo.scope];
@@ -1451,8 +1525,23 @@ return /******/ (function(modules) { // webpackBootstrap
 		// store old value
 		var oldVals = _.getSubset(vm, iterators);
 		_.forEach(val, function (item, index) {
-			var li = node.cloneNode(true);
-			li.removeAttribute('v-for');
+			// support <template></template>
+			var li = null;
+			if (isTpl) {
+				// template只能包含一个子节点，包含多个太复杂了
+				li = document.createElement('div');
+				li.innerHTML = node.innerHTML;
+				var _frag = document.createDocumentFragment();
+				[].slice.call(li.children).forEach(function (child) {
+					_frag.appendChild(child);
+				});
+				li = _frag;
+			} else {
+				li = node.cloneNode(true);
+				li.removeAttribute('v-for');
+				// set a parentNode property
+				docFrag.appendChild(li);
+			}
 
 			li._iterators = {};
 
@@ -1460,21 +1549,26 @@ return /******/ (function(modules) { // webpackBootstrap
 			if (expInfo.index !== undefined) {
 				li._iterators[expInfo.index] = vm[expInfo.index] = index;
 			}
-			docFrag.appendChild(li);
 			new _compiler2.default({
 				el: li,
 				vm: vm
 			});
+			if (isTpl) docFrag.appendChild(li);
 		});
-		!node.__parent__ && parent.removeChild(node);
-		node.__parent__ = parent;
-		replaceChild(parent, docFrag);
+		if (!isTpl) {
+			!node.__parent__ && parent.removeChild(node);
+			node.__parent__ = parent;
+			replaceChild(parent, docFrag);
+		} else {
+			// template node
+			parent.replaceChild(docFrag, node);
+		}
 		// recover same iterator key
 		_.resetObject(oldVals, vm);
 	}
 
 	function replaceChild(node, docFrag) {
-		var parent = node.parentNode;
+		// var parent = node.parentNode;
 		var newNode = node.cloneNode(false);
 		newNode.appendChild(docFrag);
 		// dom-diff
@@ -2208,11 +2302,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function vIf(node, vm, value) {
-		// var hasElseNext = this._hasElseNext;
 		if (value) {
 			// 这种2次操作的方式，实际和未dom-diff差别不大
 			if (this.$el.__anchor__) {
-				(0, _patch2.default)((0, _diffDom2.default)(this.$el.__anchor__, this.$el));
+				if (this.$el._component) {
+					(0, _patch2.default)((0, _diffDom2.default)(this.$el.__anchor__, this.$el._component.frag.firstElementChild));
+				} else {
+					(0, _patch2.default)((0, _diffDom2.default)(this.$el.__anchor__, this.$el));
+				}
 			}
 			if (this.elseEl) {
 				this.elseEl.__anchor__ = document.createTextNode('');
@@ -2220,7 +2317,11 @@ return /******/ (function(modules) { // webpackBootstrap
 			}
 		} else {
 			this.$el.__anchor__ = document.createTextNode('');
-			(0, _patch2.default)((0, _diffDom2.default)(this.$el, this.$el.__anchor__));
+			if (this.$el._component) {
+				(0, _patch2.default)((0, _diffDom2.default)(this.$el._component.frag.firstElementChild, this.$el.__anchor__));
+			} else {
+				(0, _patch2.default)((0, _diffDom2.default)(this.$el, this.$el.__anchor__));
+			}
 			if (this.elseEl) {
 				(0, _patch2.default)((0, _diffDom2.default)(this.elseEl.__anchor__, this.elseEl));
 			}
@@ -2387,23 +2488,24 @@ return /******/ (function(modules) { // webpackBootstrap
 		Compiler.prototype._parseComponent = function (node) {
 			var self = this;
 			var allCom = this.$vm.constructor._globalCom;
+			var vm = this.$vm;
 			var descriptor = allCom[node.tagName.toLowerCase()];
+			descriptor.parent = vm;
 			// var props = descriptor.props || [];
 			// props获取的数据
 			// props中的数据会被重复监听（component一次，MVVM初始化一次）
-			// descriptor._data = parseProps(props, self.$vm, node);
 			// component是全局VM的一个child
 			var instance = new _component2.default(descriptor.name, descriptor);
-			var vm = this.$vm;
 
 			var comVm = Object.create(vm.__proto__);
 			comVm.methods = instance.methods;
-			// 此处有问题，componet的data会覆盖vm中的数据
 			// parse表达式时，向上查找
 			comVm.$data = instance.data || {};
 			// 遇到props，向上查找parent
 			// comVm.props = descriptor.props || [];
 			comVm.props = _.parseNodeAttr2Obj(node);
+			// var props = descriptor.props || {};
+			// initProps(comVm, props);
 			// 记录全局VM
 			comVm.$parent = vm;
 			comVm._events = instance.events;
@@ -2414,7 +2516,11 @@ return /******/ (function(modules) { // webpackBootstrap
 				el: instance.frag,
 				vm: comVm
 			});
-			node.parentNode.replaceChild(instance.frag, node);
+			node._component = instance;
+			// node._frag = instance.frag;
+
+			// console.log(instance.frag);
+			node.parentNode && node.parentNode.replaceChild(instance.frag, node);
 		};
 	};
 
@@ -2453,6 +2559,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	// TODO: property compiler
 	var id = 0;
 
 	var Component = function () {
@@ -2468,6 +2575,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			// props中引用vm的数据，不监听
 			this.methods = descriptor.methods;
 			this.events = descriptor.events;
+			this.parent = descriptor.parent || null;
 			this.init();
 		}
 
@@ -2739,14 +2847,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 		Lib.prototype.$emit = function (name) {
 			var args = [].slice.call(arguments, 1);
-			var self = this;
-			var fns = this._events[name];
+			var parent = this;
+			while (parent && !parent._events) {
+				parent = parent.$parent;
+			}
+			var fns = parent._events[name];
 			if (_.isType(fns, 'array')) {
 				fns.forEach(function (fn) {
-					fn.apply(self.$data, args);
+					fn.apply(parent, args);
 				});
 			} else if (_.isType(fns, 'function')) {
-				fns.apply(self.$data, args);
+				fns.apply(parent, args);
 			}
 		};
 

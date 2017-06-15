@@ -2,6 +2,7 @@
  * entry
  */
 
+// TODO: slot support
 import Compiler from './compiler/compiler';
 import Observer from './observer/observer';
 import Watcher from './observer/watcher';
@@ -15,18 +16,18 @@ const defineProperty = Object.defineProperty;
 
 
 
-const proxy = function(vm, key) {
-	defineProperty(vm, key, {
-		configurable: true,
-		enumerable: true,
-		get: function() {
-			return vm.$data[key];
-		},
-		set: function(val) {
-			vm.$data[key] = val;
-		}
-	});
-}
+// const proxy = function(vm, key) {
+// 	defineProperty(vm, key, {
+// 		configurable: true,
+// 		enumerable: true,
+// 		get: function() {
+// 			return vm.$data[key];
+// 		},
+// 		set: function(val) {
+// 			vm.$data[key] = val;
+// 		}
+// 	});
+// }
 
 class MVVM {
 	constructor(options) {
@@ -45,9 +46,14 @@ class MVVM {
 		init.forEach(function(hook) {
 			hook.call(self);
 		});
+		// add Observer
 		new Observer(this.$data);
-		this.initData();
+		this.proxyData();
+		this.proxyMethod();
 		this.initComputed();
+		// lifeCycle
+		var created = options.created || null;
+		typeof created === 'function' && created.call(this);
 		if (this.$el) {
 			new Compiler({
 				el: this.$el,
@@ -55,13 +61,37 @@ class MVVM {
 			});
 		}
 	}
-	initData() {
+
+	proxyMethod() {
+		var methods = Object.keys(this.methods);
+		var vm = this;
+		methods.map((name) => {
+			Object.defineProperty(vm, name, {
+				configurable: true,
+				enumerable: true,
+				get: () => {
+					return vm.methods[name];
+				},
+				set: _.noop
+			});
+		});
+	}
+	proxyData() {
 		var keys = Object.keys(this.$data);
-		var i = keys.length;
-		while (i--) {
+		var vm = this;
+		keys.map((key) => {
 			// proxy all property from data into instance.
-			proxy(this, keys[i]);
-		}
+			Object.defineProperty(vm, key, {
+				configurable: true,
+				enumerable: true,
+				get: () => {
+					return vm.$data[key];
+				},
+				set: (val) => {
+					vm.$data[key] = val;
+				}
+			});
+		});
 	}
 	initComputed() {
 		var self = this;

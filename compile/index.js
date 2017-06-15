@@ -9,6 +9,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * entry
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
 
+// TODO: slot support
+
+
 var _compiler = require('./compiler/compiler');
 
 var _compiler2 = _interopRequireDefault(_compiler);
@@ -49,18 +52,18 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var defineProperty = Object.defineProperty;
 
-var proxy = function proxy(vm, key) {
-	defineProperty(vm, key, {
-		configurable: true,
-		enumerable: true,
-		get: function get() {
-			return vm.$data[key];
-		},
-		set: function set(val) {
-			vm.$data[key] = val;
-		}
-	});
-};
+// const proxy = function(vm, key) {
+// 	defineProperty(vm, key, {
+// 		configurable: true,
+// 		enumerable: true,
+// 		get: function() {
+// 			return vm.$data[key];
+// 		},
+// 		set: function(val) {
+// 			vm.$data[key] = val;
+// 		}
+// 	});
+// }
 
 var MVVM = function () {
 	function MVVM(options) {
@@ -84,9 +87,14 @@ var MVVM = function () {
 			init.forEach(function (hook) {
 				hook.call(self);
 			});
+			// add Observer
 			new _observer2.default(this.$data);
-			this.initData();
+			this.proxyData();
+			this.proxyMethod();
 			this.initComputed();
+			// lifeCycle
+			var created = options.created || null;
+			typeof created === 'function' && created.call(this);
 			if (this.$el) {
 				new _compiler2.default({
 					el: this.$el,
@@ -95,14 +103,39 @@ var MVVM = function () {
 			}
 		}
 	}, {
-		key: 'initData',
-		value: function initData() {
+		key: 'proxyMethod',
+		value: function proxyMethod() {
+			var methods = Object.keys(this.methods);
+			var vm = this;
+			methods.map(function (name) {
+				Object.defineProperty(vm, name, {
+					configurable: true,
+					enumerable: true,
+					get: function get() {
+						return vm.methods[name];
+					},
+					set: _.noop
+				});
+			});
+		}
+	}, {
+		key: 'proxyData',
+		value: function proxyData() {
 			var keys = Object.keys(this.$data);
-			var i = keys.length;
-			while (i--) {
+			var vm = this;
+			keys.map(function (key) {
 				// proxy all property from data into instance.
-				proxy(this, keys[i]);
-			}
+				Object.defineProperty(vm, key, {
+					configurable: true,
+					enumerable: true,
+					get: function get() {
+						return vm.$data[key];
+					},
+					set: function set(val) {
+						vm.$data[key] = val;
+					}
+				});
+			});
 		}
 	}, {
 		key: 'initComputed',

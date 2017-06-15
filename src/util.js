@@ -177,6 +177,7 @@ const getVal = (obj, namespace) => {
 		len = names.length,
 		i = 1,
 		ret = obj[names[0]];
+	if (typeof ret === 'undefined') return '';
 	while (i < len && obj) {
 		ret = ret[names[i++]];
 	}

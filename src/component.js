@@ -1,6 +1,8 @@
 // import Compiler from './complier/complier';
 import Observer from './observer/observer';
 
+
+// TODO: property compiler
 var id = 0;
 class Component {
 	constructor(name, descriptor) {
@@ -13,6 +15,7 @@ class Component {
 		// props中引用vm的数据，不监听
 		this.methods = descriptor.methods;
 		this.events = descriptor.events;
+		this.parent = descriptor.parent || null;
 		this.init();
 	}
 	init() {

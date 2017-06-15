@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<div id="app" class="content">
+		<slot name="title"></slot>
+		<p>content is follow!</p>
+		<h3 slot="title">Title Comes!</h3>
+	</div>
+
+	<script src="../dist/mvvm.js"></script>
+	<script>
+		new MVVM({
+			el: '#app',
+
+		});
+	</script>
+</body>
+</html>

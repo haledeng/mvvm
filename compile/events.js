@@ -14,14 +14,17 @@ exports.default = function (Lib) {
 
 	Lib.prototype.$emit = function (name) {
 		var args = [].slice.call(arguments, 1);
-		var self = this;
-		var fns = this._events[name];
+		var parent = this;
+		while (parent && !parent._events) {
+			parent = parent.$parent;
+		}
+		var fns = parent._events[name];
 		if (_.isType(fns, 'array')) {
 			fns.forEach(function (fn) {
-				fn.apply(self.$data, args);
+				fn.apply(parent, args);
 			});
 		} else if (_.isType(fns, 'function')) {
-			fns.apply(self.$data, args);
+			fns.apply(parent, args);
 		}
 	};
 

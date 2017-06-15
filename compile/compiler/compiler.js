@@ -32,6 +32,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var TEXT_NODE_TYPE = 11;
+
 var Compiler = function () {
 	function Compiler(opts) {
 		_classCallCheck(this, Compiler);
@@ -52,11 +54,12 @@ var Compiler = function () {
 			function _traversal(node) {
 				self.traversalAttribute(node);
 				self.parseCustomComponent(node);
-				if ((node.parentNode || node.nodeType == 11) && _.containOnlyTextNode(node)) {
+				if (node.tagName && node.tagName.toLowerCase() === 'slot') return self.parseSlot(node);
+				if ((node.parentNode || node.nodeType == TEXT_NODE_TYPE || node instanceof DocumentFragment) && _.containOnlyTextNode(node)) {
 					self.parseTextNode(node);
 				} else {
 					// node has been removed
-					if (node.parentNode || node.nodeType == 11) {
+					if (node.parentNode || node.nodeType == TEXT_NODE_TYPE || node instanceof DocumentFragment) {
 						var elements = node.children;
 						elements = [].slice.call(elements);
 						elements.forEach(function (element) {
@@ -66,6 +69,15 @@ var Compiler = function () {
 				}
 			}
 			_traversal(node);
+		}
+	}, {
+		key: 'parseSlot',
+		value: function parseSlot(node) {
+			// parse slot
+			var attrs = node.attributes || [];
+			var slot = this.$vm._slot = this.$vm._slot || {};
+			slot[node.getAttribute('name')] = node;
+			node.removeAttribute('name');
 		}
 	}, {
 		key: 'parseCustomComponent',
@@ -92,6 +104,13 @@ var Compiler = function () {
 				if ((/^v\-([\w\:\']*)/.test(item.name) || /^[\:\@]/.test(item.name)) && node.parentNode) {
 					this._parseAttr(node, item);
 					dirs.push(item.name);
+				}
+				// slot
+				if (item.name === 'slot') {
+					var slotName = item.value;
+					var slot = self.$vm._slot[item.value];
+					node.removeAttribute(item.name);
+					slot.parentNode && slot.parentNode.replaceChild(node, slot);
 				}
 				// 属性值是模板表达式
 				if (/^\{\{/.test(item.value) && /\}\}$/.test(item.value)) {

@@ -11,6 +11,7 @@ import {
 // v-on:click="method(arg1, arg2, arg3)"
 // v-on:click="item.a=4"
 function vOn(node, methods, value, eventName) {
+	methods = methods || {};
 	if (typeof value !== 'string') return;
 	var self = this;
 	var fnReg = /([^\(]*)(\(([^\)]*)\))?/;
@@ -18,7 +19,12 @@ function vOn(node, methods, value, eventName) {
 	var matches = value.match(fnReg);
 	if (!matches) return console.log('wrong format expression in v-on');
 	// 函数调用或者表达式
-	var method = methods[_.trim(matches[1])];
+	var methodName = _.trim(matches[1]);
+	var method = methods[methodName];
+	// $emit, $dispatch
+	if (this[methodName] && /^\$/.test(methodName)) {
+		method = this[methodName];
+	}
 	// for语句内部on表达式
 	if (!method /* && node.__scope__*/ ) {
 		value = parseItemScope(node, value);
@@ -34,6 +40,8 @@ function vOn(node, methods, value, eventName) {
 				args[index] = _.parseStr2Obj(arg, function(value) {
 					return calculateExpression(self, value);
 				});
+			} else if (/^\'.*\'$/.test(arg)) {
+				args[index] = arg.replace(/^\'|\'$/g, '');
 			} else {
 				args[index] = self[arg] !== undefined ? self[arg] : '';
 			}
@@ -98,7 +106,13 @@ export default {
 			if (this.$vm._listenedFn.indexOf(self.expression) === -1) {
 				this.$vm._listenedFn.push(self.expression);
 				this.$vm.$on(this.extraName, function() {
-					self.$vm.methods[self.expression].call(self.$vm.$data);
+					var method = self.$vm.methods[self.expression];
+					if (!method) {
+						var value = parseItemScope(this.$el, self.expression);
+						method = new Function(_.addScope(value, 'this'));
+					}
+					method.call(self.$vm);
+					// self.$vm.methods[self.expression].call(self.$vm.$data);
 				});
 			}
 		} else {

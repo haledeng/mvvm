@@ -15,6 +15,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+// TODO: property compiler
 var id = 0;
 
 var Component = function () {
@@ -30,6 +31,7 @@ var Component = function () {
 		// props中引用vm的数据，不监听
 		this.methods = descriptor.methods;
 		this.events = descriptor.events;
+		this.parent = descriptor.parent || null;
 		this.init();
 	}
 
