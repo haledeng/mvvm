@@ -15,20 +15,6 @@ import * as _ from './util';
 const defineProperty = Object.defineProperty;
 
 
-
-// const proxy = function(vm, key) {
-// 	defineProperty(vm, key, {
-// 		configurable: true,
-// 		enumerable: true,
-// 		get: function() {
-// 			return vm.$data[key];
-// 		},
-// 		set: function(val) {
-// 			vm.$data[key] = val;
-// 		}
-// 	});
-// }
-
 class MVVM {
 	constructor(options) {
 		this.init(options);
@@ -51,6 +37,7 @@ class MVVM {
 		this.proxyData();
 		this.proxyMethod();
 		this.initComputed();
+		this.initWatcher();
 		// lifeCycle
 		var created = options.created || null;
 		typeof created === 'function' && created.call(this);
@@ -91,6 +78,15 @@ class MVVM {
 					vm.$data[key] = val;
 				}
 			});
+		});
+	}
+	initWatcher() {
+		var watcher = this.$options.watch || {};
+		var vm = this;
+		Object.keys(watcher).forEach((key) => {
+			var cb = watcher[key];
+			if (typeof cb === 'string') cb = vm[cb];
+			vm.$watch(key, cb);
 		});
 	}
 	initComputed() {

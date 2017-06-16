@@ -52,19 +52,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var defineProperty = Object.defineProperty;
 
-// const proxy = function(vm, key) {
-// 	defineProperty(vm, key, {
-// 		configurable: true,
-// 		enumerable: true,
-// 		get: function() {
-// 			return vm.$data[key];
-// 		},
-// 		set: function(val) {
-// 			vm.$data[key] = val;
-// 		}
-// 	});
-// }
-
 var MVVM = function () {
 	function MVVM(options) {
 		_classCallCheck(this, MVVM);
@@ -92,6 +79,7 @@ var MVVM = function () {
 			this.proxyData();
 			this.proxyMethod();
 			this.initComputed();
+			this.initWatcher();
 			// lifeCycle
 			var created = options.created || null;
 			typeof created === 'function' && created.call(this);
@@ -135,6 +123,17 @@ var MVVM = function () {
 						vm.$data[key] = val;
 					}
 				});
+			});
+		}
+	}, {
+		key: 'initWatcher',
+		value: function initWatcher() {
+			var watcher = this.$options.watch || {};
+			var vm = this;
+			Object.keys(watcher).forEach(function (key) {
+				var cb = watcher[key];
+				if (typeof cb === 'string') cb = vm[cb];
+				vm.$watch(key, cb);
 			});
 		}
 	}, {
