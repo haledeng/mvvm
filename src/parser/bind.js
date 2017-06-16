@@ -12,7 +12,6 @@ import {
  */
 export default function parseBind(data, attr) {
 	attr = _.trim(attr);
-	// var data = vm.$data;
 	var value = {};
 	if (/^\{(.*)\}$/.test(attr)) {
 		// 计算表达式

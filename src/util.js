@@ -222,6 +222,23 @@ function parseNodeAttr2Obj(node) {
 	return ret;
 }
 
+const proxyData = (vm, prop) => {
+	var keys = Object.keys(vm[prop]);
+	var self = vm;
+	keys.map((key) => {
+		// proxy all property from data into instance.
+		Object.defineProperty(vm, key, {
+			configurable: true,
+			enumerable: true,
+			get: () => {
+				return self[prop][key];
+			},
+			set: (val) => {
+				self[prop][key] = val;
+			}
+		});
+	});
+};
 // empty function
 const noop = () => {};
 
@@ -248,5 +265,6 @@ export {
 	getKeyCode,
 	getKeyCodes,
 	getKey,
-	parseNodeAttr2Obj
+	parseNodeAttr2Obj,
+	proxyData
 }

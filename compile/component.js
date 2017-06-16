@@ -11,6 +11,12 @@ var _observer = require('./observer/observer');
 
 var _observer2 = _interopRequireDefault(_observer);
 
+var _util = require('./util');
+
+var _ = _interopRequireWildcard(_util);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -19,9 +25,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var id = 0;
 
 var Component = function () {
-	function Component(name, descriptor) {
+	function Component(el, name, descriptor) {
 		_classCallCheck(this, Component);
 
+		this.el = el;
 		this.uid = ++id;
 		this.name = name;
 		this.descriptor = descriptor;
@@ -39,7 +46,7 @@ var Component = function () {
 		key: 'init',
 		value: function init() {
 			new _observer2.default(this.data);
-			this.render();
+			this.parseProps().initComputed().render();
 		}
 	}, {
 		key: 'render',
@@ -62,6 +69,36 @@ var Component = function () {
 				frag.appendChild(child);
 			});
 			this.frag = frag;
+		}
+	}, {
+		key: 'initComputed',
+		value: function initComputed() {
+			var self = this;
+			var computed = this.descriptor.computed;
+			var keys = Object.keys(this.descriptor.computed);
+			keys.forEach(function (m) {
+				self.data[m] = computed[m].call(self.data);
+			});
+			return this;
+		}
+	}, {
+		key: 'parseProps',
+		value: function parseProps() {
+			var _this = this;
+
+			var props = Object.keys(this.descriptor.props);
+			var attrs = _.parseNodeAttr2Obj(this.el);
+			var self = this;
+			props.forEach(function (prop) {
+				var exp = _this.el.getAttribute(prop);
+				if (exp) {
+					self.data[prop] = exp;
+				} else {
+					exp = _this.el.getAttribute(':' + prop);
+					exp && (self.data[prop] = self.parent[exp]);
+				}
+			});
+			return self;
 		}
 	}]);
 

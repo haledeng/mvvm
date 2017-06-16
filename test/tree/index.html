@@ -36,11 +36,11 @@
           <span v-if="isFolder">[{{open ? '-' : '+'}}]</span>
         </div>
         <ul v-show="open" v-if="isFolder">
-          <item
+<!--           <item
             class="item"
             v-for="model in model.children"
             :model="model">
-          </item>
+          </item> -->
           <li class="add" @click="addChild">+</li>
         </ul>
       </li>

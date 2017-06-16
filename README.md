@@ -36,3 +36,6 @@ A MVVM test library for study. **Do not use in project**
 + store 目前挂在vm.$data上
 	+ install store on VM, create a new instanca to watch state change. redefine state getter and setter.
 
+
+TODO:
++ 嵌套Component

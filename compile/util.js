@@ -220,6 +220,23 @@ function parseNodeAttr2Obj(node) {
 	return ret;
 }
 
+var proxyData = function proxyData(vm, prop) {
+	var keys = Object.keys(vm[prop]);
+	var self = vm;
+	keys.map(function (key) {
+		// proxy all property from data into instance.
+		Object.defineProperty(vm, key, {
+			configurable: true,
+			enumerable: true,
+			get: function get() {
+				return self[prop][key];
+			},
+			set: function set(val) {
+				self[prop][key] = val;
+			}
+		});
+	});
+};
 // empty function
 var noop = function noop() {};
 
@@ -246,3 +263,4 @@ exports.getKeyCode = getKeyCode;
 exports.getKeyCodes = getKeyCodes;
 exports.getKey = getKey;
 exports.parseNodeAttr2Obj = parseNodeAttr2Obj;
+exports.proxyData = proxyData;

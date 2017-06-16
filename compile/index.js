@@ -93,6 +93,7 @@ var MVVM = function () {
 	}, {
 		key: 'proxyMethod',
 		value: function proxyMethod() {
+			// vm.xxx() => vm.methods.xxx()
 			var methods = Object.keys(this.methods);
 			var vm = this;
 			methods.map(function (name) {
@@ -109,25 +110,13 @@ var MVVM = function () {
 	}, {
 		key: 'proxyData',
 		value: function proxyData() {
-			var keys = Object.keys(this.$data);
-			var vm = this;
-			keys.map(function (key) {
-				// proxy all property from data into instance.
-				Object.defineProperty(vm, key, {
-					configurable: true,
-					enumerable: true,
-					get: function get() {
-						return vm.$data[key];
-					},
-					set: function set(val) {
-						vm.$data[key] = val;
-					}
-				});
-			});
+			// vm.xxxx => vm.$data.xxx
+			_.proxyData(this, '$data');
 		}
 	}, {
 		key: 'initWatcher',
 		value: function initWatcher() {
+			// watch: {'key': 'callback'}
 			var watcher = this.$options.watch || {};
 			var vm = this;
 			Object.keys(watcher).forEach(function (key) {

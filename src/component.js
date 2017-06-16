@@ -1,11 +1,13 @@
 // import Compiler from './complier/complier';
 import Observer from './observer/observer';
+import * as _ from './util';
 
 
 // TODO: property compiler
 var id = 0;
 class Component {
-	constructor(name, descriptor) {
+	constructor(el, name, descriptor) {
+		this.el = el;
 		this.uid = ++id;
 		this.name = name;
 		this.descriptor = descriptor;
@@ -20,7 +22,9 @@ class Component {
 	}
 	init() {
 		new Observer(this.data);
-		this.render();
+		this.parseProps()
+			.initComputed()
+			.render();
 	}
 	render() {
 		// component template.
@@ -41,6 +45,32 @@ class Component {
 			frag.appendChild(child);
 		});
 		this.frag = frag;
+	}
+	initComputed() {
+		var self = this;
+		var computed = this.descriptor.computed;
+		var keys = Object.keys(this.descriptor.computed);
+		keys.forEach((m) => {
+			self.data[m] = computed[m].call(self.data);
+		});
+		return this;
+	}
+	parseProps() {
+		var props = Object.keys(this.descriptor.props);
+		var attrs = _.parseNodeAttr2Obj(this.el);
+		var self = this;
+		props.forEach((prop) => {
+			var exp = this.el.getAttribute(prop);
+			if (exp) {
+				self.data[prop] = exp;
+			} else {
+				exp = this.el.getAttribute(':' + prop);
+				exp && (self.data[prop] = self.parent[exp]);
+			}
+
+		});
+		return self;
+
 	}
 }
 

@@ -149,6 +149,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'proxyMethod',
 			value: function proxyMethod() {
+				// vm.xxx() => vm.methods.xxx()
 				var methods = Object.keys(this.methods);
 				var vm = this;
 				methods.map(function (name) {
@@ -165,25 +166,13 @@ return /******/ (function(modules) { // webpackBootstrap
 		}, {
 			key: 'proxyData',
 			value: function proxyData() {
-				var keys = Object.keys(this.$data);
-				var vm = this;
-				keys.map(function (key) {
-					// proxy all property from data into instance.
-					Object.defineProperty(vm, key, {
-						configurable: true,
-						enumerable: true,
-						get: function get() {
-							return vm.$data[key];
-						},
-						set: function set(val) {
-							vm.$data[key] = val;
-						}
-					});
-				});
+				// vm.xxxx => vm.$data.xxx
+				_.proxyData(this, '$data');
 			}
 		}, {
 			key: 'initWatcher',
 			value: function initWatcher() {
+				// watch: {'key': 'callback'}
 				var watcher = this.$options.watch || {};
 				var vm = this;
 				Object.keys(watcher).forEach(function (key) {
@@ -328,8 +317,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var TEXT_NODE_TYPE = 11;
-
 	var Compiler = function () {
 		function Compiler(opts) {
 			_classCallCheck(this, Compiler);
@@ -346,24 +333,32 @@ return /******/ (function(modules) { // webpackBootstrap
 				// 遍历方式有问题
 				// 遍历节点
 				var self = this;
+				var globalComonent = this.$vm.constructor._globalCom || {};
+				var comNames = Object.keys(globalComonent);
 
-				function _traversal(node) {
+				// documentFragment
+				// TEXTNODE
+				// Element
+				var _traversal = function _traversal(node) {
+					var tagName = node.tagName;
+					if (tagName && ~comNames.indexOf(tagName.toLowerCase())) {
+						return self._parseComponent(node);
+					}
 					self.traversalAttribute(node);
-					self.parseCustomComponent(node);
-					if (node.tagName && node.tagName.toLowerCase() === 'slot') return self.parseSlot(node);
-					if ((node.parentNode || node.nodeType == TEXT_NODE_TYPE || node instanceof DocumentFragment) && _.containOnlyTextNode(node)) {
+					// has been remove
+					if (node.nodeType !== 11 && !node.parentNode) return;
+					if (node.nodeType == 3) {
+						// text node
 						self.parseTextNode(node);
 					} else {
-						// node has been removed
-						if (node.parentNode || node.nodeType == TEXT_NODE_TYPE || node instanceof DocumentFragment) {
-							var elements = node.children;
-							elements = [].slice.call(elements);
-							elements.forEach(function (element) {
-								_traversal(element);
-							});
-						}
+						var elements = node.childNodes;
+						elements = [].slice.call(elements);
+						elements.forEach(function (element) {
+							_traversal(element);
+						});
 					}
-				}
+				};
+
 				_traversal(node);
 			}
 		}, {
@@ -374,17 +369,6 @@ return /******/ (function(modules) { // webpackBootstrap
 				var slot = this.$vm._slot = this.$vm._slot || {};
 				slot[node.getAttribute('name')] = node;
 				node.removeAttribute('name');
-			}
-		}, {
-			key: 'parseCustomComponent',
-			value: function parseCustomComponent(node) {
-				if (!node.tagName) return;
-				var tagName = node.tagName.toLowerCase();
-				var globalComonent = this.$vm.constructor._globalCom || {};
-				var comNames = Object.keys(globalComonent);
-				if (~comNames.indexOf(tagName)) {
-					this._parseComponent(node);
-				}
 			}
 		}, {
 			key: 'traversalAttribute',
@@ -693,6 +677,23 @@ return /******/ (function(modules) { // webpackBootstrap
 		return ret;
 	}
 
+	var proxyData = function proxyData(vm, prop) {
+		var keys = Object.keys(vm[prop]);
+		var self = vm;
+		keys.map(function (key) {
+			// proxy all property from data into instance.
+			Object.defineProperty(vm, key, {
+				configurable: true,
+				enumerable: true,
+				get: function get() {
+					return self[prop][key];
+				},
+				set: function set(val) {
+					self[prop][key] = val;
+				}
+			});
+		});
+	};
 	// empty function
 	var noop = function noop() {};
 
@@ -719,6 +720,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getKeyCodes = getKeyCodes;
 	exports.getKey = getKey;
 	exports.parseNodeAttr2Obj = parseNodeAttr2Obj;
+	exports.proxyData = proxyData;
 
 /***/ },
 /* 3 */
@@ -973,7 +975,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	// parse bind expression
 	function parseBind(data, attr) {
 		attr = _.trim(attr);
-		// var data = vm.$data;
 		var value = {};
 		if (/^\{(.*)\}$/.test(attr)) {
 			// 计算表达式
@@ -2531,31 +2532,24 @@ return /******/ (function(modules) { // webpackBootstrap
 			// props获取的数据
 			// props中的数据会被重复监听（component一次，MVVM初始化一次）
 			// component是全局VM的一个child
-			var instance = new _component2.default(descriptor.name, descriptor);
+			var instance = new _component2.default(node, descriptor.name, descriptor);
 
 			var comVm = Object.create(vm.__proto__);
 			comVm.methods = instance.methods;
 			// parse表达式时，向上查找
 			comVm.$data = instance.data || {};
-			// 遇到props，向上查找parent
-			// comVm.props = descriptor.props || [];
+			_.proxyData(comVm, '$data');
 			comVm.props = _.parseNodeAttr2Obj(node);
-			// var props = descriptor.props || {};
-			// initProps(comVm, props);
 			// 记录全局VM
 			comVm.$parent = vm;
 			comVm._events = instance.events;
 			(vm.$children || (vm.$children = [])).push(comVm);
-
 			//  每个Componet的instance是沙箱模式
 			new Compiler({
 				el: instance.frag,
 				vm: comVm
 			});
 			node._component = instance;
-			// node._frag = instance.frag;
-
-			// console.log(instance.frag);
 			node.parentNode && node.parentNode.replaceChild(instance.frag, node);
 		};
 	};
@@ -2591,6 +2585,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _observer2 = _interopRequireDefault(_observer);
 
+	var _util = __webpack_require__(2);
+
+	var _ = _interopRequireWildcard(_util);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2599,9 +2599,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var id = 0;
 
 	var Component = function () {
-		function Component(name, descriptor) {
+		function Component(el, name, descriptor) {
 			_classCallCheck(this, Component);
 
+			this.el = el;
 			this.uid = ++id;
 			this.name = name;
 			this.descriptor = descriptor;
@@ -2619,7 +2620,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			key: 'init',
 			value: function init() {
 				new _observer2.default(this.data);
-				this.render();
+				this.parseProps().initComputed().render();
 			}
 		}, {
 			key: 'render',
@@ -2642,6 +2643,36 @@ return /******/ (function(modules) { // webpackBootstrap
 					frag.appendChild(child);
 				});
 				this.frag = frag;
+			}
+		}, {
+			key: 'initComputed',
+			value: function initComputed() {
+				var self = this;
+				var computed = this.descriptor.computed;
+				var keys = Object.keys(this.descriptor.computed);
+				keys.forEach(function (m) {
+					self.data[m] = computed[m].call(self.data);
+				});
+				return this;
+			}
+		}, {
+			key: 'parseProps',
+			value: function parseProps() {
+				var _this = this;
+
+				var props = Object.keys(this.descriptor.props);
+				var attrs = _.parseNodeAttr2Obj(this.el);
+				var self = this;
+				props.forEach(function (prop) {
+					var exp = _this.el.getAttribute(prop);
+					if (exp) {
+						self.data[prop] = exp;
+					} else {
+						exp = _this.el.getAttribute(':' + prop);
+						exp && (self.data[prop] = self.parent[exp]);
+					}
+				});
+				return self;
 			}
 		}]);
 

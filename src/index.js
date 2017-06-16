@@ -50,6 +50,7 @@ class MVVM {
 	}
 
 	proxyMethod() {
+		// vm.xxx() => vm.methods.xxx()
 		var methods = Object.keys(this.methods);
 		var vm = this;
 		methods.map((name) => {
@@ -64,23 +65,11 @@ class MVVM {
 		});
 	}
 	proxyData() {
-		var keys = Object.keys(this.$data);
-		var vm = this;
-		keys.map((key) => {
-			// proxy all property from data into instance.
-			Object.defineProperty(vm, key, {
-				configurable: true,
-				enumerable: true,
-				get: () => {
-					return vm.$data[key];
-				},
-				set: (val) => {
-					vm.$data[key] = val;
-				}
-			});
-		});
+		// vm.xxxx => vm.$data.xxx
+		_.proxyData(this, '$data');
 	}
 	initWatcher() {
+		// watch: {'key': 'callback'}
 		var watcher = this.$options.watch || {};
 		var vm = this;
 		Object.keys(watcher).forEach((key) => {

@@ -14,7 +14,6 @@ import {
 import CompilerMixin from './compiler_props';
 import ComponentMixin from './compiler_component';
 
-const TEXT_NODE_TYPE = 11;
 
 class Compiler {
 	constructor(opts) {
@@ -27,24 +26,33 @@ class Compiler {
 		// 遍历方式有问题
 		// 遍历节点
 		var self = this;
+		var globalComonent = this.$vm.constructor._globalCom || {};
+		var comNames = Object.keys(globalComonent);
 
-		function _traversal(node) {
+		// documentFragment
+		// TEXTNODE
+		// Element
+		const _traversal = (node) => {
+			var tagName = node.tagName;
+			if (tagName && ~comNames.indexOf(tagName.toLowerCase())) {
+				return self._parseComponent(node);
+			}
 			self.traversalAttribute(node);
-			self.parseCustomComponent(node);
-			if (node.tagName && node.tagName.toLowerCase() === 'slot') return self.parseSlot(node);
-			if ((node.parentNode || node.nodeType == TEXT_NODE_TYPE || node instanceof DocumentFragment) && _.containOnlyTextNode(node)) {
+			// has been remove
+			if (node.nodeType !== 11 && !node.parentNode) return;
+			if (node.nodeType == 3) {
+				// text node
 				self.parseTextNode(node);
 			} else {
-				// node has been removed
-				if (node.parentNode || node.nodeType == TEXT_NODE_TYPE || node instanceof DocumentFragment) {
-					var elements = node.children;
-					elements = [].slice.call(elements);
-					elements.forEach(function(element) {
-						_traversal(element);
-					});
-				}
+				var elements = node.childNodes;
+				elements = [].slice.call(elements);
+				elements.forEach(function(element) {
+					_traversal(element);
+				});
 			}
-		}
+
+		};
+
 		_traversal(node);
 	}
 	parseSlot(node) {
@@ -53,15 +61,6 @@ class Compiler {
 		var slot = this.$vm._slot = this.$vm._slot || {};
 		slot[node.getAttribute('name')] = node;
 		node.removeAttribute('name');
-	}
-	parseCustomComponent(node) {
-		if (!node.tagName) return;
-		var tagName = node.tagName.toLowerCase();
-		var globalComonent = this.$vm.constructor._globalCom || {};
-		var comNames = Object.keys(globalComonent);
-		if (~comNames.indexOf(tagName)) {
-			this._parseComponent(node);
-		}
 	}
 	traversalAttribute(node) {
 		var self = this;
