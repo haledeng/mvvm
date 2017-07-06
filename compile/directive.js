@@ -42,6 +42,10 @@ var Directive = function () {
 	_createClass(Directive, [{
 		key: '_bind',
 		value: function _bind() {
+			var globalComonent = this.$vm.constructor._globalCom || {};
+			var comNames = Object.keys(globalComonent);
+
+			// if (~comNames.indexOf(this.$el.tagName.toLowerCase())) return;
 			var self = this;
 			if (typeof this.bind === 'function') {
 				this.bind();

@@ -219,6 +219,12 @@ MVVM.component = function (name, options) {
 	options.name = name;
 };
 
+MVVM.set = function (vm, prop, value) {
+	var obj = {};
+	vm[prop] = obj[prop] = value;
+	new _observer2.default(obj);
+};
+
 (0, _events2.default)(MVVM);
 
 exports.MVVM = MVVM;

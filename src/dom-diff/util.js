@@ -36,6 +36,8 @@ var isFunction = function(fn) {
 	return fn && typeof fn === 'function';
 }
 
+
+
 export {
 	trim,
 	isObject,

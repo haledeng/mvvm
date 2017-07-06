@@ -160,6 +160,12 @@ MVVM.component = function(name, options) {
 	options.name = name;
 };
 
+MVVM.set = (vm, prop, value) => {
+	var obj = {};
+	vm[prop] = obj[prop] = value;
+	new Observer(obj);
+};
+
 eventMixin(MVVM);
 
 export {

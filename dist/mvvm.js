@@ -275,6 +275,12 @@ return /******/ (function(modules) { // webpackBootstrap
 		options.name = name;
 	};
 
+	MVVM.set = function (vm, prop, value) {
+		var obj = {};
+		vm[prop] = obj[prop] = value;
+		new _observer2.default(obj);
+	};
+
 	(0, _events2.default)(MVVM);
 
 	exports.MVVM = MVVM;
@@ -315,6 +321,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var Compiler = function () {
@@ -341,18 +349,18 @@ return /******/ (function(modules) { // webpackBootstrap
 				// Element
 				var _traversal = function _traversal(node) {
 					var tagName = node.tagName;
+					// TODO: component带有directive
 					if (tagName && ~comNames.indexOf(tagName.toLowerCase())) {
 						return self._parseComponent(node);
 					}
 					self.traversalAttribute(node);
 					// has been remove
-					if (node.nodeType !== 11 && !node.parentNode) return;
+					if (node.nodeType !== 11 && !node.parentNode || node.type == 8) return;
 					if (node.nodeType == 3) {
 						// text node
 						self.parseTextNode(node);
 					} else {
-						var elements = node.childNodes;
-						elements = [].slice.call(elements);
+						var elements = [].concat(_toConsumableArray(node.childNodes));
 						elements.forEach(function (element) {
 							_traversal(element);
 						});
@@ -697,6 +705,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	// empty function
 	var noop = function noop() {};
 
+	var copyPrivateAttr = function copyPrivateAttr(source, dist, isCopy) {
+		for (var key in source) {
+			if (isCopy(key)) {
+				dist[key] = source[key];
+			}
+		}
+	};
+
 	exports.trim = trim;
 	exports.isType = isType;
 	exports.mixin = mixin;
@@ -721,6 +737,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getKey = getKey;
 	exports.parseNodeAttr2Obj = parseNodeAttr2Obj;
 	exports.proxyData = proxyData;
+	exports.copyPrivateAttr = copyPrivateAttr;
 
 /***/ },
 /* 3 */
@@ -1539,6 +1556,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 	// 会二次执行，监听的元素变化时，会重新调用vfor
 	function vFor(node, vm, expression, val) {
 		// fix val=null，v-for中的模板还是在编译
@@ -1575,6 +1594,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			} else {
 				li = node.cloneNode(true);
 				li.removeAttribute('v-for');
+				li._dir = 'v-for';
 				// set a parentNode property
 				docFrag.appendChild(li);
 			}
@@ -1592,9 +1612,18 @@ return /******/ (function(modules) { // webpackBootstrap
 			if (isTpl) docFrag.appendChild(li);
 		});
 		if (!isTpl) {
-			!node.__parent__ && parent.removeChild(node);
+			if (!node.__anchor__) {
+				node.__anchor__ = document.createTextNode('');
+				node.__anchor__._dir = 'v-for';
+			}
+			// !node.__parent__ && parent.removeChild(node);
+			!node.__parent__ && parent.replaceChild(node.__anchor__, node);
 			node.__parent__ = parent;
+
+			// console.log(docFrag.children);
 			replaceChild(parent, docFrag);
+			// var inserted = parent.insertBefore(docFrag, node.__anchor__);
+			// node.__anchor__ = docFrag;
 		} else {
 			// template node
 			parent.replaceChild(docFrag, node);
@@ -1603,10 +1632,27 @@ return /******/ (function(modules) { // webpackBootstrap
 		_.resetObject(oldVals, vm);
 	}
 
+	//TODO: component bug render
 	function replaceChild(node, docFrag) {
-		// var parent = node.parentNode;
+
 		var newNode = node.cloneNode(false);
-		newNode.appendChild(docFrag);
+		var children = [].concat(_toConsumableArray(node.childNodes));
+		var hasInserted = false;
+		children.forEach(function (child, index) {
+			if (child.nodeType === 3 && child.wholeText === '') return;
+			// component 编译时，_dir属性丢失
+			if (!child._dir) {
+				newNode.appendChild(child);
+			} else {
+				// 占位
+				if (!hasInserted) {
+					newNode.appendChild(docFrag);
+					hasInserted = true;
+				}
+			}
+		});
+
+		// newNode.appendChild(docFrag);
 		// dom-diff
 		var diff = (0, _diffDom2.default)(node, newNode);
 		console.log(diff);
@@ -2528,27 +2574,31 @@ return /******/ (function(modules) { // webpackBootstrap
 			var vm = this.$vm;
 			var descriptor = allCom[node.tagName.toLowerCase()];
 			descriptor.parent = vm;
-			// var props = descriptor.props || [];
 			// props获取的数据
 			// props中的数据会被重复监听（component一次，MVVM初始化一次）
 			// component是全局VM的一个child
-			var instance = new _component2.default(node, descriptor.name, descriptor);
-
 			var comVm = Object.create(vm.__proto__);
+			var instance = new _component2.default(node, descriptor.name, descriptor, comVm);
+
 			comVm.methods = instance.methods;
 			// parse表达式时，向上查找
-			comVm.$data = instance.data || {};
-			_.proxyData(comVm, '$data');
+			// comVm.$data = instance.data || {};
+
+
 			comVm.props = _.parseNodeAttr2Obj(node);
 			// 记录全局VM
 			comVm.$parent = vm;
 			comVm._events = instance.events;
+			// TODO: directives
 			(vm.$children || (vm.$children = [])).push(comVm);
 			//  每个Componet的instance是沙箱模式
-			new Compiler({
-				el: instance.frag,
-				vm: comVm
-			});
+			if (instance.frag) {
+				new Compiler({
+					el: instance.frag,
+					vm: comVm
+				});
+			}
+			// _.resetObject(oldVals, comVm.$data);
 			node._component = instance;
 			node.parentNode && node.parentNode.replaceChild(instance.frag, node);
 		};
@@ -2589,6 +2639,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _ = _interopRequireWildcard(_util);
 
+	var _expression = __webpack_require__(5);
+
+	var _for = __webpack_require__(8);
+
+	var _index = __webpack_require__(10);
+
+	var Dir = _interopRequireWildcard(_index);
+
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -2599,7 +2657,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var id = 0;
 
 	var Component = function () {
-		function Component(el, name, descriptor) {
+		function Component(el, name, descriptor, vm) {
 			_classCallCheck(this, Component);
 
 			this.el = el;
@@ -2608,23 +2666,72 @@ return /******/ (function(modules) { // webpackBootstrap
 			this.descriptor = descriptor;
 			this.template = descriptor.template;
 			// props生成的数据，不需要重复监听
-			this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+			this.data = vm.$data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
 			// props中引用vm的数据，不监听
 			this.methods = descriptor.methods;
 			this.events = descriptor.events;
 			this.parent = descriptor.parent || null;
+			this.children = [];
+			this.$vm = vm;
+			this.hasDir = false;
 			this.init();
 		}
 
 		_createClass(Component, [{
+			key: 'parseAttr',
+			value: function parseAttr() {
+				var attrs = _.parseNodeAttr2Obj(this.el);
+				var self = this;
+				var node = this.el;
+				for (var key in attrs) {
+					var value = attrs[key];
+					// directive
+					if (/^v\-([\w\:\']*)/.test(key) && node.parentNode) {
+						this.hasDir = true;
+						// short name
+						// v-on:event   @event
+						// v-bind:property  :property
+						var attrReg = /^v\-([\w\:\']*)/;
+						var matches = key.match(attrReg);
+						var property = matches[1];
+						var watchExp = null;
+						switch (property) {
+							case 'for':
+								var info = (0, _for.parseForExpression)(value);
+								// cache directive infomation
+								node._forInfo = info;
+								watchExp = info.val;
+								self.$vm.bindDir(Object.assign({
+									expression: value,
+									name: property,
+									watchExp: watchExp,
+									context: self.$vm
+								}, Dir['v' + _.upperFirst(property)]), node);
+								break;
+							default:
+								break;
+						}
+					}
+				}
+			}
+		}, {
 			key: 'init',
 			value: function init() {
 				new _observer2.default(this.data);
-				this.parseProps().initComputed().render();
+				this.parseProps().initComputed();
+				_.proxyData(this.$vm, '$data');
+				this.proxyMethods();
+				this.parseAttr();
+				if (this.hasDir) {
+					this.frag = null;
+				} else {
+					this.render();
+				}
 			}
 		}, {
 			key: 'render',
 			value: function render() {
+				var self = this;
 				// component template.
 				var frag = document.createDocumentFragment();
 				// template ID
@@ -2638,8 +2745,13 @@ return /******/ (function(modules) { // webpackBootstrap
 					this.descriptor.template = template;
 				}
 				var div = document.createElement('div');
+
 				div.innerHTML = template;
 				[].slice.call(div.children).forEach(function (child) {
+					_.copyPrivateAttr(self.el, child, function (property) {
+						return (/^\_/.test(property)
+						);
+					});
 					frag.appendChild(child);
 				});
 				this.frag = frag;
@@ -2661,7 +2773,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				var _this = this;
 
 				var props = Object.keys(this.descriptor.props);
-				var attrs = _.parseNodeAttr2Obj(this.el);
+				// var attrs = _.parseNodeAttr2Obj(this.el);
 				var self = this;
 				props.forEach(function (prop) {
 					var exp = _this.el.getAttribute(prop);
@@ -2669,10 +2781,26 @@ return /******/ (function(modules) { // webpackBootstrap
 						self.data[prop] = exp;
 					} else {
 						exp = _this.el.getAttribute(':' + prop);
-						exp && (self.data[prop] = self.parent[exp]);
+						exp && (self.data[prop] = (0, _expression.calculateExpression)(self.parent, exp));
 					}
 				});
 				return self;
+			}
+		}, {
+			key: 'proxyMethods',
+			value: function proxyMethods() {
+				var methods = Object.keys(this.methods);
+				var vm = this.$vm;
+				methods.map(function (name) {
+					Object.defineProperty(vm, name, {
+						configurable: true,
+						enumerable: true,
+						get: function get() {
+							return vm.methods[name];
+						},
+						set: _.noop
+					});
+				});
 			}
 		}]);
 
@@ -2862,6 +2990,10 @@ return /******/ (function(modules) { // webpackBootstrap
 		_createClass(Directive, [{
 			key: '_bind',
 			value: function _bind() {
+				var globalComonent = this.$vm.constructor._globalCom || {};
+				var comNames = Object.keys(globalComonent);
+
+				// if (~comNames.indexOf(this.$el.tagName.toLowerCase())) return;
 				var self = this;
 				if (typeof this.bind === 'function') {
 					this.bind();

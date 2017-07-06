@@ -15,6 +15,14 @@ var _util = require('./util');
 
 var _ = _interopRequireWildcard(_util);
 
+var _expression = require('./parser/expression');
+
+var _for = require('./parser/for');
+
+var _index = require('./directive/index');
+
+var Dir = _interopRequireWildcard(_index);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -25,7 +33,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var id = 0;
 
 var Component = function () {
-	function Component(el, name, descriptor) {
+	function Component(el, name, descriptor, vm) {
 		_classCallCheck(this, Component);
 
 		this.el = el;
@@ -34,23 +42,72 @@ var Component = function () {
 		this.descriptor = descriptor;
 		this.template = descriptor.template;
 		// props生成的数据，不需要重复监听
-		this.data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
+		this.data = vm.$data = typeof descriptor.data === 'function' ? descriptor.data() : descriptor.data;
 		// props中引用vm的数据，不监听
 		this.methods = descriptor.methods;
 		this.events = descriptor.events;
 		this.parent = descriptor.parent || null;
+		this.children = [];
+		this.$vm = vm;
+		this.hasDir = false;
 		this.init();
 	}
 
 	_createClass(Component, [{
+		key: 'parseAttr',
+		value: function parseAttr() {
+			var attrs = _.parseNodeAttr2Obj(this.el);
+			var self = this;
+			var node = this.el;
+			for (var key in attrs) {
+				var value = attrs[key];
+				// directive
+				if (/^v\-([\w\:\']*)/.test(key) && node.parentNode) {
+					this.hasDir = true;
+					// short name
+					// v-on:event   @event
+					// v-bind:property  :property
+					var attrReg = /^v\-([\w\:\']*)/;
+					var matches = key.match(attrReg);
+					var property = matches[1];
+					var watchExp = null;
+					switch (property) {
+						case 'for':
+							var info = (0, _for.parseForExpression)(value);
+							// cache directive infomation
+							node._forInfo = info;
+							watchExp = info.val;
+							self.$vm.bindDir(Object.assign({
+								expression: value,
+								name: property,
+								watchExp: watchExp,
+								context: self.$vm
+							}, Dir['v' + _.upperFirst(property)]), node);
+							break;
+						default:
+							break;
+					}
+				}
+			}
+		}
+	}, {
 		key: 'init',
 		value: function init() {
 			new _observer2.default(this.data);
-			this.parseProps().initComputed().render();
+			this.parseProps().initComputed();
+			_.proxyData(this.$vm, '$data');
+			this.proxyMethods();
+			this.parseAttr();
+			if (this.hasDir) {
+				this.frag = null;
+			} else {
+				this.render();
+			}
 		}
 	}, {
 		key: 'render',
 		value: function render() {
+			var self = this;
 			// component template.
 			var frag = document.createDocumentFragment();
 			// template ID
@@ -64,8 +121,13 @@ var Component = function () {
 				this.descriptor.template = template;
 			}
 			var div = document.createElement('div');
+
 			div.innerHTML = template;
 			[].slice.call(div.children).forEach(function (child) {
+				_.copyPrivateAttr(self.el, child, function (property) {
+					return (/^\_/.test(property)
+					);
+				});
 				frag.appendChild(child);
 			});
 			this.frag = frag;
@@ -87,7 +149,7 @@ var Component = function () {
 			var _this = this;
 
 			var props = Object.keys(this.descriptor.props);
-			var attrs = _.parseNodeAttr2Obj(this.el);
+			// var attrs = _.parseNodeAttr2Obj(this.el);
 			var self = this;
 			props.forEach(function (prop) {
 				var exp = _this.el.getAttribute(prop);
@@ -95,10 +157,26 @@ var Component = function () {
 					self.data[prop] = exp;
 				} else {
 					exp = _this.el.getAttribute(':' + prop);
-					exp && (self.data[prop] = self.parent[exp]);
+					exp && (self.data[prop] = (0, _expression.calculateExpression)(self.parent, exp));
 				}
 			});
 			return self;
+		}
+	}, {
+		key: 'proxyMethods',
+		value: function proxyMethods() {
+			var methods = Object.keys(this.methods);
+			var vm = this.$vm;
+			methods.map(function (name) {
+				Object.defineProperty(vm, name, {
+					configurable: true,
+					enumerable: true,
+					get: function get() {
+						return vm.methods[name];
+					},
+					set: _.noop
+				});
+			});
 		}
 	}]);
 

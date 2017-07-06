@@ -34,18 +34,18 @@ class Compiler {
 		// Element
 		const _traversal = (node) => {
 			var tagName = node.tagName;
+			// TODO: component带有directive
 			if (tagName && ~comNames.indexOf(tagName.toLowerCase())) {
 				return self._parseComponent(node);
 			}
 			self.traversalAttribute(node);
 			// has been remove
-			if (node.nodeType !== 11 && !node.parentNode) return;
+			if (node.nodeType !== 11 && !node.parentNode || node.type == 8) return;
 			if (node.nodeType == 3) {
 				// text node
 				self.parseTextNode(node);
 			} else {
-				var elements = node.childNodes;
-				elements = [].slice.call(elements);
+				var elements = [...node.childNodes];
 				elements.forEach(function(element) {
 					_traversal(element);
 				});

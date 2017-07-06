@@ -240,6 +240,14 @@ var proxyData = function proxyData(vm, prop) {
 // empty function
 var noop = function noop() {};
 
+var copyPrivateAttr = function copyPrivateAttr(source, dist, isCopy) {
+	for (var key in source) {
+		if (isCopy(key)) {
+			dist[key] = source[key];
+		}
+	}
+};
+
 exports.trim = trim;
 exports.isType = isType;
 exports.mixin = mixin;
@@ -264,3 +272,4 @@ exports.getKeyCodes = getKeyCodes;
 exports.getKey = getKey;
 exports.parseNodeAttr2Obj = parseNodeAttr2Obj;
 exports.proxyData = proxyData;
+exports.copyPrivateAttr = copyPrivateAttr;

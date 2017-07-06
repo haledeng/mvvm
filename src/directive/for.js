@@ -43,6 +43,7 @@ function vFor(node, vm, expression, val) {
 		} else {
 			li = node.cloneNode(true);
 			li.removeAttribute('v-for');
+			li._dir = 'v-for';
 			// set a parentNode property
 			docFrag.appendChild(li);
 		}
@@ -61,9 +62,18 @@ function vFor(node, vm, expression, val) {
 		if (isTpl) docFrag.appendChild(li);
 	});
 	if (!isTpl) {
-		!node.__parent__ && parent.removeChild(node);
+		if (!node.__anchor__) {
+			node.__anchor__ = document.createTextNode('');
+			node.__anchor__._dir = 'v-for';
+		}
+		// !node.__parent__ && parent.removeChild(node);
+		!node.__parent__ && parent.replaceChild(node.__anchor__, node);
 		node.__parent__ = parent;
+
+		// console.log(docFrag.children);
 		replaceChild(parent, docFrag);
+		// var inserted = parent.insertBefore(docFrag, node.__anchor__);
+		// node.__anchor__ = docFrag;
 	} else {
 		// template node
 		parent.replaceChild(docFrag, node);
@@ -74,10 +84,27 @@ function vFor(node, vm, expression, val) {
 
 
 
+//TODO: component bug render
 function replaceChild(node, docFrag) {
-	// var parent = node.parentNode;
+
 	var newNode = node.cloneNode(false);
-	newNode.appendChild(docFrag);
+	var children = [...node.childNodes];
+	var hasInserted = false;
+	children.forEach((child, index) => {
+		if (child.nodeType === 3 && child.wholeText === '') return;
+		// component 编译时，_dir属性丢失
+		if (!child._dir) {
+			newNode.appendChild(child);
+		} else {
+			// 占位
+			if (!hasInserted) {
+				newNode.appendChild(docFrag);
+				hasInserted = true;
+			}
+		}
+	});
+
+	// newNode.appendChild(docFrag);
 	// dom-diff
 	var diff = diffDom(node, newNode);
 	console.log(diff);

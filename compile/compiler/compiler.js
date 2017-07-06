@@ -30,6 +30,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Compiler = function () {
@@ -56,18 +58,18 @@ var Compiler = function () {
 			// Element
 			var _traversal = function _traversal(node) {
 				var tagName = node.tagName;
+				// TODO: component带有directive
 				if (tagName && ~comNames.indexOf(tagName.toLowerCase())) {
 					return self._parseComponent(node);
 				}
 				self.traversalAttribute(node);
 				// has been remove
-				if (node.nodeType !== 11 && !node.parentNode) return;
+				if (node.nodeType !== 11 && !node.parentNode || node.type == 8) return;
 				if (node.nodeType == 3) {
 					// text node
 					self.parseTextNode(node);
 				} else {
-					var elements = node.childNodes;
-					elements = [].slice.call(elements);
+					var elements = [].concat(_toConsumableArray(node.childNodes));
 					elements.forEach(function (element) {
 						_traversal(element);
 					});

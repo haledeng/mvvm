@@ -242,6 +242,14 @@ const proxyData = (vm, prop) => {
 // empty function
 const noop = () => {};
 
+const copyPrivateAttr = (source, dist, isCopy) => {
+	for (var key in source) {
+		if (isCopy(key)) {
+			dist[key] = source[key];
+		}
+	}
+}
+
 export {
 	trim,
 	isType,
@@ -266,5 +274,6 @@ export {
 	getKeyCodes,
 	getKey,
 	parseNodeAttr2Obj,
-	proxyData
+	proxyData,
+	copyPrivateAttr
 }
